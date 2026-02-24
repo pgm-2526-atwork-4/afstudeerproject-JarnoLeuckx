@@ -3,22 +3,18 @@ import { NavLink } from "react-router-dom";
 export default function Header() {
   return (
     <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
-        {/* Logo */}
-        <a href="/" className="flex items-center gap-3 no-underline">
+      <div className="mx-auto flex max-w-6xl items-center justify-between pl-0 pr-4 py-4">
+       
+        <a href="/" className="flex items-center gap-5 no-underline">
           <img
             src="/image/logo.png"
             alt="Social Drive"
-            className="h-10 w-auto"
+            className="h-32 max-h-32 w-auto object-contain"
           />
-          <span className="font-bold">
-            <span className="text-[#0043A8]">Social </span>
-            <span className="text-[#FDB812]">Drive</span>
-          </span>
         </a>
 
-        {/* Nav */}
-        <nav aria-label="Hoofdnavigatie">
+        
+        <nav aria-label="Hoofdnavigatie" className="flex-2 flex justify-evenly">
           <ul className="flex list-none gap-6">
             <li>
               <NavLink
