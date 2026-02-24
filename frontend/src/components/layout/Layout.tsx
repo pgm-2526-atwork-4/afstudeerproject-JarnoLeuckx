@@ -7,10 +7,17 @@ type Props = {
 
 export default function Layout({ children }: Props) {
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F9F6EF] via-white to-[#EAF2FF]">
+      
       <Header />
-      <main className="min-h-[calc(100vh-120px)]">{children}</main>
+
+      {/* Main groeit automatisch en vult scherm */}
+      <main className="flex-grow">
+        {children}
+      </main>
+
       <Footer />
-    </>
+
+    </div>
   );
 }
