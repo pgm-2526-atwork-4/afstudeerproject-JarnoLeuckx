@@ -1,116 +1,44 @@
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
-import "./App.css";
 
 function App() {
   return (
     <>
       <Header />
 
-      <main
-        style={{
-          minHeight: "100vh",
-          paddingLeft: "1.5rem",
-          paddingRight: "1.5rem",
-          paddingTop: "3rem",
-          paddingBottom: "3rem",
-        }}
-        className="bg-light-gray"
-      >
-        <section
-          style={{
-            maxWidth: "48rem",
-            marginLeft: "auto",
-            marginRight: "auto",
-            textAlign: "center",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "1.875rem",
-              fontWeight: "bold",
-              marginBottom: "0.5rem",
-            }}
-            className="text-primary-blue"
-          >
-            Social <span className="text-accent-yellow">Drive</span>
+      <main className="min-h-screen bg-[#F5F5F5] px-6 py-12">
+        <section className="mx-auto max-w-3xl text-center">
+          <h1 className="mb-2 text-3xl font-bold text-[#0043A8]">
+            Social <span className="text-[#FDB812]">Drive</span>
           </h1>
 
-          <p style={{ marginTop: "0.75rem" }} className="text-dark">
-            Logo kleuren preview
-          </p>
+          <p className="mt-3 text-[#001A3D]">Logo kleuren preview</p>
 
-          <div
-            style={{
-              marginTop: "2rem",
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                color: "white",
-                fontWeight: "600",
-              }}
-              className="bg-primary-blue"
-            >
+          <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4">
+            <div className="rounded-lg bg-[#0043A8] p-4 font-semibold text-white">
               primaryBlue
               <br />
-              <span style={{ fontSize: "0.75rem" }}>#0043A8</span>
+              <span className="text-xs">#0043A8</span>
             </div>
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                fontWeight: "600",
-              }}
-              className="bg-accent-yellow text-dark"
-            >
+            <div className="rounded-lg bg-[#FDB812] p-4 font-semibold text-[#001A3D]">
               accentYellow
               <br />
-              <span style={{ fontSize: "0.75rem" }}>#FDB812</span>
+              <span className="text-xs">#FDB812</span>
             </div>
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                color: "white",
-                fontWeight: "600",
-              }}
-              className="bg-light-blue"
-            >
+            <div className="rounded-lg bg-[#2E8FDB] p-4 font-semibold text-white">
               lightBlue
               <br />
-              <span style={{ fontSize: "0.75rem" }}>#2E8FDB</span>
+              <span className="text-xs">#2E8FDB</span>
             </div>
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                color: "white",
-                fontWeight: "600",
-              }}
-              className="bg-dark"
-            >
+            <div className="rounded-lg bg-[#001A3D] p-4 font-semibold text-white">
               dark
               <br />
-              <span style={{ fontSize: "0.75rem" }}>#001A3D</span>
+              <span className="text-xs">#001A3D</span>
             </div>
-            <div
-              style={{
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                fontWeight: "600",
-                border: "1px solid rgba(0, 26, 61, 0.2)",
-              }}
-              className="bg-light-gray text-dark"
-            >
+            <div className="rounded-lg border border-[#001A3D]/20 bg-[#F5F5F5] p-4 font-semibold text-[#001A3D]">
               lightGray
               <br />
-              <span style={{ fontSize: "0.75rem" }}>#F5F5F5</span>
+              <span className="text-xs">#F5F5F5</span>
             </div>
           </div>
         </section>

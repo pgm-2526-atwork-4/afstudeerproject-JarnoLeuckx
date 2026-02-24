@@ -1,51 +1,34 @@
 import { NavLink } from "react-router-dom";
-import "./Header.css";
 
 export default function Header() {
   return (
-    <header
-      style={{ backgroundColor: "white", borderBottom: "1px solid #e5e7eb" }}
-    >
-      <div
-        style={{
-          maxWidth: "72rem",
-          marginLeft: "auto",
-          marginRight: "auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1rem",
-        }}
-      >
+    <header className="border-b border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
         {/* Logo */}
-        <a
-          href="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            textDecoration: "none",
-          }}
-        >
+        <a href="/" className="flex items-center gap-3 no-underline">
           <img
-            src="./public/image/logo.png"
+            src="/image/logo.png"
             alt="Social Drive"
-            style={{ height: "2.5rem", width: "auto" }}
+            className="h-10 w-auto"
           />
-          <span style={{ fontWeight: "bold" }}>
-            <span className="text-primary-blue">Social </span>
-            <span className="text-accent-yellow">Drive</span>
+          <span className="font-bold">
+            <span className="text-[#0043A8]">Social </span>
+            <span className="text-[#FDB812]">Drive</span>
           </span>
         </a>
 
         {/* Nav */}
         <nav aria-label="Hoofdnavigatie">
-          <ul style={{ display: "flex", gap: "1.5rem", listStyle: "none" }}>
+          <ul className="flex list-none gap-6">
             <li>
               <NavLink
                 to="/"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : "inactive"}`
+                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
+                    isActive
+                      ? "font-semibold text-[#0043A8]"
+                      : "font-medium text-gray-700"
+                  }`
                 }
               >
                 Home
@@ -55,7 +38,11 @@ export default function Header() {
               <NavLink
                 to="/rolstoelvervoer"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : "inactive"}`
+                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
+                    isActive
+                      ? "font-semibold text-[#0043A8]"
+                      : "font-medium text-gray-700"
+                  }`
                 }
               >
                 Rolstoelvervoer
@@ -65,7 +52,11 @@ export default function Header() {
               <NavLink
                 to="/luchthaven"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : "inactive"}`
+                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
+                    isActive
+                      ? "font-semibold text-[#0043A8]"
+                      : "font-medium text-gray-700"
+                  }`
                 }
               >
                 Luchthaven
@@ -75,7 +66,11 @@ export default function Header() {
               <NavLink
                 to="/assistentie"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : "inactive"}`
+                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
+                    isActive
+                      ? "font-semibold text-[#0043A8]"
+                      : "font-medium text-gray-700"
+                  }`
                 }
               >
                 Assistentie
@@ -85,7 +80,11 @@ export default function Header() {
               <NavLink
                 to="/contact"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : "inactive"}`
+                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
+                    isActive
+                      ? "font-semibold text-[#0043A8]"
+                      : "font-medium text-gray-700"
+                  }`
                 }
               >
                 Contact
