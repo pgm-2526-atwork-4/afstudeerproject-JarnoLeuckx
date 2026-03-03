@@ -22,7 +22,7 @@ class RideResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            // ...existing code...
+            
             Forms\Components\Section::make('Rit')
                 ->schema([
                     Forms\Components\Select::make('customer_id')
