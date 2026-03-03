@@ -20,6 +20,48 @@ async function imageUrlToDataUrl(imageUrl: string): Promise<string> {
 }
 
 export async function downloadCustomerContract(user: User) {
+  await generateContractPdf(user);
+}
+
+export async function downloadSignedCustomerContract(
+  user: User,
+  signature: {
+    method: "name" | "draw";
+    signerName: string;
+    signerDate: string;
+    drawnSignatureDataUrl?: string;
+  },
+) {
+  await generateContractPdf(user, {
+    method: signature.method,
+    signerName: signature.signerName,
+    signerDate: signature.signerDate,
+    drawnSignatureDataUrl: signature.drawnSignatureDataUrl,
+    signedAt: `${formatDateForDisplay(signature.signerDate)} ${new Date().toLocaleTimeString(
+      "nl-BE",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+    )}`,
+  });
+}
+
+type SignatureData = {
+  method: "name" | "draw";
+  signerName: string;
+  signerDate: string;
+  signedAt: string;
+  drawnSignatureDataUrl?: string;
+};
+
+function formatDateForDisplay(dateString: string) {
+  const parsed = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return dateString;
+  return parsed.toLocaleDateString("nl-BE");
+}
+
+async function generateContractPdf(user: User, signature?: SignatureData) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
 
   try {
@@ -31,7 +73,7 @@ export async function downloadCustomerContract(user: User) {
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
-  pdf.text("Social Drive - Klantencontract", 15, 42);
+  pdf.text("Social Drive - PVB Klantencontract", 15, 42);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(11);
@@ -52,7 +94,7 @@ export async function downloadCustomerContract(user: User) {
     `VAPH-nummer: ${customerVaphNumber}`,
     "",
     "Voorwerp:",
-    "Dit contract dient als basisdocument voor vervoer via Social Drive.",
+    "Dit PVB-contract dient als basisdocument voor vervoer via Social Drive.",
     "Ritdetails en prijs worden per aanvraag bevestigd.",
     "",
     "Voorwaarden:",
@@ -60,7 +102,7 @@ export async function downloadCustomerContract(user: User) {
     "- Annulatievoorwaarden worden gecommuniceerd bij boeking.",
     "- Social Drive levert de ritten volgens beschikbaarheid en planning.",
     "",
-    "Datum: .......................................................",
+    `Datum: ${signature ? formatDateForDisplay(signature.signerDate) : "......................................................."}`,
     "Handtekening klant: ..........................................",
     "Handtekening Social Drive: ...................................",
   ];
@@ -73,12 +115,51 @@ export async function downloadCustomerContract(user: User) {
     }
   }
 
-  const fileName = `social-drive-contract-${
+  if (signature) {
+    pdf.setDrawColor(16, 185, 129);
+    pdf.roundedRect(15, y + 4, 180, 32, 2, 2);
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.text("Digitaal ondertekend", 20, y + 12);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.text(`Ondertekend op: ${signature.signedAt}`, 20, y + 18);
+
+    if (signature.method === "name") {
+      pdf.text(`Ondertekend door (naam): ${signature.signerName}`, 20, y + 24);
+    } else {
+      pdf.text(
+        `Ondertekend door (tekening): ${signature.signerName}`,
+        20,
+        y + 24,
+      );
+
+      if (signature.drawnSignatureDataUrl) {
+        try {
+          pdf.addImage(
+            signature.drawnSignatureDataUrl,
+            "PNG",
+            120,
+            y + 9,
+            65,
+            20,
+          );
+        } catch (error) {
+          void error;
+        }
+      }
+    }
+  }
+
+  const safeName =
     customerName
       .toLowerCase()
       .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "") || "klant"
-  }.pdf`;
+      .replace(/[^a-z0-9-]/g, "") || "klant";
 
-  pdf.save(fileName);
+  pdf.save(
+    `${signature ? "social-drive-pvb-contract-ondertekend" : "social-drive-pvb-contract"}-${safeName}.pdf`,
+  );
 }

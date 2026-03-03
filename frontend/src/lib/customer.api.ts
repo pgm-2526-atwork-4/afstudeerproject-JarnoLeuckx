@@ -36,8 +36,13 @@ export type CreateCustomerRidePayload = {
   assistance_type?: "luchthaven" | "ziekenhuis";
 };
 
+export type CreateCustomerRideResponse = {
+  message: string;
+  ride: CustomerRide;
+};
+
 export function createCustomerRide(payload: CreateCustomerRidePayload) {
-  return apiFetch<CustomerRide>("/customer/rides", {
+  return apiFetch<CreateCustomerRideResponse>("/customer/rides", {
     method: "POST",
     body: JSON.stringify(payload),
   });

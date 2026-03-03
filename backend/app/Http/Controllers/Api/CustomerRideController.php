@@ -3,7 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Filament\Resources\RideResource;
+use App\Models\DriverAvailability;
 use App\Models\Ride;
+use App\Models\User;
+use Carbon\Carbon;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 
 class CustomerRideController extends Controller
@@ -40,9 +46,16 @@ class CustomerRideController extends Controller
             assistanceType: $data['assistance_type'] ?? null,
         );
 
+        $pickupAt = Carbon::parse($data['pickup_datetime']);
+        $returnAt = isset($data['return_datetime'])
+            ? Carbon::parse($data['return_datetime'])
+            : $pickupAt->copy();
+
+        $assignedDriver = $this->findAvailableDriver($pickupAt, $returnAt);
+
         $ride = Ride::create([
             'customer_id' => $request->user()->id,
-            'driver_id' => null,
+            'driver_id' => $assignedDriver?->id,
             'vehicle_id' => null,
             'service_type' => $data['service_type'],
             'pickup_street' => $data['pickup_street'],
@@ -58,10 +71,83 @@ class CustomerRideController extends Controller
             'notes' => $data['notes'] ?? null,
             'distance_km' => null,
             'total_price' => $price,
-            'status' => 'pending',
+            'status' => $assignedDriver ? 'assigned' : 'pending',
         ]);
 
-        return response()->json($ride, 201);
+        $admins = User::query()
+            ->where('role', 'admin')
+            ->get();
+
+        if ($admins->isNotEmpty()) {
+            Notification::make()
+                ->title('Nieuwe ritaanvraag')
+                ->body($assignedDriver
+                    ? "Nieuwe rit (#{$ride->id}) van {$request->user()->name} is automatisch toegewezen aan {$assignedDriver->name}."
+                    : "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}.")
+                ->icon('heroicon-o-bell-alert')
+                ->actions([
+                    Action::make('view_ride')
+                        ->label('Bekijk rit')
+                        ->url(RideResource::getUrl('edit', ['record' => $ride->id]))
+                        ->button(),
+                ])
+                ->sendToDatabase($admins);
+        }
+
+        if ($assignedDriver) {
+            Notification::make()
+                ->title('Rit automatisch toegewezen')
+                ->body("Je rit (#{$ride->id}) werd automatisch toegewezen aan chauffeur {$assignedDriver->name}.")
+                ->icon('heroicon-o-check-circle')
+                ->sendToDatabase([$request->user()]);
+
+            Notification::make()
+                ->title('Nieuwe toegewezen rit')
+                ->body("Je hebt een nieuwe rit (#{$ride->id}) van klant {$request->user()->name}.")
+                ->icon('heroicon-o-truck')
+                ->sendToDatabase([$assignedDriver]);
+        }
+
+        return response()->json([
+            'message' => $assignedDriver
+                ? "Rit aangevraagd en automatisch toegewezen aan {$assignedDriver->name}."
+                : 'Rit aangevraagd. Er is momenteel geen vrije chauffeur, een admin wijst deze later toe.',
+            'ride' => $ride,
+        ], 201);
+    }
+
+    private function findAvailableDriver(Carbon $pickupAt, Carbon $returnAt): ?User
+    {
+        if (! $pickupAt->isSameDay($returnAt)) {
+            return null;
+        }
+
+        $availableDriverIds = DriverAvailability::query()
+            ->where('status', 'available')
+            ->whereDate('date', $pickupAt->toDateString())
+            ->whereTime('start_time', '<=', $pickupAt->format('H:i:s'))
+            ->whereTime('end_time', '>=', $returnAt->format('H:i:s'))
+            ->pluck('driver_id');
+
+        if ($availableDriverIds->isEmpty()) {
+            return null;
+        }
+
+        return User::query()
+            ->where('role', 'driver')
+            ->where('approval_status', 'approved')
+            ->whereIn('id', $availableDriverIds)
+            ->whereDoesntHave('ridesAsDriver', function ($query) use ($pickupAt, $returnAt) {
+                $query
+                    ->whereNotIn('status', ['cancelled'])
+                    ->where('pickup_datetime', '<=', $returnAt->toDateTimeString())
+                    ->whereRaw(
+                        'COALESCE(return_datetime, pickup_datetime) >= ?',
+                        [$pickupAt->toDateTimeString()]
+                    );
+            })
+            ->orderBy('id')
+            ->first();
     }
 
     private function calculatePrice(string $serviceType, ?string $assistanceType): float

@@ -4,6 +4,8 @@ import DriverTabs from "../components/drivers/DriverTabs";
 import AvailabilityList from "../components/drivers/AvailabilityList";
 import AvailabilityForm from "../components/drivers/AvailabilityForm";
 import RideList from "../components/drivers/RideList";
+import CustomerHeaderBar from "../components/customers/CustomerHeaderBar";
+import { getCurrentUser } from "../auth/auth.api";
 import {
   getMyAvailabilities,
   getMyRides,
@@ -49,53 +51,60 @@ export default function DriverAccountPage() {
     (ride) => ride.status === "completed",
   ).length;
 
+  const currentUser = getCurrentUser();
+  const displayName = currentUser?.name ?? "Gebruiker";
+
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-8">
-      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-black text-slate-900">
-          Account chauffeur
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Beheer je beschikbaarheden en opgegeven ritten.
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <CustomerHeaderBar name={displayName} />
 
-      <DriverStats
-        availabilitiesCount={availabilities.length}
-        ridesPendingCount={ridesPendingCount}
-        ridesAcceptedCount={ridesAcceptedCount}
-        ridesCompletedCount={ridesCompletedCount}
-        activeTab={activeTab}
-        activeRideFilter={activeRideFilter}
-        onSelectAvailabilities={() => {
-          setActiveTab("availabilities");
-          setActiveRideFilter("all");
-        }}
-        onSelectRideFilter={(filter) => {
-          setActiveTab("rides");
-          setActiveRideFilter(filter);
-        }}
-      />
+      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black text-slate-900">
+            Account chauffeur
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Beheer je beschikbaarheden en opgegeven ritten.
+          </p>
+        </div>
 
-      <DriverTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
-      {activeTab === "availabilities" && (
-        <>
-          <AvailabilityForm onCreated={loadData} />
-          <AvailabilityList
-            availabilities={availabilities}
-            onDeleted={loadData}
-          />
-        </>
-      )}
-
-      {activeTab === "rides" && (
-        <RideList
-          rides={rides}
-          statusFilter={activeRideFilter}
-          onAccepted={loadData}
+        <DriverStats
+          availabilitiesCount={availabilities.length}
+          ridesPendingCount={ridesPendingCount}
+          ridesAcceptedCount={ridesAcceptedCount}
+          ridesCompletedCount={ridesCompletedCount}
+          activeTab={activeTab}
+          activeRideFilter={activeRideFilter}
+          onSelectAvailabilities={() => {
+            setActiveTab("availabilities");
+            setActiveRideFilter("all");
+          }}
+          onSelectRideFilter={(filter) => {
+            setActiveTab("rides");
+            setActiveRideFilter(filter);
+          }}
         />
-      )}
+
+        <DriverTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        {activeTab === "availabilities" && (
+          <>
+            <AvailabilityForm onCreated={loadData} />
+            <AvailabilityList
+              availabilities={availabilities}
+              onDeleted={loadData}
+            />
+          </>
+        )}
+
+        {activeTab === "rides" && (
+          <RideList
+            rides={rides}
+            statusFilter={activeRideFilter}
+            onAccepted={loadData}
+          />
+        )}
+      </div>
     </div>
   );
 }

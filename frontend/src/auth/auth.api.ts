@@ -10,6 +10,8 @@ export type User = {
   phone?: string;
   address?: string;
   vaph_number?: string;
+  pvb_contract_signed_at?: string | null;
+  pvb_contract_signer_name?: string | null;
   role: "driver" | "customer" | "admin";
   approval_status?: "pending" | "approved" | "rejected";
 };

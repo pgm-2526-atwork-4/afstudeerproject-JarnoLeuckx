@@ -20,6 +20,10 @@ class User extends Authenticatable
         'phone',
         'address',
         'vaph_number',
+        'pvb_contract_signed_at',
+        'pvb_contract_signer_name',
+        'pvb_contract_signature_method',
+        'pvb_contract_signed_pricing_updated_at',
         'role',
         'approval_status',
     ];
@@ -35,6 +39,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'pvb_contract_signed_at' => 'datetime',
+            'pvb_contract_signed_pricing_updated_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
