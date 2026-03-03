@@ -22,11 +22,16 @@ export default function App() {
         <Route path="/assistentie" element={<Assistentie />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/reserveren" element={<Reserveren />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/driver/login" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<AuthPage mode="login" />} />
+        <Route path="/register" element={<AuthPage mode="register" />} />
+        <Route
+          path="/driver/login"
+          element={<Navigate to="/login" replace />}
+        />
         <Route
           path="/driver/register"
-          element={<Navigate to="/auth" replace />}
+          element={<Navigate to="/register" replace />}
         />
         <Route path="/customer/account" element={<CustomerAccountPage />} />
 

@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login, register, saveAuth } from "./auth.api";
 
-export default function AuthPage() {
+type AuthPageProps = {
+  mode: "login" | "register";
+};
+
+export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -13,7 +17,9 @@ export default function AuthPage() {
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
-  const [registerAddress, setRegisterAddress] = useState("");
+  const [registerStreet, setRegisterStreet] = useState("");
+  const [registerPostalCode, setRegisterPostalCode] = useState("");
+  const [registerCity, setRegisterCity] = useState("");
   const [registerVaphNumber, setRegisterVaphNumber] = useState("");
   const [registerRole, setRegisterRole] = useState<"customer" | "driver">(
     "customer",
@@ -58,12 +64,17 @@ export default function AuthPage() {
     setRegisterSuccess(null);
     setRegisterLoading(true);
 
+    const customerAddress =
+      registerRole === "customer"
+        ? `${registerStreet.trim()}, ${registerPostalCode.trim()} ${registerCity.trim()}`.trim()
+        : undefined;
+
     try {
       const data = await register({
         name: registerName,
         email: registerEmail,
         phone: registerPhone,
-        address: registerRole === "customer" ? registerAddress : undefined,
+        address: customerAddress,
         vaph_number:
           registerRole === "customer" ? registerVaphNumber : undefined,
         role: registerRole,
@@ -75,7 +86,9 @@ export default function AuthPage() {
       setRegisterName("");
       setRegisterEmail("");
       setRegisterPhone("");
-      setRegisterAddress("");
+      setRegisterStreet("");
+      setRegisterPostalCode("");
+      setRegisterCity("");
       setRegisterVaphNumber("");
       setRegisterPassword("");
       setRegisterPasswordConfirmation("");
@@ -93,14 +106,16 @@ export default function AuthPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-3xl font-black text-slate-900">
-          Login & registratie
+          {mode === "login" ? "Inloggen" : "Registreren"}
         </h1>
         <p className="mt-1 text-sm text-slate-600">
-          Log in op je bestaande account of maak een nieuw account aan.
+          {mode === "login"
+            ? "Log in op je bestaande account."
+            : "Maak een nieuw account aan."}
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {mode === "login" ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-extrabold text-slate-900">
             Inloggen
@@ -146,9 +161,19 @@ export default function AuthPage() {
             >
               {loginLoading ? "Bezig..." : "Inloggen"}
             </button>
+
+            <p className="text-sm text-slate-600">
+              Nog geen account?{" "}
+              <Link
+                to="/register"
+                className="font-semibold text-[#0043A8] underline underline-offset-2"
+              >
+                Registreer hier
+              </Link>
+            </p>
           </form>
         </section>
-
+      ) : (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-extrabold text-slate-900">
             Registreren
@@ -221,13 +246,41 @@ export default function AuthPage() {
               <>
                 <label className="grid gap-1">
                   <span className="text-sm font-semibold text-slate-700">
-                    Adres
+                    Straat
                   </span>
                   <input
                     type="text"
                     required
-                    value={registerAddress}
-                    onChange={(event) => setRegisterAddress(event.target.value)}
+                    value={registerStreet}
+                    onChange={(event) => setRegisterStreet(event.target.value)}
+                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
+
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Postcode
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={registerPostalCode}
+                    onChange={(event) =>
+                      setRegisterPostalCode(event.target.value)
+                    }
+                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
+
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Gemeente
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={registerCity}
+                    onChange={(event) => setRegisterCity(event.target.value)}
                     className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
                   />
                 </label>
@@ -285,9 +338,19 @@ export default function AuthPage() {
             >
               {registerLoading ? "Bezig..." : "Account aanmaken"}
             </button>
+
+            <p className="text-sm text-slate-600">
+              Heb je al een account?{" "}
+              <Link
+                to="/login"
+                className="font-semibold text-[#0043A8] underline underline-offset-2"
+              >
+                Log hier in
+              </Link>
+            </p>
           </form>
         </section>
-      </div>
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ export default function CustomerHeaderBar({ name }: Props) {
 
   async function handleLogout() {
     await logout();
-    navigate("/auth");
+    navigate("/login");
   }
 
   return (

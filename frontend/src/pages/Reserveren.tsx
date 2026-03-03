@@ -186,7 +186,7 @@ export default function ReserverenPage() {
                 <p>Dit lijkt je eerste rit. Wil je een account aanmaken?</p>
                 <div className="mt-2">
                   <Link
-                    to="/auth"
+                    to="/register"
                     className="font-semibold underline underline-offset-2"
                   >
                     Ja, account aanmaken
