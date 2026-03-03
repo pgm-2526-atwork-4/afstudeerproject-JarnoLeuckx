@@ -13,5 +13,9 @@ use_dns_when_possible: true
 composer_version: "2"
 web_environment: []
 corepack_enable: false
+
+#vastzetten vn poorten
+
+https_port: "3021"
 host_webserver_port: "3020"
-host_https_port: "3022"
+host_db_port: "3022"
