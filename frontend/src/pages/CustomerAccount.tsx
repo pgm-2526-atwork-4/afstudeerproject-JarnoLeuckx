@@ -46,6 +46,10 @@ export default function CustomerAccountPage() {
   const [signatureDate, setSignatureDate] = useState(todayAsInputDate());
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [contractError, setContractError] = useState<string | null>(null);
+  const [hasSignedContract, setHasSignedContract] = useState(
+    Boolean(currentUser?.pvb_contract_signed_at),
+  );
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
 
   async function loadData() {
@@ -85,7 +89,9 @@ export default function CustomerAccountPage() {
     const cleanName = signatureName.trim();
 
     if (!acceptedTerms) {
-      setContractError("Bevestig eerst dat je akkoord gaat met het contract.");
+      setContractError(
+        "Bevestig eerst dat je akkoord gaat met het PVB-contact.",
+      );
       return;
     }
 
@@ -105,14 +111,13 @@ export default function CustomerAccountPage() {
     if (signatureMethod === "draw") {
       signerName = currentUser.name ?? cleanName;
 
-      if (!signatureCanvasRef.current || signatureCanvasRef.current.isEmpty()) {
+      if (!signatureCanvasRef.current || !hasDrawnSignature) {
         setContractError("Plaats eerst je handtekening in het tekenvak.");
         return;
       }
 
-      drawnSignatureDataUrl = signatureCanvasRef.current
-        .getTrimmedCanvas()
-        .toDataURL("image/png");
+      const trimmedCanvas = signatureCanvasRef.current.getTrimmedCanvas();
+      drawnSignatureDataUrl = trimmedCanvas.toDataURL("image/png");
     }
 
     setContractError(null);
@@ -125,6 +130,7 @@ export default function CustomerAccountPage() {
         signerDate: signatureDate,
         drawnSignatureDataUrl,
       });
+      setHasSignedContract(true);
       setIsContractModalOpen(false);
     } catch (err) {
       const message =
@@ -179,18 +185,27 @@ export default function CustomerAccountPage() {
               </button>
               <button
                 type="button"
+                disabled={hasSignedContract}
                 onClick={() => {
                   setSignatureName(currentUser?.name ?? "");
                   setSignatureMethod("draw");
                   setSignatureDate(todayAsInputDate());
                   setAcceptedTerms(false);
                   setContractError(null);
+                  setHasDrawnSignature(false);
                   signatureCanvasRef.current?.clear();
                   setIsContractModalOpen(true);
                 }}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-slate-400"
+                className={[
+                  "rounded-lg px-4 py-2 text-sm font-bold transition",
+                  hasSignedContract
+                    ? "cursor-not-allowed border border-slate-200 bg-slate-200 text-slate-500"
+                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-400",
+                ].join(" ")}
               >
-                PVB-contract nakijken
+                {hasSignedContract
+                  ? "PVB-contact ondertekend"
+                  : "PVB-contact ondertekenen"}
               </button>
             </div>
           </div>
@@ -212,7 +227,7 @@ export default function CustomerAccountPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
           <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
             <h2 className="text-2xl font-black text-slate-900">
-              PVB-contract nakijken & ondertekenen
+              PVB-contact nakijken & ondertekenen
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               Controleer je gegevens en onderteken digitaal indien alles correct
@@ -262,7 +277,10 @@ export default function CustomerAccountPage() {
                     type="radio"
                     name="signature_method"
                     checked={signatureMethod === "draw"}
-                    onChange={() => setSignatureMethod("draw")}
+                    onChange={() => {
+                      setSignatureMethod("draw");
+                      setContractError(null);
+                    }}
                     className="h-4 w-4 accent-[color:var(--accent)]"
                   />
                   Handtekening tekenen
@@ -272,7 +290,10 @@ export default function CustomerAccountPage() {
                     type="radio"
                     name="signature_method"
                     checked={signatureMethod === "name"}
-                    onChange={() => setSignatureMethod("name")}
+                    onChange={() => {
+                      setSignatureMethod("name");
+                      setContractError(null);
+                    }}
                     className="h-4 w-4 accent-[color:var(--accent)]"
                   />
                   Ondertekenen met naam
@@ -289,6 +310,10 @@ export default function CustomerAccountPage() {
                   <SignatureCanvas
                     ref={signatureCanvasRef}
                     penColor="black"
+                    onBegin={() => {
+                      setHasDrawnSignature(true);
+                      setContractError(null);
+                    }}
                     canvasProps={{
                       width: 700,
                       height: 180,
@@ -299,7 +324,10 @@ export default function CustomerAccountPage() {
                 <div className="mt-2 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => signatureCanvasRef.current?.clear()}
+                    onClick={() => {
+                      signatureCanvasRef.current?.clear();
+                      setHasDrawnSignature(false);
+                    }}
                     className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-400"
                   >
                     Wissen
@@ -328,7 +356,7 @@ export default function CustomerAccountPage() {
                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                 className="h-4 w-4 accent-[color:var(--accent)]"
               />
-              Ik heb het PVB-contract nagekeken en ga akkoord met de inhoud.
+              Ik heb het PVB-contact nagekeken en ga akkoord met de inhoud.
             </label>
 
             {contractError && (

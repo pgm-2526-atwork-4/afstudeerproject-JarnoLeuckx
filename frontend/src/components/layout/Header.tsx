@@ -91,7 +91,7 @@ export default function Header() {
           <img
             src="/image/logo.png"
             alt="Social Drive"
-            className="h-32 max-h-32 w-auto object-contain"
+            className="h-20 w-auto shrink-0 object-contain"
           />
         </a>
 
