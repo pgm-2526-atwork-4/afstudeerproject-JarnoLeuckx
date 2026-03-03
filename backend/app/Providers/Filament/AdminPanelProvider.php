@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\DashboardStats;
+use App\Filament\Widgets\RecentRides;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,8 +29,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Social Drive')
+            ->brandLogo(asset('logo.png'))
+            ->favicon(asset('logo.png'))
+            ->brandLogoHeight('3rem')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
+                'warning' => Color::Amber,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -37,6 +44,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                DashboardStats::class,
+                RecentRides::class,
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
             ])

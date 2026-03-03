@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+
 use App\Filament\Resources\RideResource\Pages;
 use App\Models\Ride;
 use Filament\Forms;
@@ -13,12 +14,15 @@ use Filament\Tables\Table;
 class RideResource extends Resource
 {
     protected static ?string $model = Ride::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-map';
+    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static ?string $navigationLabel = 'Ritten';
+    protected static ?string $pluralLabel = 'Ritten';
+    protected static ?string $label = 'Rit';
 
     public static function form(Form $form): Form
     {
         return $form->schema([
+            // ...existing code...
             Forms\Components\Section::make('Rit')
                 ->schema([
                     Forms\Components\Select::make('customer_id')
@@ -27,21 +31,18 @@ class RideResource extends Resource
                         ->searchable()
                         ->preload()
                         ->required(),
-
                     Forms\Components\Select::make('driver_id')
                         ->label('Chauffeur')
                         ->relationship('driver', 'email')
                         ->searchable()
                         ->preload()
                         ->nullable(),
-
                     Forms\Components\Select::make('vehicle_id')
                         ->label('Voertuig')
                         ->relationship('vehicle', 'license_plate')
                         ->searchable()
                         ->preload()
                         ->nullable(),
-
                     Forms\Components\Select::make('status')
                         ->label('Status')
                         ->options([
@@ -54,7 +55,6 @@ class RideResource extends Resource
                         ])
                         ->default('pending')
                         ->required(),
-
                     Forms\Components\Select::make('service_type')
                         ->label('Dienst')
                         ->options([
@@ -64,14 +64,12 @@ class RideResource extends Resource
                             'assistance' => 'Assistentie',
                         ])
                         ->required(),
-
                     Forms\Components\DateTimePicker::make('pickup_datetime')
                         ->label('Ophaal datum & tijd')
                         ->seconds(false)
                         ->required(),
                 ])
                 ->columns(2),
-
             Forms\Components\Section::make('Ophaaladres')
                 ->schema([
                     Forms\Components\TextInput::make('pickup_street')->label('Straat')->required(),
@@ -80,7 +78,6 @@ class RideResource extends Resource
                     Forms\Components\TextInput::make('pickup_city')->label('Stad')->required(),
                 ])
                 ->columns(4),
-
             Forms\Components\Section::make('Afzetadres')
                 ->schema([
                     Forms\Components\TextInput::make('dropoff_street')->label('Straat')->required(),
@@ -89,7 +86,6 @@ class RideResource extends Resource
                     Forms\Components\TextInput::make('dropoff_city')->label('Stad')->required(),
                 ])
                 ->columns(4),
-
             Forms\Components\Section::make('Prijs & extra')
                 ->schema([
                     Forms\Components\TextInput::make('distance_km')->label('Afstand (km)')->numeric()->nullable(),
@@ -111,7 +107,19 @@ class RideResource extends Resource
                 Tables\Columns\TextColumn::make('pickup_city')->label('Van')->sortable(),
                 Tables\Columns\TextColumn::make('dropoff_city')->label('Naar')->sortable(),
                 Tables\Columns\TextColumn::make('pickup_datetime')->label('Datum')->dateTime('d/m/Y H:i')->sortable(),
-                Tables\Columns\TextColumn::make('status')->label('Status')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn ($record) => match ($record->status) {
+                        'pending' => 'warning',
+                        'assigned' => 'info',
+                        'accepted' => 'primary',
+                        'in_progress' => 'success',
+                        'completed' => 'gray',
+                        'cancelled' => 'danger',
+                        default => 'secondary',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_price')->label('Prijs')->money('EUR')->toggleable(),
             ])
             ->filters([
