@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'role',
     ];
 
     /**
@@ -45,4 +47,32 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+   public function ridesAsCustomer()
+    {
+        return $this->hasMany(Ride::class, 'customer_id', 'id');
+    }
+
+    
+    public function ridesAsDriver()
+    {
+        return $this->hasMany(Ride::class, 'driver_id', 'id');
+    }
+
+    
+    public function availabilities()
+    {
+        return $this->hasMany(DriverAvailability::class, 'driver_id', 'id');
+    }
+
+    public function vehicles()
+    {
+        return $this->belongsToMany(
+            Vehicle::class,
+            'driver_vehicle_assignments',
+            'driver_id',
+            'vehicle_id'
+        )->withPivot(['starts_at', 'ends_at'])
+         ->withTimestamps();
+    }
+
 }
