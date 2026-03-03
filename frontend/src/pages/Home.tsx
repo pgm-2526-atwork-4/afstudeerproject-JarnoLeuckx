@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Plane, Accessibility, Users } from "lucide-react";
-import { Card, CardContent } from "../components/ui/Card";
+import { Card, CardContent } from "../components/ui/card";
 
 type Service = {
   title: string;

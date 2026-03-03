@@ -39,6 +39,7 @@ type SubjectOption =
   | ""
   | "algemeen"
   | "boeking"
+  | "offerte"
   | "klacht"
   | "compliment"
   | "prijzen"
@@ -160,6 +161,7 @@ export default function ContactPage() {
                   </option>
                   <option value="algemeen">Algemene vraag</option>
                   <option value="boeking">Boeking wijzigen</option>
+                  <option value="offerte">Offerte aanvragen</option>
                   <option value="klacht">Klacht</option>
                   <option value="compliment">Compliment</option>
                   <option value="prijzen">Prijsinformatie</option>

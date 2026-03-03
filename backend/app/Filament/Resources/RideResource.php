@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RideResource\Pages;
 use App\Models\Ride;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -33,7 +34,13 @@ class RideResource extends Resource
                         ->required(),
                     Forms\Components\Select::make('driver_id')
                         ->label('Chauffeur')
-                        ->relationship('driver', 'email')
+                        ->relationship(
+                            'driver',
+                            'email',
+                            modifyQueryUsing: fn (Builder $query) => $query
+                                ->where('role', 'driver')
+                                ->where('approval_status', 'approved')
+                        )
                         ->searchable()
                         ->preload()
                         ->nullable(),

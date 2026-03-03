@@ -20,6 +20,7 @@ class Ride extends Model
         'dropoff_postcode',
         'dropoff_city',
         'pickup_datetime',
+        'return_datetime',
         'notes',
         'distance_km',
         'total_price',
@@ -28,6 +29,7 @@ class Ride extends Model
 
     protected $casts = [
         'pickup_datetime' => 'datetime',
+        'return_datetime' => 'datetime',
         'distance_km' => 'integer',
         'total_price' => 'decimal:2',
     ];

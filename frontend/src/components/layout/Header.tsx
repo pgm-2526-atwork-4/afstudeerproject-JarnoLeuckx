@@ -1,6 +1,31 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { getCurrentUser, onAuthChanged, type User } from "../../auth/auth.api";
 
 export default function Header() {
+  const [user, setUser] = useState<User | null>(() => getCurrentUser());
+
+  const accountPath =
+    user?.role === "driver"
+      ? "/driver/account"
+      : user?.role === "customer"
+        ? "/customer/account"
+        : "/auth";
+
+  useEffect(() => {
+    const sync = () => {
+      setUser(getCurrentUser());
+    };
+
+    const offAuthChanged = onAuthChanged(sync);
+    window.addEventListener("storage", sync);
+
+    return () => {
+      offAuthChanged();
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
   return (
     <header className="border-b border-[#D7E3F7] bg-[linear-gradient(90deg,#FFFFFF_0%,#F2F7FF_50%,#FFFFFF_100%)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between pl-0 pr-4 py-4">
@@ -14,20 +39,6 @@ export default function Header() {
 
         <nav aria-label="Hoofdnavigatie" className="flex-2 flex justify-evenly">
           <ul className="flex list-none gap-6">
-            <li>
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
-                    isActive
-                      ? "font-semibold text-[#0043A8]"
-                      : "font-medium text-gray-700"
-                  }`
-                }
-              >
-                Home
-              </NavLink>
-            </li>
             <li>
               <NavLink
                 to="/rolstoelvervoer"
@@ -83,6 +94,35 @@ export default function Header() {
               >
                 Contact
               </NavLink>
+            </li>
+            <li>
+              {!user ? (
+                <NavLink
+                  to="/auth"
+                  className={({ isActive }) =>
+                    `rounded-full px-4 py-2 text-sm transition-all border border-[#0043A8] ${
+                      isActive
+                        ? "font-semibold bg-[#0043A8] text-white"
+                        : "font-semibold text-[#0043A8] hover:bg-[#EAF3FF]"
+                    }`
+                  }
+                >
+                  Login
+                </NavLink>
+              ) : (
+                <NavLink
+                  to={accountPath}
+                  className={({ isActive }) =>
+                    `rounded-full px-4 py-2 text-sm transition-all border border-[#0043A8] ${
+                      isActive
+                        ? "font-semibold bg-[#0043A8] text-white"
+                        : "font-semibold text-[#0043A8] hover:bg-[#EAF3FF]"
+                    }`
+                  }
+                >
+                  Mijn account
+                </NavLink>
+              )}
             </li>
           </ul>
         </nav>

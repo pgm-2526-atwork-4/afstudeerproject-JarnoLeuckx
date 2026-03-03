@@ -18,7 +18,10 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'address',
+        'vaph_number',
         'role',
+        'approval_status',
     ];
 
    

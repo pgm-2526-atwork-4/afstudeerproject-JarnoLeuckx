@@ -1,12 +1,16 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 
 import { Home } from "./pages/Home";
 import Rolstoelvervoer from "./pages/Rolstoelvervoer";
-import {LuchthavenVervoer} from "./pages/Luchthavenvervoer";
+import { LuchthavenVervoer } from "./pages/Luchthavenvervoer";
 import Assistentie from "./pages/Assistentie";
 import Contact from "./pages/Contact";
 import Reserveren from "./pages/Reserveren";
+import AuthPage from "./auth/AuthPage";
+
+import DriverAccountPage from "./pages/DriverAccount"; // 👈 toevoegen
+import CustomerAccountPage from "./pages/CustomerAccount";
 
 export default function App() {
   return (
@@ -18,6 +22,16 @@ export default function App() {
         <Route path="/assistentie" element={<Assistentie />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/reserveren" element={<Reserveren />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/driver/login" element={<Navigate to="/auth" replace />} />
+        <Route
+          path="/driver/register"
+          element={<Navigate to="/auth" replace />}
+        />
+        <Route path="/customer/account" element={<CustomerAccountPage />} />
+
+        {/* 👇 NIEUWE ROUTE */}
+        <Route path="/driver/account" element={<DriverAccountPage />} />
       </Routes>
     </Layout>
   );
