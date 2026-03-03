@@ -2,47 +2,92 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+   
     protected $fillable = [
         'name',
         'email',
         'password',
+        'phone',
+        'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+   
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+  
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    
+
+    
+    public function ridesAsCustomer()
+    {
+        return $this->hasMany(Ride::class, 'customer_id', 'id');
+    }
+
+   
+    public function ridesAsDriver()
+    {
+        return $this->hasMany(Ride::class, 'driver_id', 'id');
+    }
+
+    public function availabilities()
+    {
+        return $this->hasMany(DriverAvailability::class, 'driver_id', 'id');
+    }
+
+    public function vehicles()
+    {
+        return $this->belongsToMany(
+            Vehicle::class,
+            'driver_vehicle_assignments',
+            'driver_id',
+            'vehicle_id'
+        )
+        ->withPivot(['starts_at', 'ends_at'])
+        ->withTimestamps();
+    }
+
+    
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin();
     }
 }

@@ -19,7 +19,8 @@ type HowItWorksStep = {
 const SERVICES: Service[] = [
   {
     title: "Luchthaven vervoer",
-    description: "Comfortabel en betrouwbaar vervoer naar en van de luchthaven.",
+    description:
+      "Comfortabel en betrouwbaar vervoer naar en van de luchthaven.",
     icon: Plane,
     link: "/luchthavenvervoer",
   },
