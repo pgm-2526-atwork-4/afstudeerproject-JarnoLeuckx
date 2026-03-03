@@ -74,5 +74,9 @@ class User extends Authenticatable
         )->withPivot(['starts_at', 'ends_at'])
          ->withTimestamps();
     }
+    public function canAccessPanel(\Filament\Panel $panel): bool
+{
+    return $this->role === 'admin';
+}
 
 }
