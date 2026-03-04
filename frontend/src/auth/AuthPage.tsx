@@ -191,145 +191,174 @@ export default function AuthPage({ mode }: AuthPageProps) {
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="grid gap-4">
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">Naam</span>
-              <input
-                type="text"
-                required
-                value={registerName}
-                onChange={(event) => setRegisterName(event.target.value)}
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              />
-            </label>
+          <form onSubmit={handleRegister} className="grid gap-5">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
+                Persoonlijke gegevens
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-1 md:col-span-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Naam
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={registerName}
+                    onChange={(event) => setRegisterName(event.target.value)}
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
 
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">
-                E-mail
-              </span>
-              <input
-                type="email"
-                required
-                value={registerEmail}
-                onChange={(event) => setRegisterEmail(event.target.value)}
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              />
-            </label>
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    E-mail
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    value={registerEmail}
+                    onChange={(event) => setRegisterEmail(event.target.value)}
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
 
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">
-                Telefoon
-              </span>
-              <input
-                type="tel"
-                value={registerPhone}
-                onChange={(event) => setRegisterPhone(event.target.value)}
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              />
-            </label>
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Telefoon
+                  </span>
+                  <input
+                    type="tel"
+                    value={registerPhone}
+                    onChange={(event) => setRegisterPhone(event.target.value)}
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
 
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">Rol</span>
-              <select
-                value={registerRole}
-                onChange={(event) =>
-                  setRegisterRole(event.target.value as "customer" | "driver")
-                }
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              >
-                <option value="customer">Klant</option>
-                <option value="driver">Chauffeur</option>
-              </select>
-            </label>
+                <label className="grid gap-1 md:col-span-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Rol
+                  </span>
+                  <select
+                    value={registerRole}
+                    onChange={(event) =>
+                      setRegisterRole(
+                        event.target.value as "customer" | "driver",
+                      )
+                    }
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  >
+                    <option value="customer">Klant</option>
+                    <option value="driver">Chauffeur</option>
+                  </select>
+                </label>
+              </div>
+            </div>
 
             {registerRole === "customer" && (
-              <>
-                <label className="grid gap-1">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Straat
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={registerStreet}
-                    onChange={(event) => setRegisterStreet(event.target.value)}
-                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-                  />
-                </label>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
+                  Adresgegevens
+                </h3>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <label className="grid gap-1 md:col-span-3">
+                    <span className="text-sm font-semibold text-slate-700">
+                      Straat
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={registerStreet}
+                      onChange={(event) =>
+                        setRegisterStreet(event.target.value)
+                      }
+                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                    />
+                  </label>
 
-                <label className="grid gap-1">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Postcode
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={registerPostalCode}
-                    onChange={(event) =>
-                      setRegisterPostalCode(event.target.value)
-                    }
-                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-                  />
-                </label>
+                  <label className="grid gap-1">
+                    <span className="text-sm font-semibold text-slate-700">
+                      Postcode
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={registerPostalCode}
+                      onChange={(event) =>
+                        setRegisterPostalCode(event.target.value)
+                      }
+                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                    />
+                  </label>
 
-                <label className="grid gap-1">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Gemeente
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={registerCity}
-                    onChange={(event) => setRegisterCity(event.target.value)}
-                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-                  />
-                </label>
+                  <label className="grid gap-1 md:col-span-2">
+                    <span className="text-sm font-semibold text-slate-700">
+                      Gemeente
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={registerCity}
+                      onChange={(event) => setRegisterCity(event.target.value)}
+                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                    />
+                  </label>
 
-                <label className="grid gap-1">
-                  <span className="text-sm font-semibold text-slate-700">
-                    VAPH-nummer
-                  </span>
-                  <input
-                    type="text"
-                    value={registerVaphNumber}
-                    onChange={(event) =>
-                      setRegisterVaphNumber(event.target.value)
-                    }
-                    className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-                  />
-                </label>
-              </>
+                  <label className="grid gap-1 md:col-span-3">
+                    <span className="text-sm font-semibold text-slate-700">
+                      VAPH-nummer
+                    </span>
+                    <input
+                      type="text"
+                      value={registerVaphNumber}
+                      onChange={(event) =>
+                        setRegisterVaphNumber(event.target.value)
+                      }
+                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                    />
+                  </label>
+                </div>
+              </div>
             )}
 
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">
-                Wachtwoord
-              </span>
-              <input
-                type="password"
-                minLength={8}
-                required
-                value={registerPassword}
-                onChange={(event) => setRegisterPassword(event.target.value)}
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              />
-            </label>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
+                Account beveiliging
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Wachtwoord
+                  </span>
+                  <input
+                    type="password"
+                    minLength={8}
+                    required
+                    value={registerPassword}
+                    onChange={(event) =>
+                      setRegisterPassword(event.target.value)
+                    }
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
 
-            <label className="grid gap-1">
-              <span className="text-sm font-semibold text-slate-700">
-                Herhaal wachtwoord
-              </span>
-              <input
-                type="password"
-                minLength={8}
-                required
-                value={registerPasswordConfirmation}
-                onChange={(event) =>
-                  setRegisterPasswordConfirmation(event.target.value)
-                }
-                className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
-              />
-            </label>
+                <label className="grid gap-1">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Herhaal wachtwoord
+                  </span>
+                  <input
+                    type="password"
+                    minLength={8}
+                    required
+                    value={registerPasswordConfirmation}
+                    onChange={(event) =>
+                      setRegisterPasswordConfirmation(event.target.value)
+                    }
+                    className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                  />
+                </label>
+              </div>
+            </div>
 
             <button
               type="submit"
