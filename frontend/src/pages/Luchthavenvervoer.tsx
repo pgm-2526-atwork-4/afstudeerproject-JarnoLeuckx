@@ -1,12 +1,18 @@
 import { useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { Plane, Check } from "lucide-react";
 
 export function LuchthavenVervoer() {
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [assistentie, setAssistentie] = useState<"nee" | "ja">("nee");
   const [assistentieType, setAssistentieType] = useState<"" | "bagage">("");
+  const [departureDate, setDepartureDate] = useState("");
+  const [returnTripDate, setReturnTripDate] = useState("");
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const features: string[] = [
     "Op tijd voor uw vlucht",
@@ -18,16 +24,14 @@ export function LuchthavenVervoer() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFE8D1] via-white to-[#E3F2FF]">
+    <div className="page-modern">
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 shadow-sm">
-            <Plane className="h-9 w-9 text-primary" />
+          <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
+            <Plane className="h-9 w-9 text-[#0043A8]" />
           </div>
-          <h1 className="text-4xl font-bold text-primary mb-4">
-            Luchthaven vervoer
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="section-title mb-4">Luchthaven vervoer</h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Betrouwbaar en comfortabel vervoer naar en van alle luchthavens. Wij
             zorgen ervoor dat u op tijd aankomt.
           </p>
@@ -35,24 +39,24 @@ export function LuchthavenVervoer() {
 
         <div className="grid md:grid-cols-2 gap-12">
           <div>
-            <div className="bg-gradient-to-br from-[#FFE8D1] to-[#FFEAC2] rounded-2xl p-8 mb-8 shadow-md border border-white/60">
-              <h2 className="text-2xl font-semibold text-primary mb-6">
+            <div className="surface-card-strong p-8 mb-8">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Waarom kiezen voor ons?
               </h2>
 
               <ul className="space-y-4">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-accent" />
-                    <span className="text-gray-700">{feature}</span>
+                    <Check className="w-5 h-5 text-[#0043A8]" />
+                    <span className="text-slate-700">{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          <div className="bg-white/95 rounded-2xl p-8 shadow-md border border-primary/15">
-            <h2 className="text-2xl font-semibold text-primary mb-6">
+          <div className="surface-card-strong p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
             </h2>
 
@@ -112,7 +116,13 @@ export function LuchthavenVervoer() {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input id="vertrekdatum" label="Datum" type="date" />
+                  <CalendarDateField
+                    id="vertrekdatum"
+                    label="Datum"
+                    value={departureDate}
+                    onChange={setDepartureDate}
+                    minDate={minDate}
+                  />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
               </div>
@@ -145,10 +155,12 @@ export function LuchthavenVervoer() {
                       Terugreis details
                     </p>
 
-                    <Input
+                    <CalendarDateField
                       id="terugreis_datum"
                       label="Terugreis datum"
-                      type="date"
+                      value={returnTripDate}
+                      onChange={setReturnTripDate}
+                      minDate={departureDate || minDate}
                     />
 
                     <div className="mt-4">
@@ -216,24 +228,24 @@ export function LuchthavenVervoer() {
                       type="button"
                       onClick={() => setAssistentieType("bagage")}
                       className={[
-                        "w-full rounded-lg border px-4 py-3 text-left text-sm transition",
+                        "w-full rounded-xl border px-4 py-3 text-left text-sm transition",
                         assistentieType === "bagage"
-                          ? "border-primary bg-white shadow-sm"
-                          : "border-secondary/20 bg-white/60 hover:bg-white",
+                          ? "border-[#0043A8] bg-[#EAF3FF] shadow-sm"
+                          : "border-slate-300 bg-white hover:bg-slate-50",
                       ].join(" ")}
                     >
-                      <span className="block font-semibold text-primary">
+                      <span className="block font-semibold text-slate-900">
                         Hulp met bagage
                       </span>
-                      <span className="block text-gray-800">
+                      <span className="block text-slate-600">
                         Ondersteuning bij laden en uit-/instappen.
                       </span>
                     </button>
 
-                    <div className="mt-4 rounded-lg bg-white/70 p-4 text-sm text-gray-900 border border-secondary/20">
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                       {assistentieType === "bagage" ? (
                         <>
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-slate-900">
                             Bagage assistentie:
                           </span>{" "}
                           Onze chauffeur helpt u met in- en uitstappen en
@@ -241,7 +253,7 @@ export function LuchthavenVervoer() {
                         </>
                       ) : (
                         <>
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-slate-900">
                             Tip:
                           </span>{" "}
                           Selecteer het gewenste type assistentie.
@@ -252,16 +264,18 @@ export function LuchthavenVervoer() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 text-primary">Ritinformatie</h4>
+              <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
+                <h4 className="mb-2 font-semibold text-slate-900">
+                  Ritinformatie
+                </h4>
 
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-slate-600">
                   Afstand en prijs worden hier automatisch berekend.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="accent">Boek nu</Button>
+                <Button variant="primary">Boek nu</Button>
 
                 <Button variant="outline">Offerte aanvragen</Button>
               </div>

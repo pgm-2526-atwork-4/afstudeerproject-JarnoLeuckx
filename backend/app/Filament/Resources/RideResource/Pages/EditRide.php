@@ -9,6 +9,15 @@ class EditRide extends EditRecord
 {
     protected static string $resource = \App\Filament\Resources\RideResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! empty($data['driver_id']) && (($data['status'] ?? 'pending') === 'pending')) {
+            $data['status'] = 'assigned';
+        }
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -1,0 +1,19 @@
+SOCIAL DRIVE - VOORBEELD CONTRACT
+
+Dit document is een voorbeeldcontract voor vervoersdiensten.
+
+Partijen:
+- Klant: ........................................
+- Dienstverlener: Social Drive
+
+Voorwerp:
+- Levering van personenvervoer volgens afgesproken ritgegevens.
+
+Belangrijk:
+- Ritdetails en prijs worden bevestigd bij aanvraag.
+- Annulatievoorwaarden worden per rit gecommuniceerd.
+- Dit voorbeeld dient als downloadbare template en kan later juridisch worden uitgebreid.
+
+Datum: ........................................
+Handtekening klant: ...........................
+Handtekening Social Drive: ....................

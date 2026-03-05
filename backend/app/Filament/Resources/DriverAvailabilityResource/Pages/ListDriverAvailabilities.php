@@ -13,6 +13,11 @@ class ListDriverAvailabilities extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('calendar')
+                ->label('Kalenderweergave')
+                ->icon('heroicon-o-calendar-days')
+                ->color('gray')
+                ->url(DriverAvailabilityResource::getUrl('index')),
             Actions\CreateAction::make(),
         ];
     }

@@ -10,7 +10,7 @@ export function Input({ label, id, className = "", ...props }: InputProps) {
       {label && (
         <label
           htmlFor={id}
-          className="block text-sm font-medium text-primary mb-2"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600"
         >
           {label}
         </label>
@@ -21,12 +21,13 @@ export function Input({ label, id, className = "", ...props }: InputProps) {
         className={`
           w-full
           rounded-xl
-          border border-primary/20
+          border border-slate-300 bg-white
           px-4 py-3
           focus:outline-none
           focus:ring-2
-          focus:ring-primary
-          transition
+          focus:ring-[#0043A8]/30
+          focus:border-[#0043A8]
+          transition-all
           ${className}
         `}
         {...props}

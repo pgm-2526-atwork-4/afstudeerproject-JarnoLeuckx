@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { Users, UserCircle, Heart, Calendar } from "lucide-react";
 
 type Feature = {
@@ -97,6 +98,9 @@ export default function Assistentie() {
     }
   }, [formData.assistentieType]);
 
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
   const toggleHulpbehoefte = (optie: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -107,17 +111,17 @@ export default function Assistentie() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F9F6EF] via-white to-[#E8F4FF]">
+    <div className="page-modern">
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 shadow-sm">
-            <Users className="h-9 w-9 text-primary" />
+          <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
+            <Users className="h-9 w-9 text-[#0043A8]" />
           </div>
 
-          <h1 className="text-4xl font-bold text-primary mb-4">Assistentie</h1>
+          <h1 className="section-title mb-4">Assistentie</h1>
 
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Extra ondersteuning en begeleiding tijdens uw reis. We zorgen dat u
             zich veilig en comfortabel voelt onderweg.
           </p>
@@ -125,26 +129,21 @@ export default function Assistentie() {
 
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {FEATURES.map((feature, i) => {
-            const colors = [
-              "from-[#FFE8D1] to-[#FFEAC2]",
-              "from-[#D1E8FF] to-[#E3F2FF]",
-              "from-[#E8D1FF] to-[#F5E3FF]",
-            ];
+          {FEATURES.map((feature) => {
             return (
               <div
                 key={feature.title}
-                className={`bg-gradient-to-br ${colors[i % colors.length]} rounded-2xl p-8 text-center shadow-md border border-white/60 hover:shadow-lg transition-all`}
+                className="surface-card-strong p-8 text-center transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 shadow-sm">
-                  <feature.icon className="h-7 w-7 text-primary" />
+                <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
+                  <feature.icon className="h-7 w-7 text-[#0043A8]" />
                 </div>
 
-                <h3 className="text-xl font-semibold text-primary mb-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
                   {feature.title}
                 </h3>
 
-                <p className="text-gray-800 leading-relaxed">
+                <p className="text-slate-600 leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -155,12 +154,12 @@ export default function Assistentie() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Info Section */}
           <div>
-            <div className="bg-white/95 rounded-2xl p-8 mb-8 shadow-md border border-primary/15">
-              <h2 className="text-2xl font-semibold text-primary mb-6">
+            <div className="surface-card-strong p-8 mb-8">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Wanneer assistentie?
               </h2>
 
-              <div className="space-y-4 text-gray-800 leading-relaxed">
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   Onze assistentieservice is er voor mensen die extra
                   ondersteuning nodig hebben tijdens het reizen, bijvoorbeeld
@@ -178,7 +177,7 @@ export default function Assistentie() {
               </div>
             </div>
 
-            <div className="bg-primary text-white rounded-2xl p-8 shadow-md border border-primary/10">
+            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-8 text-white shadow-md">
               <h3 className="text-xl font-semibold mb-4">
                 Wat mag u verwachten?
               </h3>
@@ -204,8 +203,8 @@ export default function Assistentie() {
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-2xl p-8 shadow-md border border-primary/10">
-            <h2 className="text-2xl font-semibold text-primary mb-6">
+          <div className="surface-card-strong p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Vraag assistentie aan
             </h2>
 
@@ -255,14 +254,14 @@ export default function Assistentie() {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
+                <CalendarDateField
                   id="datum"
                   label="Gewenste datum"
-                  type="date"
                   value={formData.datum}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, datum: e.target.value }))
+                  onChange={(value) =>
+                    setFormData((p) => ({ ...p, datum: value }))
                   }
+                  minDate={minDate}
                 />
                 <Input
                   id="tijd"
@@ -427,17 +426,17 @@ export default function Assistentie() {
                         aria-hidden={formData.meerdereDagen !== "ja"}
                       >
                         <div className="pt-2">
-                          <Input
+                          <CalendarDateField
                             id="eindDatum"
                             label="Einddatum"
-                            type="date"
                             value={formData.eindDatum}
-                            onChange={(e) =>
+                            onChange={(value) =>
                               setFormData((p) => ({
                                 ...p,
-                                eindDatum: e.target.value,
+                                eindDatum: value,
                               }))
                             }
+                            minDate={formData.datum || minDate}
                           />
                         </div>
                       </div>
@@ -487,8 +486,8 @@ export default function Assistentie() {
                       />
                     </label>
 
-                    <div className="rounded-lg bg-white/70 p-4 text-sm text-gray-900 border border-secondary/20">
-                      <span className="font-semibold text-primary">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                      <span className="font-semibold text-slate-900">
                         {assistentieHint.title}:
                       </span>{" "}
                       {assistentieHint.text}
@@ -499,7 +498,7 @@ export default function Assistentie() {
 
               {/* Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="accent" className="w-full" type="submit">
+                <Button variant="primary" className="w-full" type="submit">
                   Aanvraag indienen
                 </Button>
 

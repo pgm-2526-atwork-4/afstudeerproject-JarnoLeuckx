@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { Accessibility, Check, Heart, Shield } from "lucide-react";
 
 type Feature = {
@@ -36,47 +37,45 @@ export default function Rolstoelvervoer() {
     "" | "luchthaven" | "ziekenhuis"
   >("");
   const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [departureDate, setDepartureDate] = useState("");
+  const [returnTripDate, setReturnTripDate] = useState("");
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#E8D1FF] via-white to-[#D1E8FF]">
+    <div className="page-modern">
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 shadow-sm">
-            <Accessibility className="h-9 w-9 text-primary" />
+          <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
+            <Accessibility className="h-9 w-9 text-[#0043A8]" />
           </div>
 
-          <h1 className="text-4xl font-bold text-primary mb-4">
-            Rolstoelvervoer
-          </h1>
+          <h1 className="section-title mb-4">Rolstoelvervoer</h1>
 
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Gespecialiseerd vervoer voor rolstoelgebruikers met aangepaste
             voertuigen en zorgzame chauffeurs.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {FEATURES.map((feature, i) => {
-            const colors = [
-              "from-[#D1E8FF] to-[#E3F2FF]",
-              "from-[#FFE8D1] to-[#FFEAC2]",
-              "from-[#E8D1FF] to-[#F5E3FF]",
-            ];
+          {FEATURES.map((feature) => {
             return (
               <div
                 key={feature.title}
-                className={`bg-gradient-to-br ${colors[i % colors.length]} rounded-2xl p-8 text-center shadow-md border border-white/60 hover:shadow-lg transition-all`}
+                className="surface-card-strong p-8 text-center transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 shadow-sm">
-                  <feature.icon className="h-7 w-7 text-primary" />
+                <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
+                  <feature.icon className="h-7 w-7 text-[#0043A8]" />
                 </div>
 
-                <h3 className="text-xl font-semibold text-primary mb-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
                   {feature.title}
                 </h3>
 
-                <p className="text-gray-800 leading-relaxed">
+                <p className="text-slate-600 leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -88,8 +87,8 @@ export default function Rolstoelvervoer() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Info Section */}
           <div>
-            <div className="bg-white/95 rounded-2xl p-8 mb-8 shadow-md border border-primary/15">
-              <h2 className="text-2xl font-semibold text-primary mb-6">
+            <div className="surface-card-strong p-8 mb-8">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Onze diensten
               </h2>
 
@@ -113,9 +112,9 @@ export default function Rolstoelvervoer() {
                   },
                 ].map((item) => (
                   <li key={item.strong} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
-                    <p className="text-gray-800 leading-relaxed">
-                      <span className="font-semibold text-primary">
+                    <Check className="w-5 h-5 text-[#0043A8] flex-shrink-0 mt-1" />
+                    <p className="text-slate-700 leading-relaxed">
+                      <span className="font-semibold text-slate-900">
                         {item.strong}
                       </span>{" "}
                       {item.text}
@@ -125,12 +124,12 @@ export default function Rolstoelvervoer() {
               </ul>
             </div>
 
-            <div className="bg-secondary/10 rounded-2xl p-8 border border-primary/10">
-              <h3 className="text-xl font-semibold text-primary mb-4">
+            <div className="surface-card p-8 border-[#d6e6ff] bg-[#edf4ff]">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">
                 Belangrijk om te weten
               </h3>
 
-              <ul className="space-y-3 text-gray-800">
+              <ul className="space-y-3 text-slate-700">
                 <li>• We werken met elektrische en handmatige rolstoelen</li>
                 <li>• Maximaal gewicht: 250 kg (inclusief rolstoel)</li>
                 <li>• Bij voorkeur minstens 24 uur op voorhand reserveren</li>
@@ -140,8 +139,8 @@ export default function Rolstoelvervoer() {
           </div>
 
           {/* Booking Form (frontend-only) */}
-          <div className="bg-white/95 rounded-2xl p-8 shadow-md border border-primary/15">
-            <h2 className="text-2xl font-semibold text-primary mb-6">
+          <div className="surface-card-strong p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
             </h2>
 
@@ -215,7 +214,13 @@ export default function Rolstoelvervoer() {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input id="vertrekdatum" label="Datum" type="date" />
+                  <CalendarDateField
+                    id="vertrekdatum"
+                    label="Datum"
+                    value={departureDate}
+                    onChange={setDepartureDate}
+                    minDate={minDate}
+                  />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
               </div>
@@ -248,10 +253,12 @@ export default function Rolstoelvervoer() {
                       Terugreis details
                     </p>
 
-                    <Input
+                    <CalendarDateField
                       id="terugreis_datum"
                       label="Terugreis datum"
-                      type="date"
+                      value={returnTripDate}
+                      onChange={setReturnTripDate}
+                      minDate={departureDate || minDate}
                     />
 
                     <div className="mt-4 grid grid-cols-2 gap-4">
@@ -279,9 +286,11 @@ export default function Rolstoelvervoer() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 text-primary">Ritinformatie</h4>
-                <p className="text-sm text-gray-800">
+              <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
+                <h4 className="mb-2 font-semibold text-slate-900">
+                  Ritinformatie
+                </h4>
+                <p className="text-sm text-slate-700">
                   Afstand en prijs kunnen later automatisch berekend worden.
                 </p>
               </div>
@@ -354,14 +363,14 @@ export default function Rolstoelvervoer() {
                         className={[
                           "rounded-lg border px-4 py-3 text-left text-sm transition",
                           assistentieType === "luchthaven"
-                            ? "border-primary bg-white shadow-sm"
-                            : "border-secondary/20 bg-white/60 hover:bg-white",
+                            ? "border-[#0043A8] bg-[#EAF3FF] shadow-sm"
+                            : "border-slate-300 bg-white hover:bg-slate-50",
                         ].join(" ")}
                       >
-                        <span className="block font-semibold text-primary">
+                        <span className="block font-semibold text-slate-900">
                           Assistentie op luchthaven
                         </span>
-                        <span className="block text-gray-800">
+                        <span className="block text-slate-600">
                           Hulp bij bagage en begeleiding waar nodig.
                         </span>
                       </button>
@@ -372,14 +381,14 @@ export default function Rolstoelvervoer() {
                         className={[
                           "rounded-lg border px-4 py-3 text-left text-sm transition",
                           assistentieType === "ziekenhuis"
-                            ? "border-primary bg-white shadow-sm"
-                            : "border-secondary/20 bg-white/60 hover:bg-white",
+                            ? "border-[#0043A8] bg-[#EAF3FF] shadow-sm"
+                            : "border-slate-300 bg-white hover:bg-slate-50",
                         ].join(" ")}
                       >
-                        <span className="block font-semibold text-primary">
+                        <span className="block font-semibold text-slate-900">
                           Assistentie voor afspraak
                         </span>
-                        <span className="block text-gray-800">
+                        <span className="block text-slate-600">
                           Begeleiding naar afdeling en ondersteuning ter
                           plaatse.
                         </span>
@@ -397,10 +406,10 @@ export default function Rolstoelvervoer() {
                       />
                     </label>
 
-                    <div className="mt-4 rounded-lg bg-white/70 p-4 text-sm text-gray-900 border border-secondary/20">
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                       {assistentieType === "luchthaven" ? (
                         <>
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-slate-900">
                             Luchthaven assistentie:
                           </span>{" "}
                           Onze chauffeur helpt u met in- en uitstappen,
@@ -408,7 +417,7 @@ export default function Rolstoelvervoer() {
                         </>
                       ) : assistentieType === "ziekenhuis" ? (
                         <>
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-slate-900">
                             Afspraak assistentie:
                           </span>{" "}
                           Onze chauffeur kan u begeleiden naar de juiste
@@ -416,7 +425,7 @@ export default function Rolstoelvervoer() {
                         </>
                       ) : (
                         <>
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-slate-900">
                             Tip:
                           </span>{" "}
                           Kies een type assistentie zodat we u beter kunnen
@@ -429,7 +438,7 @@ export default function Rolstoelvervoer() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="accent" className="w-full">
+                <Button variant="primary" className="w-full">
                   Boek nu
                 </Button>
 

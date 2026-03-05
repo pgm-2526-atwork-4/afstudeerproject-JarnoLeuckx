@@ -18,7 +18,15 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'address',
+        'vaph_number',
+        'email_notifications_enabled',
+        'pvb_contract_signed_at',
+        'pvb_contract_signer_name',
+        'pvb_contract_signature_method',
+        'pvb_contract_signed_pricing_updated_at',
         'role',
+        'approval_status',
     ];
 
    
@@ -32,6 +40,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_notifications_enabled' => 'boolean',
+            'pvb_contract_signed_at' => 'datetime',
+            'pvb_contract_signed_pricing_updated_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

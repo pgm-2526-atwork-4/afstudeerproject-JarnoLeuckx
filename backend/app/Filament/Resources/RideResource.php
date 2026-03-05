@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RideResource\Pages;
 use App\Models\Ride;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -27,16 +29,51 @@ class RideResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('customer_id')
                         ->label('Klant')
-                        ->relationship('customer', 'email')
+                        ->relationship('customer', 'name')
                         ->searchable()
                         ->preload()
                         ->required(),
                     Forms\Components\Select::make('driver_id')
-                        ->label('Chauffeur')
-                        ->relationship('driver', 'email')
+                        ->label('Chauffeur/Admin')
+                        ->relationship(
+                            'driver',
+                            'name',
+                            modifyQueryUsing: fn (Builder $query) => $query
+                                ->where(function (Builder $nested) {
+                                    $nested
+                                        ->where(function (Builder $driverQuery) {
+                                            $driverQuery
+                                                ->where('role', 'driver')
+                                                ->where('approval_status', 'approved');
+                                        })
+                                        ->orWhere('role', 'admin');
+                                })
+                        )
                         ->searchable()
                         ->preload()
                         ->nullable(),
+                    Forms\Components\Placeholder::make('customer_email')
+                        ->label('E-mail klant')
+                        ->content(function (Forms\Get $get): string {
+                            $customerId = $get('customer_id');
+
+                            if (! $customerId) {
+                                return '-';
+                            }
+
+                            return User::query()->whereKey($customerId)->value('email') ?? '-';
+                        }),
+                    Forms\Components\Placeholder::make('driver_email')
+                        ->label('E-mail chauffeur')
+                        ->content(function (Forms\Get $get): string {
+                            $driverId = $get('driver_id');
+
+                            if (! $driverId) {
+                                return '-';
+                            }
+
+                            return User::query()->whereKey($driverId)->value('email') ?? '-';
+                        }),
                     Forms\Components\Select::make('vehicle_id')
                         ->label('Voertuig')
                         ->relationship('vehicle', 'license_plate')
@@ -102,10 +139,12 @@ class RideResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
                 Tables\Columns\TextColumn::make('service_type')->label('Dienst')->badge()->sortable(),
-                Tables\Columns\TextColumn::make('customer.email')->label('Klant')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('driver.email')->label('Chauffeur')->toggleable(),
-                Tables\Columns\TextColumn::make('pickup_city')->label('Van')->sortable(),
-                Tables\Columns\TextColumn::make('dropoff_city')->label('Naar')->sortable(),
+                Tables\Columns\TextColumn::make('customer.name')->label('Klant')->searchable()->sortable()->wrap(),
+                Tables\Columns\TextColumn::make('driver.name')->label('Chauffeur')->wrap()->toggleable(),
+                Tables\Columns\TextColumn::make('route')
+                    ->label('Traject')
+                    ->state(fn (Ride $record): string => "{$record->pickup_city} → {$record->dropoff_city}")
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('pickup_datetime')->label('Datum')->dateTime('d/m/Y H:i')->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -137,8 +176,17 @@ class RideResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('cancel')
-                    ->label('Annuleer')
+                Tables\Actions\Action::make('approve')
+                    ->label('Goedkeuren')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(fn ($record) => $record->update(['status' => 'assigned']))
+                    ->visible(fn ($record) => $record->status === 'pending'),
+                Tables\Actions\Action::make('reject')
+                    ->label('Afkeuren')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
                     ->requiresConfirmation()
                     ->action(fn ($record) => $record->update(['status' => 'cancelled']))
                     ->visible(fn ($record) => $record->status !== 'cancelled' && $record->status !== 'completed'),
