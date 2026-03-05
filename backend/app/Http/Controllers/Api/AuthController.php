@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Filament\Resources\UserResource;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -48,6 +51,25 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'approval_status' => $approvalStatus,
         ]);
+
+        if ($validated['role'] === 'driver') {
+            $admins = User::query()
+                ->where('role', 'admin')
+                ->get();
+
+            if ($admins->isNotEmpty()) {
+                Notification::make()
+                    ->title('Nieuwe chauffeur wacht op goedkeuring')
+                    ->body("{$user->name} ({$user->email}) heeft een account aangemaakt.")
+                    ->actions([
+                        Action::make('review-driver')
+                            ->label('Bekijk chauffeur')
+                            ->url(UserResource::getUrl('edit', ['record' => $user]))
+                            ->markAsRead(),
+                    ])
+                    ->sendToDatabase($admins);
+            }
+        }
 
         return response()->json([
             'message' => $validated['role'] === 'driver'

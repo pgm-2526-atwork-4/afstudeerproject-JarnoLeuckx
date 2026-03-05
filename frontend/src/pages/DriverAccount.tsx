@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import DriverStats from "../components/drivers/DriverStats";
 import DriverTabs from "../components/drivers/DriverTabs";
-import AvailabilityList from "../components/drivers/AvailabilityList";
 import AvailabilityForm from "../components/drivers/AvailabilityForm";
 import RideList from "../components/drivers/RideList";
 import { getCurrentUser } from "../auth/auth.api";
@@ -87,10 +86,6 @@ export default function DriverAccountPage() {
         {activeTab === "availabilities" && (
           <div className="space-y-5">
             <AvailabilityForm onCreated={loadData} />
-            <AvailabilityList
-              availabilities={availabilities}
-              onDeleted={loadData}
-            />
           </div>
         )}
 

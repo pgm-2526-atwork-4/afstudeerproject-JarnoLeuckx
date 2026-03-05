@@ -16,7 +16,8 @@ class ListDriverAvailabilities extends ListRecords
             Actions\Action::make('calendar')
                 ->label('Kalenderweergave')
                 ->icon('heroicon-o-calendar-days')
-                ->url(DriverAvailabilityResource::getUrl('calendar')),
+                ->color('gray')
+                ->url(DriverAvailabilityResource::getUrl('index')),
             Actions\CreateAction::make(),
         ];
     }

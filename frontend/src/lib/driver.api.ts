@@ -54,10 +54,11 @@ export function rejectRide(id: number) {
 
 export function createAvailability(payload: {
   date: string;
+  end_date?: string;
   start_time: string;
   end_time: string;
   availability_type: AvailabilityType;
-  period_months: 1 | 6;
+  period_months?: 1 | 6;
 }) {
   return apiFetch<{ message: string; count: number; items: Availability[] }>(
     "/driver/availabilities",

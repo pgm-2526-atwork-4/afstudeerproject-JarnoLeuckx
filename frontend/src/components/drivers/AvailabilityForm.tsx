@@ -6,32 +6,91 @@ type Props = {
   onCreated: () => void;
 };
 
+type PeriodPreset = "one_day" | "one_month" | "six_months" | "custom";
+
+function formatDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function calculateEndDate(startDate: string, preset: PeriodPreset) {
+  if (!startDate) {
+    return "";
+  }
+
+  if (preset === "one_day") {
+    return startDate;
+  }
+
+  if (preset === "custom") {
+    return startDate;
+  }
+
+  const [year, month, day] = startDate.split("-").map(Number);
+  const start = new Date(year, month - 1, day);
+
+  if (preset === "one_month") {
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + 1);
+    end.setDate(end.getDate() - 1);
+    return formatDate(end);
+  }
+
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 6);
+  end.setDate(end.getDate() - 1);
+  return formatDate(end);
+}
+
 export default function AvailabilityForm({ onCreated }: Props) {
   const [date, setDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("one_day");
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [availabilityType, setAvailabilityType] = useState<
     "available" | "sick" | "leave"
   >("available");
-  const [periodMonths, setPeriodMonths] = useState<1 | 6>(1);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const today = new Date();
   const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const previewEndDate =
+    periodPreset === "custom" ? endDate : calculateEndDate(date, periodPreset);
+  const highlightVariant =
+    availabilityType === "available"
+      ? "available"
+      : availabilityType === "sick"
+        ? "sick"
+        : "leave_pending";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (!date) {
-      setError("Datum is verplicht.");
+      setError("Startdatum is verplicht.");
       return;
     }
 
     if (date < todayString) {
-      setError("Datum mag niet in het verleden liggen.");
+      setError("Startdatum mag niet in het verleden liggen.");
+      return;
+    }
+
+    const finalEndDate =
+      periodPreset === "custom"
+        ? endDate
+        : calculateEndDate(date, periodPreset);
+
+    if (!finalEndDate) {
+      setError("Einddatum is verplicht.");
+      return;
+    }
+
+    if (finalEndDate < date) {
+      setError("Einddatum moet op of na de startdatum liggen.");
       return;
     }
 
@@ -50,13 +109,14 @@ export default function AvailabilityForm({ onCreated }: Props) {
     try {
       await createAvailability({
         date,
+        end_date: finalEndDate,
         start_time: start,
         end_time: end,
         availability_type: availabilityType,
-        period_months: periodMonths,
       });
 
       setDate("");
+      setEndDate("");
       onCreated(); // refresh parent
     } catch (err) {
       setError(err instanceof Error ? err.message : "Er ging iets mis.");
@@ -82,14 +142,95 @@ export default function AvailabilityForm({ onCreated }: Props) {
       )}
 
       <form onSubmit={handleSubmit} className="form-layout">
-        <CalendarDateField
-          id="driver-availability-date"
-          label="Datum"
-          value={date}
-          onChange={setDate}
-          required
-          minDate={todayString}
-        />
+        <label className="grid gap-1.5">
+          <span className="form-label">Periode</span>
+          <select
+            value={periodPreset}
+            onChange={(e) => {
+              const preset = e.target.value as PeriodPreset;
+              setPeriodPreset(preset);
+
+              if (!date) {
+                setEndDate("");
+                return;
+              }
+
+              if (preset === "custom") {
+                setEndDate((current) =>
+                  current && current >= date ? current : date,
+                );
+                return;
+              }
+
+              setEndDate(calculateEndDate(date, preset));
+            }}
+            className="form-select"
+          >
+            <option value="one_day">1 dag</option>
+            <option value="one_month">1 maand</option>
+            <option value="six_months">6 maanden</option>
+            <option value="custom">Aangepaste periode</option>
+          </select>
+        </label>
+
+        {periodPreset === "custom" ? (
+          <CalendarDateField
+            id="driver-availability-period"
+            label="Periode"
+            value={date}
+            onChange={setDate}
+            rangeStart={date}
+            rangeEnd={endDate}
+            onRangeChange={(startDate, finishDate) => {
+              setDate(startDate);
+              setEndDate(finishDate);
+            }}
+            highlightVariant={highlightVariant}
+            required
+            minDate={todayString}
+          />
+        ) : (
+          <CalendarDateField
+            id="driver-availability-start"
+            label="Startdatum"
+            value={date}
+            onChange={(startDate) => {
+              setDate(startDate);
+              setEndDate(calculateEndDate(startDate, periodPreset));
+            }}
+            highlightStart={date}
+            highlightEnd={previewEndDate}
+            highlightVariant={highlightVariant}
+            required
+            minDate={todayString}
+          />
+        )}
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Legenda
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
+              Beschikbaar
+            </span>
+            <span className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 font-medium text-orange-800">
+              Verlof toegekend
+            </span>
+            <span className="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
+              Verlof in afwachting
+            </span>
+            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 font-medium text-red-800">
+              Ziekte / afwezig
+            </span>
+          </div>
+        </div>
+
+        {date && endDate && periodPreset !== "custom" && (
+          <p className="text-xs text-slate-600">
+            Periode: van {date} t.e.m. {endDate}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <label className="grid gap-1.5">
@@ -133,18 +274,6 @@ export default function AvailabilityForm({ onCreated }: Props) {
             <option value="available">Beschikbaar</option>
             <option value="sick">Ziekte</option>
             <option value="leave">Verlof</option>
-          </select>
-        </label>
-
-        <label className="grid gap-1.5">
-          <span className="form-label">Periode</span>
-          <select
-            value={periodMonths}
-            onChange={(e) => setPeriodMonths(Number(e.target.value) as 1 | 6)}
-            className="form-select"
-          >
-            <option value={1}>1 maand</option>
-            <option value={6}>6 maanden</option>
           </select>
         </label>
 

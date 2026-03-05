@@ -145,8 +145,9 @@ class DriverAvailabilityResource extends Resource
                         'rejected' => 'Afgekeurd',
                         default => $state,
                     })
-                    ->color(fn (string $state) => match ($state) {
-                        'approved' => 'success',
+                    ->color(fn (string $state, DriverAvailability $record) => match (true) {
+                        $state === 'approved' && $record->availability_type === 'leave' => 'warning',
+                        $state === 'approved' => 'success',
                         'pending' => 'warning',
                         'rejected' => 'danger',
                         default => 'gray',
@@ -239,8 +240,8 @@ class DriverAvailabilityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDriverAvailabilities::route('/'),
-            'calendar' => Pages\CalendarDriverAvailabilities::route('/calendar'),
+            'index' => Pages\CalendarDriverAvailabilities::route('/'),
+            'list' => Pages\ListDriverAvailabilities::route('/list'),
             'create' => Pages\CreateDriverAvailability::route('/create'),
             'edit' => Pages\EditDriverAvailability::route('/{record}/edit'),
         ];

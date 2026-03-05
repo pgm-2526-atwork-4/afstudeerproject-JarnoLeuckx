@@ -23,14 +23,17 @@ class DriverAvailabilityController extends Controller
     {
         $data = $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'availability_type' => ['required', 'in:' . implode(',', DriverAvailability::ALLOWED_TYPES)],
-            'period_months' => ['required', 'integer', 'in:1,6'],
+            'period_months' => ['nullable', 'integer', 'in:1,6'],
         ]);
 
         $startsAt = Carbon::parse($data['date'])->startOfDay();
-        $endsAt = $startsAt->copy()->addMonths((int) $data['period_months'])->subDay();
+        $endsAt = isset($data['end_date'])
+            ? Carbon::parse($data['end_date'])->endOfDay()
+            : $startsAt->copy()->addMonths((int) ($data['period_months'] ?? 1))->subDay()->endOfDay();
 
         $records = [];
 
