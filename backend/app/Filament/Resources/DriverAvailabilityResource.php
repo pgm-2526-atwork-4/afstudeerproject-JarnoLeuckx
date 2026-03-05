@@ -26,11 +26,11 @@ class DriverAvailabilityResource extends Resource
             Forms\Components\Section::make('Beschikbaarheid')
                 ->schema([
                     Forms\Components\Select::make('driver_id')
-                        ->label('Chauffeur')
+                        ->label('Medewerker (chauffeur/admin)')
                         ->relationship(
                             name: 'driver',
                             titleAttribute: 'email',
-                            modifyQueryUsing: fn (Builder $query) => $query->where('role', 'driver')
+                            modifyQueryUsing: fn (Builder $query) => $query->whereIn('role', ['driver', 'admin'])
                         )
                         ->searchable()
                         ->preload()
@@ -58,6 +58,27 @@ class DriverAvailabilityResource extends Resource
                         ])
                         ->default('available')
                         ->required(),
+
+                    Forms\Components\Select::make('availability_type')
+                        ->label('Type')
+                        ->options([
+                            'available' => 'Beschikbaar',
+                            'sick' => 'Ziekte',
+                            'leave' => 'Verlof',
+                        ])
+                        ->default('available')
+                        ->required(),
+
+                    Forms\Components\Select::make('approval_status')
+                        ->label('Goedkeuringsstatus')
+                        ->options([
+                            'not_required' => 'Niet nodig',
+                            'pending' => 'In afwachting',
+                            'approved' => 'Goedgekeurd',
+                            'rejected' => 'Afgekeurd',
+                        ])
+                        ->default('not_required')
+                        ->required(),
                 ])
                 ->columns(2),
         ]);
@@ -68,7 +89,7 @@ class DriverAvailabilityResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('driver.email')
-                    ->label('Chauffeur')
+                    ->label('Medewerker')
                     ->searchable()
                     ->sortable(),
 
@@ -97,6 +118,41 @@ class DriverAvailabilityResource extends Resource
                     })
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('availability_type')
+                    ->label('Type')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'available' => 'Beschikbaar',
+                        'sick' => 'Ziekte',
+                        'leave' => 'Verlof',
+                        default => $state,
+                    })
+                    ->color(fn (string $state) => match ($state) {
+                        'available' => 'success',
+                        'sick' => 'danger',
+                        'leave' => 'warning',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('approval_status')
+                    ->label('Goedkeuring')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'not_required' => 'Niet nodig',
+                        'pending' => 'In afwachting',
+                        'approved' => 'Goedgekeurd',
+                        'rejected' => 'Afgekeurd',
+                        default => $state,
+                    })
+                    ->color(fn (string $state) => match ($state) {
+                        'approved' => 'success',
+                        'pending' => 'warning',
+                        'rejected' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Aangemaakt')
                     ->dateTime('d/m/Y H:i')
@@ -104,11 +160,11 @@ class DriverAvailabilityResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('driver_id')
-                    ->label('Chauffeur')
+                    ->label('Medewerker')
                     ->relationship(
                         name: 'driver',
                         titleAttribute: 'email',
-                        modifyQueryUsing: fn (Builder $query) => $query->where('role', 'driver')
+                        modifyQueryUsing: fn (Builder $query) => $query->whereIn('role', ['driver', 'admin'])
                     ),
 
                 Tables\Filters\SelectFilter::make('status')
@@ -116,6 +172,23 @@ class DriverAvailabilityResource extends Resource
                     ->options([
                         'available' => 'Beschikbaar',
                         'unavailable' => 'Niet beschikbaar',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('availability_type')
+                    ->label('Type')
+                    ->options([
+                        'available' => 'Beschikbaar',
+                        'sick' => 'Ziekte',
+                        'leave' => 'Verlof',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('approval_status')
+                    ->label('Goedkeuring')
+                    ->options([
+                        'not_required' => 'Niet nodig',
+                        'pending' => 'In afwachting',
+                        'approved' => 'Goedgekeurd',
+                        'rejected' => 'Afgekeurd',
                     ]),
 
                 Tables\Filters\Filter::make('date')
@@ -131,6 +204,31 @@ class DriverAvailabilityResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('approve_leave')
+                    ->label('Verlof goedkeuren')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (DriverAvailability $record) => $record->availability_type === 'leave' && $record->approval_status === 'pending')
+                    ->action(function (DriverAvailability $record): void {
+                        $record->update([
+                            'approval_status' => 'approved',
+                            'status' => 'unavailable',
+                        ]);
+                    }),
+                Tables\Actions\Action::make('reject_leave')
+                    ->label('Verlof afkeuren')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (DriverAvailability $record) => $record->availability_type === 'leave' && $record->approval_status === 'pending')
+                    ->action(function (DriverAvailability $record): void {
+                        $record->update([
+                            'approval_status' => 'rejected',
+                            'status' => 'available',
+                            'availability_type' => 'available',
+                        ]);
+                    }),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -142,6 +240,7 @@ class DriverAvailabilityResource extends Resource
     {
         return [
             'index' => Pages\ListDriverAvailabilities::route('/'),
+            'calendar' => Pages\CalendarDriverAvailabilities::route('/calendar'),
             'create' => Pages\CreateDriverAvailability::route('/create'),
             'edit' => Pages\EditDriverAvailability::route('/{record}/edit'),
         ];

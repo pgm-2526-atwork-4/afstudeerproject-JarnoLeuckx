@@ -4,7 +4,6 @@ import DriverTabs from "../components/drivers/DriverTabs";
 import AvailabilityList from "../components/drivers/AvailabilityList";
 import AvailabilityForm from "../components/drivers/AvailabilityForm";
 import RideList from "../components/drivers/RideList";
-import CustomerHeaderBar from "../components/customers/CustomerHeaderBar";
 import { getCurrentUser } from "../auth/auth.api";
 import {
   getMyAvailabilities,
@@ -55,16 +54,14 @@ export default function DriverAccountPage() {
   const displayName = currentUser?.name ?? "Gebruiker";
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <CustomerHeaderBar name={displayName} />
-
+    <div className="page-modern">
       <div className="mx-auto w-full max-w-6xl px-6 py-8">
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 surface-card-strong p-6">
           <h1 className="text-3xl font-black text-slate-900">
-            Account chauffeur
+            Chauffeur account · {displayName}
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Beheer je beschikbaarheden en opgegeven ritten.
+            Beheer je beschikbaarheden en toegewezen ritten.
           </p>
         </div>
 
@@ -88,21 +85,23 @@ export default function DriverAccountPage() {
         <DriverTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {activeTab === "availabilities" && (
-          <>
+          <div className="space-y-5">
             <AvailabilityForm onCreated={loadData} />
             <AvailabilityList
               availabilities={availabilities}
               onDeleted={loadData}
             />
-          </>
+          </div>
         )}
 
         {activeTab === "rides" && (
-          <RideList
-            rides={rides}
-            statusFilter={activeRideFilter}
-            onAccepted={loadData}
-          />
+          <div className="surface-card p-5">
+            <RideList
+              rides={rides}
+              statusFilter={activeRideFilter}
+              onAccepted={loadData}
+            />
+          </div>
         )}
       </div>
     </div>

@@ -1,13 +1,5 @@
 import { useState } from "react";
-import { deleteAvailability } from "../../lib/driver.api";
-
-type Availability = {
-  id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: "available" | "unavailable";
-};
+import { deleteAvailability, type Availability } from "../../lib/driver.api";
 
 type Props = {
   availabilities: Availability[];
@@ -60,16 +52,30 @@ export default function AvailabilityList({ availabilities, onDeleted }: Props) {
           className="mb-2 flex items-center justify-between rounded-xl border border-slate-200 p-3"
         >
           <div>
-            <div className="font-extrabold text-slate-900">
-              {a.date} • {a.start_time.slice(0, 5)} - {a.end_time.slice(0, 5)}
-            </div>
+            <div className="font-extrabold text-slate-900">{a.date}</div>
             <div
               className={`text-sm ${
                 a.status === "available" ? "text-emerald-700" : "text-red-700"
               }`}
             >
-              {a.status === "available" ? "Beschikbaar" : "Niet beschikbaar"}
+              {a.status_label ??
+                (a.status === "available" ? "Beschikbaar" : "Niet beschikbaar")}
             </div>
+
+            {a.availability_type && (
+              <div className="mt-1 text-xs text-slate-600">
+                Type: {a.availability_type_label ?? a.availability_type}
+                {a.availability_type === "leave" && (
+                  <span>
+                    {" "}
+                    · Goedkeuring:{" "}
+                    {a.approval_status_label ??
+                      a.approval_status ??
+                      "Niet nodig"}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <button

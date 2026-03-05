@@ -27,6 +27,7 @@ class CustomerRideController extends Controller
 
         $availableDriverIds = DriverAvailability::query()
             ->where('status', 'available')
+            ->whereIn('approval_status', ['not_required', 'approved'])
             ->whereDate('date', $pickupAt->toDateString())
             ->whereTime('start_time', '<=', $pickupAt->format('H:i:s'))
             ->whereTime('end_time', '>=', $returnAt->format('H:i:s'))
@@ -163,6 +164,7 @@ class CustomerRideController extends Controller
 
         $availableDriverIds = DriverAvailability::query()
             ->where('status', 'available')
+            ->whereIn('approval_status', ['not_required', 'approved'])
             ->whereDate('date', $pickupAt->toDateString())
             ->whereTime('start_time', '<=', $pickupAt->format('H:i:s'))
             ->whereTime('end_time', '>=', $returnAt->format('H:i:s'))

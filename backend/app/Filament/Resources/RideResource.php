@@ -34,13 +34,20 @@ class RideResource extends Resource
                         ->preload()
                         ->required(),
                     Forms\Components\Select::make('driver_id')
-                        ->label('Chauffeur')
+                        ->label('Chauffeur/Admin')
                         ->relationship(
                             'driver',
                             'name',
                             modifyQueryUsing: fn (Builder $query) => $query
-                                ->where('role', 'driver')
-                                ->where('approval_status', 'approved')
+                                ->where(function (Builder $nested) {
+                                    $nested
+                                        ->where(function (Builder $driverQuery) {
+                                            $driverQuery
+                                                ->where('role', 'driver')
+                                                ->where('approval_status', 'approved');
+                                        })
+                                        ->orWhere('role', 'admin');
+                                })
                         )
                         ->searchable()
                         ->preload()

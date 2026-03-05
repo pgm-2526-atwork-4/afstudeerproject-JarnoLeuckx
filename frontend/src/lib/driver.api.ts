@@ -1,12 +1,27 @@
 import { apiFetch } from "./api";
 
+export type AvailabilityStatus = "available" | "unavailable";
+export type AvailabilityType = "available" | "sick" | "leave";
+export type ApprovalStatus =
+  | "not_required"
+  | "pending"
+  | "approved"
+  | "rejected";
+export type RequestedByRole = "driver" | "admin";
+
 export type Availability = {
   id: number;
   driver_id: number;
   date: string;
   start_time: string;
   end_time: string;
-  status: "available" | "unavailable";
+  status: AvailabilityStatus;
+  availability_type?: AvailabilityType;
+  approval_status?: ApprovalStatus;
+  requested_by_role?: RequestedByRole;
+  status_label?: string;
+  availability_type_label?: string;
+  approval_status_label?: string;
 };
 
 export type Ride = {
@@ -41,12 +56,16 @@ export function createAvailability(payload: {
   date: string;
   start_time: string;
   end_time: string;
-  status: "available" | "unavailable";
+  availability_type: AvailabilityType;
+  period_months: 1 | 6;
 }) {
-  return apiFetch<Availability>("/driver/availabilities", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return apiFetch<{ message: string; count: number; items: Availability[] }>(
+    "/driver/availabilities",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function deleteAvailability(id: number) {
