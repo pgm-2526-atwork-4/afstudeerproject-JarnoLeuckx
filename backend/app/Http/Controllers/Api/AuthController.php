@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function emailExists(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $exists = User::query()
+            ->where('email', $validated['email'])
+            ->exists();
+
+        return response()->json([
+            'exists' => $exists,
+        ]);
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -87,6 +102,47 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'email' => ['required', 'email:rfc,dns', 'max:255', "unique:users,email,{$user->id}"],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'vaph_number' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'vaph_number' => $validated['vaph_number'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Profiel succesvol bijgewerkt.',
+            'user' => $user->fresh(),
+        ]);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Je account is verwijderd.',
+        ]);
     }
 
     // 🚪 LOGOUT

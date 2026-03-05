@@ -26,6 +26,11 @@ export type RegisterResponse = {
   user: User;
 };
 
+type ProfileResponse = {
+  message: string;
+  user: User;
+};
+
 export async function login(
   email: string,
   password: string,
@@ -83,10 +88,37 @@ export async function register(payload: {
   return data as RegisterResponse;
 }
 
+export async function checkEmailExists(
+  email: string,
+): Promise<{ exists: boolean }> {
+  const res = await fetch(`${API_URL}/email-exists`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    throw new Error(data.message || "E-mailcontrole mislukt.");
+  }
+
+  return { exists: Boolean(data.exists) };
+}
+
 export function saveAuth(token: string, user: User) {
   localStorage.setItem("token", token);
   localStorage.setItem("user", JSON.stringify(user));
   touchActivity();
+  notifyAuthChanged();
+}
+
+export function setCurrentUser(user: User) {
+  localStorage.setItem("user", JSON.stringify(user));
   notifyAuthChanged();
 }
 
@@ -152,6 +184,80 @@ export async function logout() {
   }
 
   clearAuth();
+}
+
+export async function updateMe(payload: {
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  vaph_number?: string;
+}): Promise<ProfileResponse> {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Niet ingelogd.");
+  }
+
+  const res = await fetch(`${API_URL}/me`, {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    if (data.errors) {
+      const firstError = Object.values<string[]>(data.errors)[0]?.[0];
+      throw new Error(
+        firstError || data.message || "Profiel bijwerken mislukt.",
+      );
+    }
+
+    throw new Error(data.message || "Profiel bijwerken mislukt.");
+  }
+
+  return data as ProfileResponse;
+}
+
+export async function deleteMe(password: string): Promise<{ message: string }> {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Niet ingelogd.");
+  }
+
+  const res = await fetch(`${API_URL}/me`, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    if (data.errors) {
+      const firstError = Object.values<string[]>(data.errors)[0]?.[0];
+      throw new Error(
+        firstError || data.message || "Account verwijderen mislukt.",
+      );
+    }
+
+    throw new Error(data.message || "Account verwijderen mislukt.");
+  }
+
+  return { message: data.message || "Je account is verwijderd." };
 }
 
 function notifyAuthChanged() {

@@ -10,11 +10,14 @@ use App\Http\Controllers\Api\CustomerContractController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register/driver', [AuthController::class, 'registerDriver']);
+Route::post('/email-exists', [AuthController::class, 'emailExists']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [AuthController::class, 'updateProfile']);
+    Route::delete('/me', [AuthController::class, 'deleteAccount']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
@@ -38,5 +41,6 @@ Route::middleware(['auth:sanctum', 'role:customer'])
     ->group(function () {
         Route::get('/rides', [CustomerRideController::class, 'index']);
         Route::post('/rides', [CustomerRideController::class, 'store']);
+        Route::get('/available-drivers', [CustomerRideController::class, 'availableDrivers']);
         Route::post('/contract/sign', [CustomerContractController::class, 'sign']);
     });

@@ -47,3 +47,21 @@ export function createCustomerRide(payload: CreateCustomerRidePayload) {
     body: JSON.stringify(payload),
   });
 }
+
+export type AvailableDriver = {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+};
+
+export function getAvailableDrivers(params: {
+  date: string;
+  start_time: string;
+  end_time: string;
+}) {
+  const query = new URLSearchParams(params).toString();
+  return apiFetch<{ drivers: AvailableDriver[] }>(
+    `/customer/available-drivers?${query}`,
+  );
+}

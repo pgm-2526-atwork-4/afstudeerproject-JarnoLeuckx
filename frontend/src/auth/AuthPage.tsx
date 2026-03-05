@@ -139,7 +139,8 @@ export default function AuthPage({ mode }: AuthPageProps) {
         email: cleanEmail,
         phone: cleanPhone || undefined,
         address: customerAddress,
-        vaph_number: registerRole === "customer" ? cleanVaph || undefined : undefined,
+        vaph_number:
+          registerRole === "customer" ? cleanVaph || undefined : undefined,
         role: registerRole,
         password: registerPassword,
         password_confirmation: registerPasswordConfirmation,

@@ -11,6 +11,7 @@ import AuthPage from "./auth/AuthPage";
 
 import DriverAccountPage from "./pages/DriverAccount"; // 👈 toevoegen
 import CustomerAccountPage from "./pages/CustomerAccount";
+import CustomerSettingsPage from "./pages/CustomerSettings";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           element={<Navigate to="/register" replace />}
         />
         <Route path="/customer/account" element={<CustomerAccountPage />} />
+        <Route path="/customer/settings" element={<CustomerSettingsPage />} />
 
         {/* 👇 NIEUWE ROUTE */}
         <Route path="/driver/account" element={<DriverAccountPage />} />

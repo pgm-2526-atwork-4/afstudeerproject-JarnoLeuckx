@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { createCustomerRide } from "../lib/customer.api";
-import { getCurrentUser } from "../auth/auth.api";
+import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 
 type FieldProps = {
   label: string;
@@ -63,6 +63,7 @@ function calculatePrice(
 }
 
 const POSTCODE_REGEX = /^[0-9]{4}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ReserverenPage() {
   const currentUser = getCurrentUser();
@@ -71,6 +72,7 @@ export default function ReserverenPage() {
   const defaultLastName = lastNameParts.join(" ");
   const defaultEmail = currentUser?.email ?? "";
   const defaultPhone = currentUser?.phone ?? "";
+  const [contactEmail, setContactEmail] = useState(defaultEmail);
 
   const [hasAssistance, setHasAssistance] = useState(false);
   const [assistentieType, setAssistentieType] = useState<
@@ -97,7 +99,9 @@ export default function ReserverenPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+  const [accountPrompt, setAccountPrompt] = useState<
+    null | "register" | "login"
+  >(null);
 
   const price = calculatePrice(
     serviceType,
@@ -108,6 +112,14 @@ export default function ReserverenPage() {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+    setAccountPrompt(null);
+
+    const cleanEmail = contactEmail.trim();
+
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      setError("Geef een geldig e-mailadres in.");
+      return;
+    }
 
     if (!POSTCODE_REGEX.test(pickupPostcode.trim())) {
       setError("Vertrek postcode moet uit 4 cijfers bestaan.");
@@ -149,11 +161,25 @@ export default function ReserverenPage() {
     }
 
     if (!currentUser) {
-      setShowAccountPrompt(true);
+      try {
+        const result = await checkEmailExists(cleanEmail);
+
+        if (result.exists) {
+          setAccountPrompt("login");
+          setError(
+            "Dit e-mailadres bestaat al. Log eerst in om een rit aan te vragen.",
+          );
+        } else {
+          setAccountPrompt("register");
+        }
+      } catch {
+        setAccountPrompt("register");
+      }
+
       return;
     }
 
-    setShowAccountPrompt(false);
+    setAccountPrompt(null);
     setLoading(true);
 
     try {
@@ -229,12 +255,28 @@ export default function ReserverenPage() {
               </div>
             )}
 
-            {showAccountPrompt && (
+            {accountPrompt === "register" && (
               <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <p>Dit lijkt je eerste rit. Wil je een account aanmaken?</p>
+                <p>
+                  Dit e-mailadres is nog niet gekend. Wil je een account
+                  aanmaken?
+                </p>
                 <div className="mt-2">
                   <Link to="/register" className="btn-outline px-3 py-1.5">
                     Ja, account aanmaken
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {accountPrompt === "login" && (
+              <div className="rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                <p>
+                  Met dit e-mailadres bestaat al een account. Wil je inloggen?
+                </p>
+                <div className="mt-2">
+                  <Link to="/login" className="btn-outline px-3 py-1.5">
+                    Ja, inloggen
                   </Link>
                 </div>
               </div>
@@ -280,14 +322,20 @@ export default function ReserverenPage() {
                 defaultValue={defaultLastName || defaultFirstName || ""}
                 required
               />
-              <Field
-                label="E-mail"
-                type="email"
-                name="email"
-                placeholder="naam@email.com"
-                defaultValue={defaultEmail}
-                required
-              />
+              <label className="block">
+                <span className="form-label">
+                  E-mail<span className="form-required">*</span>
+                </span>
+                <input
+                  type="email"
+                  name="email"
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  placeholder="naam@email.com"
+                  required
+                  className="form-input"
+                />
+              </label>
               <Field
                 label="Telefoonnummer"
                 name="telefoon"

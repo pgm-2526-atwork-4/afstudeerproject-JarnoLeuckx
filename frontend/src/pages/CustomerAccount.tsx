@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SignatureCanvas from "react-signature-canvas";
 import CustomerRideList from "../components/customers/CustomerRideList";
-import CustomerStats from "../components/customers/CustomerStats";
-import CustomerHeaderBar from "../components/customers/CustomerHeaderBar";
 import { getCurrentUser } from "../auth/auth.api";
 import {
   downloadCustomerContract,
@@ -11,7 +9,12 @@ import {
 } from "../lib/customerContract";
 import { signCustomerContract } from "../lib/customerContract.api";
 
-import { getMyCustomerRides, type CustomerRide } from "../lib/customer.api";
+import {
+  getAvailableDrivers,
+  getMyCustomerRides,
+  type AvailableDriver,
+  type CustomerRide,
+} from "../lib/customer.api";
 
 type RideStatusFilter =
   | "all"
@@ -29,9 +32,26 @@ function todayAsInputDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getTimeBasedGreeting(name: string) {
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    return `Goedemorgen ${name}`;
+  }
+
+  if (hour < 18) {
+    return `Goedemiddag ${name}`;
+  }
+
+  return `Goedenavond ${name}`;
+}
+
 export default function CustomerAccountPage() {
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Gebruiker";
+  const [welcomeGreeting, setWelcomeGreeting] = useState(
+    `Welkom ${displayName}`,
+  );
 
   const [activeRideFilter, setActiveRideFilter] =
     useState<RideStatusFilter>("all");
@@ -50,11 +70,63 @@ export default function CustomerAccountPage() {
     Boolean(currentUser?.pvb_contract_signed_at),
   );
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(todayAsInputDate());
+  const [calendarStartTime, setCalendarStartTime] = useState("09:00");
+  const [calendarEndTime, setCalendarEndTime] = useState("10:00");
+  const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>(
+    [],
+  );
+  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(
+    null,
+  );
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
 
   async function loadData() {
     const result = await getMyCustomerRides();
     setRides(result);
+  }
+
+  async function loadAvailableDrivers() {
+    setAvailabilityLoading(true);
+    setAvailabilityMessage(null);
+
+    try {
+      if (!calendarDate || !calendarStartTime || !calendarEndTime) {
+        setAvailabilityMessage("Kies datum, starttijd en eindtijd.");
+        setAvailableDrivers([]);
+        return;
+      }
+
+      if (calendarEndTime <= calendarStartTime) {
+        setAvailabilityMessage("Eindtijd moet na starttijd liggen.");
+        setAvailableDrivers([]);
+        return;
+      }
+
+      const result = await getAvailableDrivers({
+        date: calendarDate,
+        start_time: calendarStartTime,
+        end_time: calendarEndTime,
+      });
+
+      setAvailableDrivers(result.drivers);
+
+      if (result.drivers.length === 0) {
+        setAvailabilityMessage(
+          "Geen vrije chauffeurs gevonden voor dit tijdslot.",
+        );
+      }
+    } catch (err) {
+      setAvailabilityMessage(
+        err instanceof Error
+          ? err.message
+          : "Vrije chauffeurs ophalen mislukt.",
+      );
+      setAvailableDrivers([]);
+    } finally {
+      setAvailabilityLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -67,6 +139,31 @@ export default function CustomerAccountPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const userId = currentUser?.id;
+
+    if (!userId) {
+      setWelcomeGreeting(`Welkom ${displayName}`);
+      return;
+    }
+
+    const storageKey = `customer-account-visited-${userId}`;
+
+    try {
+      const hasVisited = window.localStorage.getItem(storageKey) === "1";
+
+      if (!hasVisited) {
+        window.localStorage.setItem(storageKey, "1");
+        setWelcomeGreeting(`Welkom ${displayName}`);
+        return;
+      }
+
+      setWelcomeGreeting(getTimeBasedGreeting(displayName));
+    } catch {
+      setWelcomeGreeting(getTimeBasedGreeting(displayName));
+    }
+  }, [currentUser?.id, displayName]);
+
   const ridesTotalCount = rides.length;
   const ridesAcceptedCount = rides.filter(
     (r) => r.status === "accepted",
@@ -77,6 +174,45 @@ export default function CustomerAccountPage() {
   const ridesCancelledCount = rides.filter(
     (r) => r.status === "cancelled",
   ).length;
+
+  const monthlyRideStats = rides.reduce<
+    Record<string, { total: number; completed: number }>
+  >((accumulator, ride) => {
+    const date = new Date(ride.pickup_datetime);
+    if (Number.isNaN(date.getTime())) {
+      return accumulator;
+    }
+
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+    if (!accumulator[monthKey]) {
+      accumulator[monthKey] = { total: 0, completed: 0 };
+    }
+
+    accumulator[monthKey].total += 1;
+
+    if (ride.status === "completed") {
+      accumulator[monthKey].completed += 1;
+    }
+
+    return accumulator;
+  }, {});
+
+  const monthlyRideEntries = Object.entries(monthlyRideStats)
+    .sort(([monthA], [monthB]) => (monthA < monthB ? 1 : -1))
+    .map(([monthKey, values]) => {
+      const monthDate = new Date(`${monthKey}-01T00:00:00`);
+      const label = new Intl.DateTimeFormat("nl-BE", {
+        month: "long",
+        year: "numeric",
+      }).format(monthDate);
+
+      return {
+        monthKey,
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        ...values,
+      };
+    });
 
   async function handleDownloadContract() {
     if (!currentUser) return;
@@ -102,7 +238,9 @@ export default function CustomerAccountPage() {
     }
 
     if (signatureMethod === "name" && cleanName.length < 2) {
-      setContractError("Naam voor handtekening moet minstens 2 tekens bevatten.");
+      setContractError(
+        "Naam voor handtekening moet minstens 2 tekens bevatten.",
+      );
       return;
     }
 
@@ -112,7 +250,9 @@ export default function CustomerAccountPage() {
     }
 
     if (signatureDate > today) {
-      setContractError("Datum van ondertekening mag niet in de toekomst liggen.");
+      setContractError(
+        "Datum van ondertekening mag niet in de toekomst liggen.",
+      );
       return;
     }
 
@@ -166,26 +306,22 @@ export default function CustomerAccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ✅ Full width topbar */}
-      <CustomerHeaderBar name={displayName} />
-
-      {/* ✅ Content container */}
+    <div className="page-modern">
       <div className="mx-auto w-full max-w-6xl px-6 py-8">
-        <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-5 surface-card-strong p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-black text-slate-900">
-                Mijn ritten
+                {welcomeGreeting}
               </h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Overzicht van al uw geboekte en geplande ritten
-              </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Link to="/reserveren" className="btn-primary">
                 Rit aanvragen
+              </Link>
+              <Link to="/customer/settings" className="btn-outline">
+                Mijn gegevens aanpassen
               </Link>
               <button
                 type="button"
@@ -224,16 +360,158 @@ export default function CustomerAccountPage() {
           </div>
         </div>
 
-        <CustomerStats
-          ridesTotalCount={ridesTotalCount}
-          ridesAcceptedCount={ridesAcceptedCount}
-          ridesPendingCount={ridesPendingCount}
-          ridesCancelledCount={ridesCancelledCount}
-          activeRideFilter={activeRideFilter}
-          onSelectRideFilter={setActiveRideFilter}
-        />
+        <div className="mb-5 surface-card p-5">
+          <h2 className="text-xl font-extrabold text-slate-900">
+            Chauffeurskalender
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Kies een datum en tijdslot om te zien welke chauffeurs vrij zijn. De
+            definitieve toewijzing wordt altijd door een admin bevestigd.
+          </p>
 
-        <CustomerRideList rides={rides} statusFilter={activeRideFilter} />
+          <div className="mt-4 grid gap-4 md:grid-cols-4">
+            <label className="grid gap-1.5">
+              <span className="form-label">Datum</span>
+              <input
+                type="date"
+                value={calendarDate}
+                min={todayAsInputDate()}
+                onChange={(event) => setCalendarDate(event.target.value)}
+                className="form-input"
+              />
+            </label>
+
+            <label className="grid gap-1.5">
+              <span className="form-label">Starttijd</span>
+              <input
+                type="time"
+                value={calendarStartTime}
+                onChange={(event) => setCalendarStartTime(event.target.value)}
+                className="form-input"
+              />
+            </label>
+
+            <label className="grid gap-1.5">
+              <span className="form-label">Eindtijd</span>
+              <input
+                type="time"
+                value={calendarEndTime}
+                onChange={(event) => setCalendarEndTime(event.target.value)}
+                className="form-input"
+              />
+            </label>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => {
+                  void loadAvailableDrivers();
+                }}
+                className="btn-accent w-full"
+              >
+                {availabilityLoading ? "Laden..." : "Controleer chauffeurs"}
+              </button>
+            </div>
+          </div>
+
+          {availabilityMessage && (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              {availabilityMessage}
+            </div>
+          )}
+
+          {availableDrivers.length > 0 && (
+            <>
+              <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+                Er is minstens één vrije chauffeur gevonden. Een admin bevestigt
+                de uiteindelijke toewijzing.
+              </div>
+              <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+                {availableDrivers.map((driver) => (
+                  <li
+                    key={driver.id}
+                    className="flex items-center justify-between px-4 py-3"
+                  >
+                    <p className="text-sm font-bold text-slate-900">
+                      {driver.name}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {driver.phone || driver.email || "Geen contactinfo"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        <section className="mb-5 rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="text-xl font-extrabold text-slate-900">
+            Ritten per maand
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Totaal: {ridesTotalCount} ritten · Bevestigd: {ridesAcceptedCount} ·
+            In behandeling: {ridesPendingCount} · Geannuleerd:{" "}
+            {ridesCancelledCount}
+          </p>
+
+          {monthlyRideEntries.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-600">
+              Nog geen ritten beschikbaar.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200">
+              {monthlyRideEntries.map((item) => (
+                <li
+                  key={item.monthKey}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <span className="text-sm font-semibold text-slate-900">
+                    {item.label}
+                  </span>
+                  <span className="text-sm text-slate-700">
+                    {item.total} ritten ({item.completed} afgerond)
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveRideFilter("all")}
+              className={`btn-outline ${activeRideFilter === "all" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+            >
+              Alle ritten
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRideFilter("accepted")}
+              className={`btn-outline ${activeRideFilter === "accepted" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+            >
+              Bevestigd
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRideFilter("pending")}
+              className={`btn-outline ${activeRideFilter === "pending" || activeRideFilter === "assigned" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+            >
+              In behandeling
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRideFilter("cancelled")}
+              className={`btn-outline ${activeRideFilter === "cancelled" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+            >
+              Geannuleerd
+            </button>
+          </div>
+        </section>
+
+        <div className="surface-card p-5">
+          <CustomerRideList rides={rides} statusFilter={activeRideFilter} />
+        </div>
       </div>
 
       {isContractModalOpen && (

@@ -6,17 +6,7 @@ type Props = {
 
 export default function CustomerProfileCard({ name, email, phone }: Props) {
   return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid #e5e7eb",
-        borderRadius: 14,
-        padding: 18,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr",
-        gap: 16,
-      }}
-    >
+    <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-3">
       <Info label="Naam" value={name} icon="👤" />
       <Info label="Email" value={email} icon="✉️" />
       <Info label="Telefoon" value={phone} icon="📞" />
@@ -24,15 +14,25 @@ export default function CustomerProfileCard({ name, email, phone }: Props) {
   );
 }
 
-function Info({ label, value, icon }: { label: string; value: string; icon: string }) {
+function Info({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon: string;
+}) {
   return (
-    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-      <div style={{ width: 34, height: 34, borderRadius: 10, background: "#f1f5f9", display: "grid", placeItems: "center" }}>
+    <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+      <div className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm shadow-sm">
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: 13, opacity: 0.7 }}>{label}</div>
-        <div style={{ fontWeight: 800 }}>{value}</div>
+        <div className="text-xs font-semibold text-slate-500">{label}</div>
+        <div className="text-sm font-extrabold text-slate-900">
+          {value || "-"}
+        </div>
       </div>
     </div>
   );
