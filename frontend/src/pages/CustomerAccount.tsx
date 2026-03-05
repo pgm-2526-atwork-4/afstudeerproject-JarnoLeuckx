@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SignatureCanvas from "react-signature-canvas";
 import CustomerRideList from "../components/customers/CustomerRideList";
-import { getCurrentUser } from "../auth/auth.api";
+import {
+  getCurrentUser,
+  setCurrentUser,
+  updateNotificationPreferences,
+} from "../auth/auth.api";
 import {
   downloadCustomerContract,
   downloadSignedCustomerContract,
@@ -80,6 +84,18 @@ export default function CustomerAccountPage() {
     null,
   );
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(
+    Boolean(
+      currentUser &&
+      currentUser.role === "customer" &&
+      currentUser.email_notifications_enabled == null,
+    ),
+  );
+  const [notificationPromptLoading, setNotificationPromptLoading] =
+    useState(false);
+  const [notificationPromptError, setNotificationPromptError] = useState<
+    string | null
+  >(null);
   const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
 
   async function loadData() {
@@ -305,6 +321,25 @@ export default function CustomerAccountPage() {
     }
   }
 
+  async function handleNotificationPreferenceChoice(enabled: boolean) {
+    setNotificationPromptError(null);
+    setNotificationPromptLoading(true);
+
+    try {
+      const result = await updateNotificationPreferences(enabled);
+      setCurrentUser(result.user);
+      setShowNotificationPrompt(false);
+    } catch (err) {
+      setNotificationPromptError(
+        err instanceof Error
+          ? err.message
+          : "Meldingsvoorkeur opslaan mislukt.",
+      );
+    } finally {
+      setNotificationPromptLoading(false);
+    }
+  }
+
   return (
     <div className="page-modern">
       <div className="mx-auto w-full max-w-6xl px-6 py-8">
@@ -319,9 +354,6 @@ export default function CustomerAccountPage() {
             <div className="flex flex-wrap gap-2">
               <Link to="/reserveren" className="btn-primary">
                 Rit aanvragen
-              </Link>
-              <Link to="/customer/settings" className="btn-outline">
-                Mijn gegevens aanpassen
               </Link>
               <button
                 type="button"
@@ -513,6 +545,49 @@ export default function CustomerAccountPage() {
           <CustomerRideList rides={rides} statusFilter={activeRideFilter} />
         </div>
       </div>
+
+      {showNotificationPrompt && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <h2 className="text-2xl font-black text-slate-900">
+              Meldingen via e-mail
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Wil je meldingen ontvangen via e-mail? Deze keuze kan je later
+              altijd aanpassen in je instellingen.
+            </p>
+
+            {notificationPromptError && (
+              <div className="form-alert-error mt-4">
+                {notificationPromptError}
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={notificationPromptLoading}
+                onClick={() => {
+                  void handleNotificationPreferenceChoice(false);
+                }}
+                className="btn-outline"
+              >
+                Nee, liever niet
+              </button>
+              <button
+                type="button"
+                disabled={notificationPromptLoading}
+                onClick={() => {
+                  void handleNotificationPreferenceChoice(true);
+                }}
+                className="btn-primary"
+              >
+                {notificationPromptLoading ? "Opslaan..." : "Ja, graag"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isContractModalOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">

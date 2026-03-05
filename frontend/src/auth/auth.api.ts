@@ -10,6 +10,7 @@ export type User = {
   phone?: string;
   address?: string;
   vaph_number?: string;
+  email_notifications_enabled?: boolean | null;
   pvb_contract_signed_at?: string | null;
   pvb_contract_signer_name?: string | null;
   role: "driver" | "customer" | "admin";
@@ -192,6 +193,7 @@ export async function updateMe(payload: {
   phone?: string;
   address?: string;
   vaph_number?: string;
+  email_notifications_enabled?: boolean | null;
 }): Promise<ProfileResponse> {
   const token = localStorage.getItem("token");
 
@@ -221,6 +223,44 @@ export async function updateMe(payload: {
     }
 
     throw new Error(data.message || "Profiel bijwerken mislukt.");
+  }
+
+  return data as ProfileResponse;
+}
+
+export async function updateNotificationPreferences(
+  emailNotificationsEnabled: boolean,
+): Promise<ProfileResponse> {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Niet ingelogd.");
+  }
+
+  const res = await fetch(`${API_URL}/me/notification-preferences`, {
+    method: "PATCH",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      email_notifications_enabled: emailNotificationsEnabled,
+    }),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    if (data.errors) {
+      const firstError = Object.values<string[]>(data.errors)[0]?.[0];
+      throw new Error(
+        firstError || data.message || "Meldingsvoorkeur bijwerken mislukt.",
+      );
+    }
+
+    throw new Error(data.message || "Meldingsvoorkeur bijwerken mislukt.");
   }
 
   return data as ProfileResponse;

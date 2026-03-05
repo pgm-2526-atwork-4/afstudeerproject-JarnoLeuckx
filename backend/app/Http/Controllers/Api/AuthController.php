@@ -114,6 +114,7 @@ class AuthController extends Controller
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255'],
             'vaph_number' => ['nullable', 'string', 'max:50'],
+            'email_notifications_enabled' => ['nullable', 'boolean'],
         ]);
 
         $user->update([
@@ -122,10 +123,28 @@ class AuthController extends Controller
             'phone' => $validated['phone'] ?? null,
             'address' => $validated['address'] ?? null,
             'vaph_number' => $validated['vaph_number'] ?? null,
+            'email_notifications_enabled' => $validated['email_notifications_enabled'] ?? $user->email_notifications_enabled,
         ]);
 
         return response()->json([
             'message' => 'Profiel succesvol bijgewerkt.',
+            'user' => $user->fresh(),
+        ]);
+    }
+
+    public function updateNotificationPreferences(Request $request)
+    {
+        $validated = $request->validate([
+            'email_notifications_enabled' => ['required', 'boolean'],
+        ]);
+
+        $user = $request->user();
+        $user->update([
+            'email_notifications_enabled' => $validated['email_notifications_enabled'],
+        ]);
+
+        return response()->json([
+            'message' => 'Meldingsvoorkeur succesvol bijgewerkt.',
             'user' => $user->fresh(),
         ]);
     }

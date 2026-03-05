@@ -250,6 +250,19 @@ export default function Header() {
                     Mijn account
                   </NavLink>
 
+                  {user?.role === "customer" && (
+                    <NavLink
+                      to="/customer/settings"
+                      onClick={() => {
+                        setIsAccountMenuOpen(false);
+                        setIsNotificationsOpen(false);
+                      }}
+                      className="btn-outline mt-2 w-full justify-start"
+                    >
+                      Instellingen
+                    </NavLink>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => {

@@ -17,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
+    Route::patch('/me/notification-preferences', [AuthController::class, 'updateNotificationPreferences']);
     Route::delete('/me', [AuthController::class, 'deleteAccount']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/notifications', [NotificationController::class, 'index']);

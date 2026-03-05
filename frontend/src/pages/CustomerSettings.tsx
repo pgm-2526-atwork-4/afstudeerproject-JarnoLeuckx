@@ -19,6 +19,9 @@ export default function CustomerSettingsPage() {
   const [phone, setPhone] = useState(currentUser?.phone ?? "");
   const [address, setAddress] = useState(currentUser?.address ?? "");
   const [vaphNumber, setVaphNumber] = useState(currentUser?.vaph_number ?? "");
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(
+    currentUser?.email_notifications_enabled ?? false,
+  );
 
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -56,6 +59,7 @@ export default function CustomerSettingsPage() {
         phone: phone.trim() || undefined,
         address: address.trim() || undefined,
         vaph_number: vaphNumber.trim() || undefined,
+        email_notifications_enabled: emailNotificationsEnabled,
       });
 
       setCurrentUser(result.user);
@@ -110,6 +114,13 @@ export default function CustomerSettingsPage() {
           <h2 className="text-xl font-extrabold text-slate-900">
             Gegevens aanpassen
           </h2>
+
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            Meldingen via e-mail staan momenteel op:{" "}
+            <span className="font-semibold text-slate-900">
+              {emailNotificationsEnabled ? "Aan" : "Uit"}
+            </span>
+          </div>
 
           <form onSubmit={handleSave} className="form-layout mt-4">
             {saveError && <div className="form-alert-error">{saveError}</div>}
@@ -168,6 +179,23 @@ export default function CustomerSettingsPage() {
                   onChange={(event) => setVaphNumber(event.target.value)}
                   className="form-input"
                 />
+              </label>
+
+              <label className="md:col-span-2 flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={emailNotificationsEnabled}
+                  onChange={(event) =>
+                    setEmailNotificationsEnabled(event.target.checked)
+                  }
+                  className="form-checkbox mt-0.5"
+                />
+                <span>
+                  Ik wil meldingen via e-mail ontvangen.
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    Je kan deze keuze later altijd opnieuw aanpassen.
+                  </span>
+                </span>
               </label>
             </div>
 
