@@ -161,10 +161,10 @@ export default function ReserverenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFEAC2] via-[#FFFFFF] to-[#E8F4FF]">
+    <div className="page-modern">
       <div className="mx-auto max-w-2xl px-6 py-12">
-        <div className="bg-white/95 rounded-2xl p-8 shadow-md border border-primary/15">
-          <h2 className="text-2xl font-semibold text-primary mb-6">
+        <div className="surface-card-strong p-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">
             Vraag een rit aan
           </h2>
 
@@ -185,10 +185,7 @@ export default function ReserverenPage() {
               <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 <p>Dit lijkt je eerste rit. Wil je een account aanmaken?</p>
                 <div className="mt-2">
-                  <Link
-                    to="/register"
-                    className="font-semibold underline underline-offset-2"
-                  >
+                  <Link to="/register" className="btn-outline px-3 py-1.5">
                     Ja, account aanmaken
                   </Link>
                 </div>
@@ -520,14 +517,14 @@ export default function ReserverenPage() {
               </label>
             )}
 
-            <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-              <p className="text-sm text-primary font-semibold">
+            <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] px-4 py-3">
+              <p className="text-sm text-slate-900 font-semibold">
                 Geschatte prijs
               </p>
-              <p className="text-2xl font-black text-primary">
+              <p className="text-2xl font-black text-slate-900">
                 €{price.toFixed(2)}
               </p>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-slate-600">
                 Hardcoded prijs (tijdelijk).
               </p>
             </div>

@@ -85,168 +85,182 @@ export default function Header() {
   }
 
   return (
-    <header className="border-b border-[#D7E3F7] bg-[linear-gradient(90deg,#FFFFFF_0%,#F2F7FF_50%,#FFFFFF_100%)]">
-      <div className="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-6 pl-0 pr-4 py-4">
-        <a href="/" className="flex items-center gap-5 no-underline">
-          <img
-            src="/image/logo.png"
-            alt="Social Drive"
-            className="h-32 w-auto shrink-0 object-contain drop-shadow-[0_2px_6px_rgba(0,67,168,0.2)]"
-          />
-        </a>
+    <header className="border-b border-[#D7E3F7]/80 bg-transparent">
+      <div className="mx-auto max-w-6xl px-4 py-2">
+        <div className="flex items-center gap-4 px-1 py-1">
+          <a href="/" className="shrink-0 no-underline">
+            <img
+              src="/image/logo.png"
+              alt="Social Drive"
+              className="h-14 w-auto object-contain"
+            />
+          </a>
 
-        <nav aria-label="Hoofdnavigatie" className="flex justify-center">
-          <ul className="flex list-none items-center gap-6">
-            <li>
-              <NavLink
-                to="/rolstoelvervoer"
-                className={({ isActive }) =>
-                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
-                    isActive
-                      ? "font-semibold text-[#0043A8]"
-                      : "font-medium text-gray-700"
-                  }`
-                }
-              >
-                Rolstoelvervoer
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/luchthavenvervoer"
-                className={({ isActive }) =>
-                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
-                    isActive
-                      ? "font-semibold text-[#0043A8]"
-                      : "font-medium text-gray-700"
-                  }`
-                }
-              >
-                Luchthaven
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/assistentie"
-                className={({ isActive }) =>
-                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
-                    isActive
-                      ? "font-semibold text-[#0043A8]"
-                      : "font-medium text-gray-700"
-                  }`
-                }
-              >
-                Assistentie
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/contact"
-                className={({ isActive }) =>
-                  `text-sm transition-all hover:underline hover:underline-offset-4 ${
-                    isActive
-                      ? "font-semibold text-[#0043A8]"
-                      : "font-medium text-gray-700"
-                  }`
-                }
-              >
-                Contact
-              </NavLink>
-            </li>
-          </ul>
-        </nav>
-
-        <div className="flex items-center gap-3 justify-self-end">
-          {!user ? (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition-all border border-[#0043A8] ${
-                  isActive
-                    ? "font-semibold bg-[#0043A8] text-white"
-                    : "font-semibold text-[#0043A8] hover:bg-[#EAF3FF]"
-                }`
-              }
-            >
-              Login
-            </NavLink>
-          ) : (
-            <NavLink
-              to={accountPath}
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm transition-all border border-[#0043A8] ${
-                  isActive
-                    ? "font-semibold bg-[#0043A8] text-white"
-                    : "font-semibold text-[#0043A8] hover:bg-[#EAF3FF]"
-                }`
-              }
-            >
-              Mijn account
-            </NavLink>
-          )}
-
-          {user && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsNotificationsOpen((prev) => !prev);
-                  if (!isNotificationsOpen) {
-                    void loadNotifications();
+          <nav aria-label="Hoofdnavigatie" className="flex-1">
+            <ul className="flex list-none items-center justify-center gap-2">
+              <li>
+                <NavLink
+                  to="/rolstoelvervoer"
+                  className={({ isActive }) =>
+                    `group relative rounded-full px-3 py-2 text-sm transition-all ${
+                      isActive
+                        ? "font-semibold text-[#0043A8]"
+                        : "font-medium text-gray-700 hover:text-slate-900"
+                    }`
                   }
-                }}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#0043A8] text-[#0043A8] transition hover:bg-[#EAF3FF]"
-                aria-label="Meldingen"
+                >
+                  Rolstoelvervoer
+                  <span
+                    className="absolute inset-x-2 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-[linear-gradient(90deg,#0043A8_0%,#0A5BD3_100%)] transition-transform duration-300 group-hover:scale-x-100"
+                    aria-hidden="true"
+                  />
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/luchthavenvervoer"
+                  className={({ isActive }) =>
+                    `group relative rounded-full px-3 py-2 text-sm transition-all ${
+                      isActive
+                        ? "font-semibold text-[#0043A8]"
+                        : "font-medium text-gray-700 hover:text-slate-900"
+                    }`
+                  }
+                >
+                  Luchthaven
+                  <span
+                    className="absolute inset-x-2 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-[linear-gradient(90deg,#0043A8_0%,#0A5BD3_100%)] transition-transform duration-300 group-hover:scale-x-100"
+                    aria-hidden="true"
+                  />
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/assistentie"
+                  className={({ isActive }) =>
+                    `group relative rounded-full px-3 py-2 text-sm transition-all ${
+                      isActive
+                        ? "font-semibold text-[#0043A8]"
+                        : "font-medium text-gray-700 hover:text-slate-900"
+                    }`
+                  }
+                >
+                  Assistentie
+                  <span
+                    className="absolute inset-x-2 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-[linear-gradient(90deg,#0043A8_0%,#0A5BD3_100%)] transition-transform duration-300 group-hover:scale-x-100"
+                    aria-hidden="true"
+                  />
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/contact"
+                  className={({ isActive }) =>
+                    `group relative rounded-full px-3 py-2 text-sm transition-all ${
+                      isActive
+                        ? "font-semibold text-[#0043A8]"
+                        : "font-medium text-gray-700 hover:text-slate-900"
+                    }`
+                  }
+                >
+                  Contact
+                  <span
+                    className="absolute inset-x-2 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-[linear-gradient(90deg,#0043A8_0%,#0A5BD3_100%)] transition-transform duration-300 group-hover:scale-x-100"
+                    aria-hidden="true"
+                  />
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
+            {!user ? (
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  `btn-accent rounded-full ${isActive ? "" : "opacity-95"}`
+                }
               >
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
+                Login
+              </NavLink>
+            ) : (
+              <NavLink
+                to={accountPath}
+                className={({ isActive }) =>
+                  `btn-outline rounded-full ${
+                    isActive
+                      ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                      : ""
+                  }`
+                }
+              >
+                Mijn account
+              </NavLink>
+            )}
 
-              {isNotificationsOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-                  <div className="mb-2 text-sm font-bold text-slate-900">
-                    Meldingen
-                  </div>
-
-                  {notificationsLoading ? (
-                    <p className="text-sm text-slate-500">Laden...</p>
-                  ) : notifications.length === 0 ? (
-                    <p className="text-sm text-slate-500">Geen meldingen.</p>
-                  ) : (
-                    <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
-                      {notifications.map((notification) => (
-                        <button
-                          key={notification.id}
-                          type="button"
-                          onClick={() => {
-                            void handleNotificationClick(notification);
-                          }}
-                          className={`w-full rounded-lg border px-3 py-2 text-left transition ${
-                            notification.read_at
-                              ? "border-slate-200 bg-white"
-                              : "border-blue-200 bg-blue-50"
-                          }`}
-                        >
-                          <div className="text-sm font-semibold text-slate-900">
-                            {notification.title}
-                          </div>
-                          {notification.body && (
-                            <div className="mt-1 text-xs text-slate-600">
-                              {notification.body}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+            {user && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNotificationsOpen((prev) => !prev);
+                    if (!isNotificationsOpen) {
+                      void loadNotifications();
+                    }
+                  }}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:border-[#0043A8] hover:bg-[#EAF3FF] hover:text-[#0043A8]"
+                  aria-label="Meldingen"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   )}
-                </div>
-              )}
-            </div>
-          )}
+                </button>
+
+                {isNotificationsOpen && (
+                  <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+                    <div className="mb-2 text-sm font-bold text-slate-900">
+                      Meldingen
+                    </div>
+
+                    {notificationsLoading ? (
+                      <p className="text-sm text-slate-500">Laden...</p>
+                    ) : notifications.length === 0 ? (
+                      <p className="text-sm text-slate-500">Geen meldingen.</p>
+                    ) : (
+                      <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                        {notifications.map((notification) => (
+                          <button
+                            key={notification.id}
+                            type="button"
+                            onClick={() => {
+                              void handleNotificationClick(notification);
+                            }}
+                            className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                              notification.read_at
+                                ? "border-slate-200 bg-white"
+                                : "border-blue-200 bg-blue-50"
+                            }`}
+                          >
+                            <div className="text-sm font-semibold text-slate-900">
+                              {notification.title}
+                            </div>
+                            {notification.body && (
+                              <div className="mt-1 text-xs text-slate-600">
+                                {notification.body}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

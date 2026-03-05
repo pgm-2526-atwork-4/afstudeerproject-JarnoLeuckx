@@ -1,9 +1,92 @@
 @import "tailwindcss";
 
+:root {
+  --brand-black: #0b0b0f;
+  --brand-blue: #0043a8;
+  --brand-blue-soft: #eaf3ff;
+}
+
+@layer components {
+  .page-modern {
+    @apply min-h-screen;
+    background-image:
+      radial-gradient(circle at 15% -10%, rgba(0, 67, 168, 0.14) 0%, transparent 36%),
+      radial-gradient(circle at 88% 4%, rgba(11, 11, 15, 0.1) 0%, transparent 34%),
+      linear-gradient(180deg, #f8fbff 0%, #ffffff 48%, #eef4ff 100%);
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur;
+  }
+
+  .surface-card-strong {
+    @apply rounded-2xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur;
+    box-shadow:
+      0 12px 30px rgba(2, 6, 23, 0.06),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  }
+
+  .brand-badge {
+    @apply inline-flex items-center justify-center rounded-xl border border-[#d6e6ff] bg-[#edf4ff] text-[#0043a8];
+  }
+
+  .section-title {
+    @apply text-3xl font-black tracking-tight text-slate-900;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-slate-600;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60;
+    background-color: var(--brand-black);
+  }
+
+  .btn-primary:hover {
+    background-color: #111827;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-xl border bg-white px-4 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    border-color: color-mix(in srgb, var(--brand-black) 30%, white);
+    color: var(--brand-black);
+  }
+
+  .btn-outline:hover {
+    background-color: #f8fafc;
+    border-color: color-mix(in srgb, var(--brand-black) 45%, white);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-ghost:hover {
+    background-color: #f1f5f9;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    background-color: var(--brand-blue);
+    border-color: var(--brand-blue);
+  }
+
+  .btn-accent:hover {
+    background-color: #003688;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-700 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-danger:hover {
+    @apply bg-red-50;
+  }
+}
+
 /* Global Styles */
 * {
-  
- 
   box-sizing: border-box;
 }
 
@@ -13,4 +96,5 @@ body {
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #0f172a;
 }

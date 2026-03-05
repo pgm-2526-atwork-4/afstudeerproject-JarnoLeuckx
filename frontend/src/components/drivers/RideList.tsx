@@ -101,7 +101,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                 <button
                   onClick={() => handleAccept(ride.id)}
                   disabled={loadingId === ride.id}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-primary px-3 py-1.5 text-sm"
                 >
                   {loadingId === ride.id ? "..." : "Bevestigen"}
                 </button>
@@ -109,7 +109,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                 <button
                   onClick={() => handleReject(ride.id)}
                   disabled={loadingId === ride.id}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-outline px-3 py-1.5 text-sm"
                 >
                   {loadingId === ride.id ? "..." : "Weigeren"}
                 </button>

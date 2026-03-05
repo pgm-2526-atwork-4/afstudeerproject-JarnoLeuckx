@@ -14,10 +14,7 @@ type Props = {
   onDeleted: () => void;
 };
 
-export default function AvailabilityList({
-  availabilities,
-  onDeleted,
-}: Props) {
+export default function AvailabilityList({ availabilities, onDeleted }: Props) {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,82 +33,49 @@ export default function AvailabilityList({
   }
 
   const sorted = [...availabilities].sort((a, b) =>
-    (a.date + a.start_time).localeCompare(b.date + b.start_time)
+    (a.date + a.start_time).localeCompare(b.date + b.start_time),
   );
 
   return (
-    <div
-      style={{
-        padding: 16,
-        borderRadius: 14,
-        border: "1px solid #e5e7eb",
-        marginBottom: 20,
-        background: "white",
-      }}
-    >
-      <h3 style={{ fontWeight: 800, marginBottom: 12 }}>
+    <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="mb-3 text-lg font-extrabold text-slate-900">
         Mijn beschikbaarheden
       </h3>
 
       {error && (
-        <div
-          style={{
-            background: "#fee2e2",
-            padding: 10,
-            borderRadius: 8,
-            marginBottom: 10,
-          }}
-        >
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {sorted.length === 0 && (
-        <p style={{ opacity: 0.7 }}>Geen beschikbaarheden toegevoegd.</p>
+        <p className="text-sm text-slate-500">
+          Geen beschikbaarheden toegevoegd.
+        </p>
       )}
 
       {sorted.map((a) => (
         <div
           key={a.id}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 12,
-            border: "1px solid #eee",
-            borderRadius: 12,
-            marginBottom: 8,
-          }}
+          className="mb-2 flex items-center justify-between rounded-xl border border-slate-200 p-3"
         >
           <div>
-            <div style={{ fontWeight: 800 }}>
-              {a.date} • {a.start_time.slice(0, 5)} -{" "}
-              {a.end_time.slice(0, 5)}
+            <div className="font-extrabold text-slate-900">
+              {a.date} • {a.start_time.slice(0, 5)} - {a.end_time.slice(0, 5)}
             </div>
             <div
-              style={{
-                fontSize: 13,
-                opacity: 0.8,
-                color:
-                  a.status === "available" ? "green" : "red",
-              }}
+              className={`text-sm ${
+                a.status === "available" ? "text-emerald-700" : "text-red-700"
+              }`}
             >
-              {a.status === "available"
-                ? "Beschikbaar"
-                : "Niet beschikbaar"}
+              {a.status === "available" ? "Beschikbaar" : "Niet beschikbaar"}
             </div>
           </div>
 
           <button
             onClick={() => handleDelete(a.id)}
             disabled={loadingId === a.id}
-            style={{
-              padding: "6px 10px",
-              borderRadius: 8,
-              border: "1px solid #e5e7eb",
-              background: "white",
-              cursor: "pointer",
-            }}
+            className="btn-outline px-3 py-1.5"
           >
             {loadingId === a.id ? "..." : "Verwijderen"}
           </button>

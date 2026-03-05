@@ -32,10 +32,8 @@ function Tab({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
-        active
-          ? "border-slate-900 bg-slate-900 text-white"
-          : "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
+      className={`rounded-full px-4 py-2 ${
+        active ? "btn-primary" : "btn-outline"
       }`}
     >
       {children}

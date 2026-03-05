@@ -34,7 +34,7 @@ export default function CustomerHeaderBar({ name }: Props) {
             Naar website
           </a>
           <button
-            className="rounded-md border border-white/30 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-white/10"
+            className="btn-outline rounded-md border-white/30 bg-transparent px-3 py-1.5 text-white hover:bg-white/10"
             onClick={() => {
               void handleLogout();
             }}

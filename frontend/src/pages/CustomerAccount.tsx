@@ -168,10 +168,7 @@ export default function CustomerAccountPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Link
-                to="/reserveren"
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-              >
+              <Link to="/reserveren" className="btn-primary">
                 Rit aanvragen
               </Link>
               <button
@@ -179,7 +176,7 @@ export default function CustomerAccountPage() {
                 onClick={() => {
                   void handleDownloadContract();
                 }}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-slate-400"
+                className="btn-outline"
               >
                 Contract downloaden
               </button>
@@ -197,10 +194,10 @@ export default function CustomerAccountPage() {
                   setIsContractModalOpen(true);
                 }}
                 className={[
-                  "rounded-lg px-4 py-2 text-sm font-bold transition",
+                  "btn-outline",
                   hasSignedContract
-                    ? "cursor-not-allowed border border-slate-200 bg-slate-200 text-slate-500"
-                    : "border border-slate-300 bg-white text-slate-700 hover:border-slate-400",
+                    ? "cursor-not-allowed border-slate-200 bg-slate-200 text-slate-500"
+                    : "",
                 ].join(" ")}
               >
                 {hasSignedContract
@@ -328,7 +325,7 @@ export default function CustomerAccountPage() {
                       signatureCanvasRef.current?.clear();
                       setHasDrawnSignature(false);
                     }}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-400"
+                    className="btn-outline px-3 py-1.5 text-xs"
                   >
                     Wissen
                   </button>
@@ -369,7 +366,7 @@ export default function CustomerAccountPage() {
               <button
                 type="button"
                 onClick={() => setIsContractModalOpen(false)}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-slate-400"
+                className="btn-outline"
               >
                 Sluiten
               </button>
@@ -378,7 +375,7 @@ export default function CustomerAccountPage() {
                 onClick={() => {
                   void handleSignContract();
                 }}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+                className="btn-primary"
               >
                 Digitaal ondertekenen
               </button>

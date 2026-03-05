@@ -47,12 +47,12 @@ type SubjectOption =
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF8E8] via-white to-[#E8F2FF]">
+    <div className="page-modern">
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-4">Contact</h1>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <h1 className="section-title mb-4">Contact</h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Heeft u vragen of wilt u meer informatie? Neem gerust contact met
             ons op. We helpen u graag verder.
           </p>
@@ -61,8 +61,8 @@ export default function ContactPage() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Contact info */}
           <div>
-            <div className="bg-white/95 rounded-2xl p-8 mb-8 shadow-md border border-primary/15">
-              <h2 className="text-2xl font-semibold text-primary mb-6">
+            <div className="surface-card-strong p-8 mb-8">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Contactgegevens
               </h2>
 
@@ -70,20 +70,20 @@ export default function ContactPage() {
                 {INFO.map((item) => (
                   <div
                     key={item.title}
-                    className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/10"
+                    className="flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50/80 p-4"
                   >
-                    <div className="mt-1 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/20 shadow-sm">
-                      <item.icon className="h-6 w-6 text-primary" />
+                    <div className="brand-badge mt-1 h-11 w-11 shadow-sm">
+                      <item.icon className="h-6 w-6 text-[#0043A8]" />
                     </div>
 
                     <div>
-                      <h3 className="font-semibold text-primary mb-1">
+                      <h3 className="mb-1 font-semibold text-slate-900">
                         {item.title}
                       </h3>
 
                       <div className="space-y-1">
                         {item.lines.map((line) => (
-                          <p key={line} className="text-gray-800">
+                          <p key={line} className="text-slate-700">
                             {line}
                           </p>
                         ))}
@@ -95,7 +95,7 @@ export default function ContactPage() {
             </div>
 
             {/* Emergency */}
-            <div className="rounded-2xl p-8 shadow-lg border border-primary/20 bg-gradient-to-br from-primary to-[#0D3B8D] text-white">
+            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-8 text-white shadow-lg">
               <div className="flex items-start gap-4">
                 <div className="mt-1 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
                   <AlertCircle className="h-6 w-6 text-white" />
@@ -118,8 +118,8 @@ export default function ContactPage() {
           </div>
 
           {/* Contact form */}
-          <div className="bg-white/95 rounded-2xl p-8 shadow-md border border-primary/15">
-            <h2 className="text-2xl font-semibold text-primary mb-6">
+          <div className="surface-card-strong p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Stuur ons een bericht
             </h2>
 
@@ -154,7 +154,7 @@ export default function ContactPage() {
                 <select
                   name="onderwerp"
                   defaultValue={"" satisfies SubjectOption}
-                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
                 >
                   <option value="" disabled>
                     Selecteer een onderwerp
@@ -177,7 +177,7 @@ export default function ContactPage() {
                 <textarea
                   name="bericht"
                   placeholder="Typ hier uw bericht..."
-                  className="min-h-[160px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                  className="min-h-[160px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30 placeholder:text-slate-400"
                 />
               </label>
 

@@ -113,13 +113,13 @@ function RideCard({ ride }: { ride: CustomerRide }) {
 
       <div className="mt-4 flex justify-end gap-2">
         <button
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:border-slate-300"
+          className="btn-outline px-3 py-2"
           onClick={() => alert("Bewerken later")}
         >
           ✏️ Bewerken
         </button>
         <button
-          className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50"
+          className="btn-danger px-3 py-2"
           onClick={() => alert("Annuleren later")}
         >
           🗑️ Annuleren

@@ -67,7 +67,7 @@ function Stat({
       onClick={onClick}
       className={`rounded-2xl border p-4 text-left transition-all ${
         active
-          ? "border-slate-900 bg-slate-50 shadow-sm"
+          ? "border-[#0043A8] bg-[#EAF3FF] shadow-sm"
           : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
