@@ -10,6 +10,7 @@ type FieldProps = {
   name?: string;
   placeholder?: string;
   defaultValue?: string;
+  required?: boolean;
 };
 
 function Field({
@@ -18,18 +19,21 @@ function Field({
   name,
   placeholder,
   defaultValue,
+  required = false,
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-semibold text-primary">
+      <span className="form-label">
         {label}
+        {required && <span className="form-required">*</span>}
       </span>
       <input
         name={name}
         type={type}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+        required={required}
+        className="form-input"
       />
     </label>
   );
@@ -58,6 +62,8 @@ function calculatePrice(
   return basePrice + assistanceExtra;
 }
 
+const POSTCODE_REGEX = /^[0-9]{4}$/;
+
 export default function ReserverenPage() {
   const currentUser = getCurrentUser();
   const fullName = currentUser?.name?.trim() ?? "";
@@ -66,7 +72,7 @@ export default function ReserverenPage() {
   const defaultEmail = currentUser?.email ?? "";
   const defaultPhone = currentUser?.phone ?? "";
 
-  const [assistentie, setAssistentie] = useState<"nee" | "ja">("nee");
+  const [hasAssistance, setHasAssistance] = useState(false);
   const [assistentieType, setAssistentieType] = useState<
     "" | "luchthaven" | "ziekenhuis"
   >("");
@@ -95,13 +101,52 @@ export default function ReserverenPage() {
 
   const price = calculatePrice(
     serviceType,
-    assistentie === "ja" ? assistentieType : "",
+    hasAssistance ? assistentieType : "",
   );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (!POSTCODE_REGEX.test(pickupPostcode.trim())) {
+      setError("Vertrek postcode moet uit 4 cijfers bestaan.");
+      return;
+    }
+
+    if (!POSTCODE_REGEX.test(dropoffPostcode.trim())) {
+      setError("Bestemming postcode moet uit 4 cijfers bestaan.");
+      return;
+    }
+
+    if (hasAssistance && !assistentieType) {
+      setError("Kies een type assistentie of vink assistentie uit.");
+      return;
+    }
+
+    if (!pickupDatetime) {
+      setError("Kies een geldige datum en tijd voor de heenrit.");
+      return;
+    }
+
+    const pickupAt = new Date(pickupDatetime);
+    if (Number.isNaN(pickupAt.getTime()) || pickupAt < new Date()) {
+      setError("Heenrit datum en tijd moet in de toekomst liggen.");
+      return;
+    }
+
+    if (hasReturnTrip) {
+      if (!returnDatetime) {
+        setError("Kies een datum en tijd voor de terugrit.");
+        return;
+      }
+
+      const returnAt = new Date(returnDatetime);
+      if (Number.isNaN(returnAt.getTime()) || returnAt <= pickupAt) {
+        setError("Terugrit moet na de heenrit liggen.");
+        return;
+      }
+    }
 
     if (!currentUser) {
       setShowAccountPrompt(true);
@@ -127,9 +172,7 @@ export default function ReserverenPage() {
         return_datetime: hasReturnTrip ? returnDatetime : undefined,
         notes: notes || undefined,
         assistance_type:
-          assistentie === "ja" && assistentieType !== ""
-            ? assistentieType
-            : undefined,
+          hasAssistance && assistentieType !== "" ? assistentieType : undefined,
       });
 
       setSuccess(`${result.message} Geschatte prijs: €${price.toFixed(2)}`);
@@ -145,7 +188,7 @@ export default function ReserverenPage() {
       setHasReturnTrip(false);
       setReturnDatetime("");
       setNotes("");
-      setAssistentie("nee");
+      setHasAssistance(false);
       setAssistentieType("");
     } catch (err) {
       const message =
@@ -168,15 +211,20 @@ export default function ReserverenPage() {
             Vraag een rit aan
           </h2>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="form-layout" onSubmit={handleSubmit}>
+            <p className="text-sm text-slate-600">
+              Velden met <span className="form-required">*</span> zijn
+              verplicht.
+            </p>
+
             {error && (
-              <div className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-800">
+              <div role="alert" className="form-alert-error">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="rounded-lg bg-green-100 px-4 py-3 text-sm text-green-800">
+              <div role="status" className="form-alert-success">
                 {success}
               </div>
             )}
@@ -193,8 +241,9 @@ export default function ReserverenPage() {
             )}
 
             <label className="block">
-              <span className="mb-2 block text-xs font-semibold text-primary">
+              <span className="form-label">
                 Dienst
+                <span className="form-required">*</span>
               </span>
               <select
                 value={serviceType}
@@ -207,7 +256,7 @@ export default function ReserverenPage() {
                       | "assistance",
                   )
                 }
-                className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="form-select"
               >
                 <option value="airport">Luchthaven vervoer</option>
                 <option value="wheelchair">Rolstoel vervoer</option>
@@ -222,12 +271,14 @@ export default function ReserverenPage() {
                 name="voornaam"
                 placeholder="Uw voornaam"
                 defaultValue={defaultFirstName || ""}
+                required
               />
               <Field
                 label="Naam"
                 name="naam"
                 placeholder="Uw familienaam"
                 defaultValue={defaultLastName || defaultFirstName || ""}
+                required
               />
               <Field
                 label="E-mail"
@@ -235,51 +286,54 @@ export default function ReserverenPage() {
                 name="email"
                 placeholder="naam@email.com"
                 defaultValue={defaultEmail}
+                required
               />
               <Field
                 label="Telefoonnummer"
                 name="telefoon"
                 placeholder="+32 ..."
                 defaultValue={defaultPhone}
+                required
               />
             </div>
 
-            <div>
-              <p className="mb-4 text-xs font-semibold text-primary">
-                Vertrek adres
+            <div className="form-section">
+              <p className="form-section-title">Vertrek adres</p>
+              <p className="form-section-subtitle">
+                Vul de ophaallocatie zo volledig mogelijk in.
               </p>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <label className="block md:col-span-2">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Straat + nummer
+                  <span className="form-label">
+                    Straat + nummer<span className="form-required">*</span>
                   </span>
                   <input
                     value={pickupStreet}
                     onChange={(e) => setPickupStreet(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Postcode
+                  <span className="form-label">
+                    Postcode<span className="form-required">*</span>
                   </span>
                   <input
                     value={pickupPostcode}
                     onChange={(e) => setPickupPostcode(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Gemeente
+                  <span className="form-label">
+                    Gemeente<span className="form-required">*</span>
                   </span>
                   <input
                     value={pickupCity}
                     onChange={(e) => setPickupCity(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
                 <div className="md:col-span-2">
@@ -293,37 +347,27 @@ export default function ReserverenPage() {
             </div>
 
             {/* Assistentie */}
-            <div>
-              <p className="mb-4 text-xs font-semibold text-primary">
-                Assistentie
+            <div className="form-section">
+              <p className="form-section-title">Assistentie</p>
+              <p className="form-section-subtitle">
+                Vink dit aan als je extra begeleiding nodig hebt tijdens je rit.
               </p>
 
-              <div className="flex flex-wrap gap-6">
-                <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <label className="flex items-center gap-3 text-sm text-slate-800 cursor-pointer select-none">
                   <input
-                    type="radio"
-                    name="assistentie"
-                    value="nee"
-                    checked={assistentie === "nee"}
-                    onChange={() => {
-                      setAssistentie("nee");
-                      setAssistentieType("");
+                    id="assistance-needed"
+                    type="checkbox"
+                    checked={hasAssistance}
+                    onChange={(e) => {
+                      setHasAssistance(e.target.checked);
+                      if (!e.target.checked) {
+                        setAssistentieType("");
+                      }
                     }}
-                    className="accent-[color:var(--accent)]"
+                    className="form-checkbox"
                   />
-                  Nee
-                </label>
-
-                <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
-                  <input
-                    type="radio"
-                    name="assistentie"
-                    value="ja"
-                    checked={assistentie === "ja"}
-                    onChange={() => setAssistentie("ja")}
-                    className="accent-[color:var(--accent)]"
-                  />
-                  Ja
+                  Ik heb assistentie nodig tijdens deze rit
                 </label>
               </div>
 
@@ -332,11 +376,11 @@ export default function ReserverenPage() {
                 className={[
                   "mt-5 overflow-hidden rounded-xl border border-secondary/20 bg-secondary/5",
                   "transition-all duration-300 ease-out",
-                  assistentie === "ja"
+                  hasAssistance
                     ? "max-h-[520px] opacity-100"
                     : "max-h-0 opacity-0 border-transparent",
                 ].join(" ")}
-                aria-hidden={assistentie !== "ja"}
+                aria-hidden={!hasAssistance}
               >
                 <div className="p-5">
                   <p className="text-sm font-semibold text-primary mb-3">
@@ -382,7 +426,7 @@ export default function ReserverenPage() {
                   </div>
 
                   <label className="block mt-5">
-                    <span className="mb-2 block text-xs font-semibold text-primary">
+                    <span className="form-label">
                       Extra details (optioneel)
                     </span>
                     <textarea
@@ -390,7 +434,7 @@ export default function ReserverenPage() {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Bijv. hulp bij instappen, rolstoel meenemen, bagage..."
-                      className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-white/70 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                      className="form-textarea"
                     />
                   </label>
 
@@ -423,42 +467,43 @@ export default function ReserverenPage() {
               </div>
             </div>
 
-            <div>
-              <p className="mb-4 text-xs font-semibold text-primary">
-                Bestemming
+            <div className="form-section">
+              <p className="form-section-title">Bestemming</p>
+              <p className="form-section-subtitle">
+                Vul het afleveradres in waar de rit moet eindigen.
               </p>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <label className="block md:col-span-2">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Straat + nummer
+                  <span className="form-label">
+                    Straat + nummer<span className="form-required">*</span>
                   </span>
                   <input
                     value={dropoffStreet}
                     onChange={(e) => setDropoffStreet(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Postcode
+                  <span className="form-label">
+                    Postcode<span className="form-required">*</span>
                   </span>
                   <input
                     value={dropoffPostcode}
                     onChange={(e) => setDropoffPostcode(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Gemeente
+                  <span className="form-label">
+                    Gemeente<span className="form-required">*</span>
                   </span>
                   <input
                     value={dropoffCity}
                     onChange={(e) => setDropoffCity(e.target.value)}
                     required
-                    className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="form-input"
                   />
                 </label>
               </div>
@@ -466,15 +511,17 @@ export default function ReserverenPage() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-primary">
+                <span className="form-label">
                   Heenrit datum & uur
+                  <span className="form-required">*</span>
                 </span>
                 <input
                   type="datetime-local"
                   value={pickupDatetime}
                   onChange={(e) => setPickupDatetime(e.target.value)}
                   required
-                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="form-input"
                 />
               </label>
 
@@ -493,7 +540,7 @@ export default function ReserverenPage() {
                         setReturnDatetime("");
                       }
                     }}
-                    className="h-4 w-4 accent-[color:var(--accent)]"
+                    className="form-checkbox"
                   />
                   <label htmlFor="has-return-trip">
                     Ja, ik wil ook een terugrit
@@ -504,15 +551,14 @@ export default function ReserverenPage() {
 
             {hasReturnTrip && (
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-primary">
-                  Terugrit datum & uur
-                </span>
+                <span className="form-label">Terugrit datum & uur</span>
                 <input
                   type="datetime-local"
                   value={returnDatetime}
                   onChange={(e) => setReturnDatetime(e.target.value)}
                   required={hasReturnTrip}
-                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                  min={pickupDatetime || new Date().toISOString().slice(0, 16)}
+                  className="form-input"
                 />
               </label>
             )}

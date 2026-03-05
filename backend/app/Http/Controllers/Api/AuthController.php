@@ -12,11 +12,11 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:255'],
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255', 'required_if:role,customer'],
-            'vaph_number' => ['nullable', 'string', 'max:255'],
+            'vaph_number' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'in:driver,customer'],
         ]);

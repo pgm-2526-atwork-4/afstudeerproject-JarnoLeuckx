@@ -87,6 +87,7 @@ export default function CustomerAccountPage() {
     if (!currentUser) return;
 
     const cleanName = signatureName.trim();
+    const today = todayAsInputDate();
 
     if (!acceptedTerms) {
       setContractError(
@@ -100,8 +101,18 @@ export default function CustomerAccountPage() {
       return;
     }
 
+    if (signatureMethod === "name" && cleanName.length < 2) {
+      setContractError("Naam voor handtekening moet minstens 2 tekens bevatten.");
+      return;
+    }
+
     if (!signatureDate) {
       setContractError("Kies een datum van ondertekening.");
+      return;
+    }
+
+    if (signatureDate > today) {
+      setContractError("Datum van ondertekening mag niet in de toekomst liggen.");
       return;
     }
 
@@ -123,7 +134,12 @@ export default function CustomerAccountPage() {
     setContractError(null);
 
     try {
-      await signCustomerContract(signerName, signatureDate, signatureMethod);
+      await signCustomerContract(
+        signerName,
+        signatureDate,
+        signatureMethod,
+        acceptedTerms,
+      );
       await downloadSignedCustomerContract(currentUser, {
         method: signatureMethod,
         signerName,

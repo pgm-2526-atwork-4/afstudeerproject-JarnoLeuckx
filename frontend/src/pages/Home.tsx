@@ -80,9 +80,9 @@ export function Home() {
               </h1>
 
               <p className="text-lg text-blue-100/90 mt-6 leading-relaxed">
-                Betrouwbaar en comfortabel vervoer voor mensen met een beperking.
-                Wij bieden luchthavenvervoer, rolstoelvervoer en persoonlijke
-                assistentie.
+                Betrouwbaar en comfortabel vervoer voor mensen met een
+                beperking. Wij bieden luchthavenvervoer, rolstoelvervoer en
+                persoonlijke assistentie.
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
@@ -108,19 +108,25 @@ export function Home() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">
                   Altijd op tijd
                 </p>
-                <p className="mt-1 text-2xl font-black text-white">24/7 beschikbaar</p>
+                <p className="mt-1 text-2xl font-black text-white">
+                  24/7 beschikbaar
+                </p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">
                   Gespecialiseerd vervoer
                 </p>
-                <p className="mt-1 text-2xl font-black text-white">Rolstoel & assistentie</p>
+                <p className="mt-1 text-2xl font-black text-white">
+                  Rolstoel & assistentie
+                </p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">
                   Klantgericht
                 </p>
-                <p className="mt-1 text-2xl font-black text-white">Persoonlijke service</p>
+                <p className="mt-1 text-2xl font-black text-white">
+                  Persoonlijke service
+                </p>
               </div>
             </div>
           </div>

@@ -20,7 +20,7 @@ class DriverAvailabilityController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'status' => ['required', 'in:available,unavailable'],

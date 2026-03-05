@@ -6,6 +6,10 @@ type AuthPageProps = {
   mode: "login" | "register";
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[+0-9()\-\s]{8,20}$/;
+const POSTCODE_REGEX = /^[0-9]{4}$/;
+
 export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate();
 
@@ -33,11 +37,25 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+      setLoginError("Geef een geldig e-mailadres in.");
+      return;
+    }
+
+    if (!cleanPassword) {
+      setLoginError("Wachtwoord is verplicht.");
+      return;
+    }
+
     setLoginError(null);
     setLoginLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await login(cleanEmail, cleanPassword);
       saveAuth(data.token, data.user);
 
       if (data.user.role === "driver") {
@@ -60,23 +78,68 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const cleanName = registerName.trim();
+    const cleanEmail = registerEmail.trim();
+    const cleanPhone = registerPhone.trim();
+    const cleanStreet = registerStreet.trim();
+    const cleanPostalCode = registerPostalCode.trim();
+    const cleanCity = registerCity.trim();
+    const cleanVaph = registerVaphNumber.trim();
+
+    if (cleanName.length < 2) {
+      setRegisterError("Naam moet minstens 2 tekens bevatten.");
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      setRegisterError("Geef een geldig e-mailadres in.");
+      return;
+    }
+
+    if (cleanPhone && !PHONE_REGEX.test(cleanPhone)) {
+      setRegisterError("Geef een geldig telefoonnummer in.");
+      return;
+    }
+
+    if (registerRole === "customer") {
+      if (!cleanStreet || !cleanCity || !cleanPostalCode) {
+        setRegisterError("Straat, postcode en gemeente zijn verplicht.");
+        return;
+      }
+
+      if (!POSTCODE_REGEX.test(cleanPostalCode)) {
+        setRegisterError("Postcode moet uit 4 cijfers bestaan.");
+        return;
+      }
+    }
+
+    if (registerPassword.length < 8) {
+      setRegisterError("Wachtwoord moet minstens 8 tekens bevatten.");
+      return;
+    }
+
+    if (registerPassword !== registerPasswordConfirmation) {
+      setRegisterError("Wachtwoorden komen niet overeen.");
+      return;
+    }
+
     setRegisterError(null);
     setRegisterSuccess(null);
     setRegisterLoading(true);
 
     const customerAddress =
       registerRole === "customer"
-        ? `${registerStreet.trim()}, ${registerPostalCode.trim()} ${registerCity.trim()}`.trim()
+        ? `${cleanStreet}, ${cleanPostalCode} ${cleanCity}`.trim()
         : undefined;
 
     try {
       const data = await register({
-        name: registerName,
-        email: registerEmail,
-        phone: registerPhone,
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone || undefined,
         address: customerAddress,
-        vaph_number:
-          registerRole === "customer" ? registerVaphNumber : undefined,
+        vaph_number: registerRole === "customer" ? cleanVaph || undefined : undefined,
         role: registerRole,
         password: registerPassword,
         password_confirmation: registerPasswordConfirmation,
@@ -92,7 +155,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
       setRegisterVaphNumber("");
       setRegisterPassword("");
       setRegisterPasswordConfirmation("");
-      setEmail(registerEmail);
+      setEmail(cleanEmail);
     } catch (err) {
       setRegisterError(
         err instanceof Error ? err.message : "Registratie mislukt.",
@@ -121,38 +184,58 @@ export default function AuthPage({ mode }: AuthPageProps) {
             <h2 className="mb-4 text-xl font-extrabold text-slate-900">
               Inloggen
             </h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Velden met <span className="form-required">*</span> zijn
+              verplicht.
+            </p>
 
             {loginError && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div
+                id="login-error"
+                role="alert"
+                aria-live="assertive"
+                className="form-alert-error mb-4"
+              >
                 {loginError}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="grid gap-4">
-              <label className="grid gap-1">
-                <span className="text-sm font-semibold text-slate-700">
-                  E-mail
+            <form onSubmit={handleLogin} className="form-layout">
+              <label className="grid gap-1.5">
+                <span className="form-label">
+                  E-mail<span className="form-required">*</span>
                 </span>
                 <input
+                  id="login-email"
                   type="email"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
+                  autoComplete="email"
+                  aria-invalid={Boolean(loginError)}
+                  aria-describedby={loginError ? "login-error" : undefined}
+                  className="form-input"
                 />
               </label>
 
-              <label className="grid gap-1">
-                <span className="text-sm font-semibold text-slate-700">
-                  Wachtwoord
+              <label className="grid gap-1.5">
+                <span className="form-label">
+                  Wachtwoord<span className="form-required">*</span>
                 </span>
                 <input
+                  id="login-password"
                   type="password"
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="h-11 rounded-lg border border-slate-300 px-3 outline-none transition focus:border-slate-400"
+                  autoComplete="current-password"
+                  aria-invalid={Boolean(loginError)}
+                  aria-describedby={loginError ? "login-error" : undefined}
+                  className="form-input"
                 />
+                <span className="form-help">
+                  Gebruik je account wachtwoord.
+                </span>
               </label>
 
               <button
@@ -179,75 +262,112 @@ export default function AuthPage({ mode }: AuthPageProps) {
             <h2 className="mb-4 text-xl font-extrabold text-slate-900">
               Registreren
             </h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Velden met <span className="form-required">*</span> zijn
+              verplicht.
+            </p>
 
             {registerError && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div
+                id="register-error"
+                role="alert"
+                aria-live="assertive"
+                className="form-alert-error mb-4"
+              >
                 {registerError}
               </div>
             )}
 
             {registerSuccess && (
-              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              <div
+                role="status"
+                aria-live="polite"
+                className="form-alert-success mb-4"
+              >
                 {registerSuccess}
               </div>
             )}
 
-            <form onSubmit={handleRegister} className="grid gap-5">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
-                  Persoonlijke gegevens
-                </h3>
+            <form onSubmit={handleRegister} className="form-layout">
+              <div className="form-section">
+                <h3 className="form-section-title">Persoonlijke gegevens</h3>
+                <p className="form-section-subtitle">
+                  Vul je basisinformatie in zodat we je account correct kunnen
+                  aanmaken.
+                </p>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-1 md:col-span-2">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Naam
+                  <label className="grid gap-1.5 md:col-span-2">
+                    <span className="form-label">
+                      Naam<span className="form-required">*</span>
                     </span>
                     <input
+                      id="register-name"
                       type="text"
                       required
                       value={registerName}
                       onChange={(event) => setRegisterName(event.target.value)}
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      autoComplete="name"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-input"
                     />
                   </label>
 
-                  <label className="grid gap-1">
-                    <span className="text-sm font-semibold text-slate-700">
-                      E-mail
+                  <label className="grid gap-1.5">
+                    <span className="form-label">
+                      E-mail<span className="form-required">*</span>
                     </span>
                     <input
+                      id="register-email"
                       type="email"
                       required
                       value={registerEmail}
                       onChange={(event) => setRegisterEmail(event.target.value)}
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      autoComplete="email"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-input"
                     />
                   </label>
 
-                  <label className="grid gap-1">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Telefoon
-                    </span>
+                  <label className="grid gap-1.5">
+                    <span className="form-label">Telefoon</span>
                     <input
+                      id="register-phone"
                       type="tel"
                       value={registerPhone}
                       onChange={(event) => setRegisterPhone(event.target.value)}
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      autoComplete="tel"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-input"
                     />
+                    <span className="form-help">
+                      Optioneel, maar handig voor snelle opvolging.
+                    </span>
                   </label>
 
-                  <label className="grid gap-1 md:col-span-2">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Rol
-                    </span>
+                  <label className="grid gap-1.5 md:col-span-2">
+                    <span className="form-label">Rol</span>
                     <select
+                      id="register-role"
                       value={registerRole}
                       onChange={(event) =>
                         setRegisterRole(
                           event.target.value as "customer" | "driver",
                         )
                       }
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-select"
                     >
                       <option value="customer">Klant</option>
                       <option value="driver">Chauffeur</option>
@@ -257,83 +377,110 @@ export default function AuthPage({ mode }: AuthPageProps) {
               </div>
 
               {registerRole === "customer" && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                  <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
-                    Adresgegevens
-                  </h3>
+                <div className="form-section">
+                  <h3 className="form-section-title">Adresgegevens</h3>
+                  <p className="form-section-subtitle">
+                    Dit adres gebruiken we als basis voor je ritaanvragen.
+                  </p>
                   <div className="grid gap-4 md:grid-cols-3">
-                    <label className="grid gap-1 md:col-span-3">
-                      <span className="text-sm font-semibold text-slate-700">
-                        Straat
+                    <label className="grid gap-1.5 md:col-span-3">
+                      <span className="form-label">
+                        Straat<span className="form-required">*</span>
                       </span>
                       <input
+                        id="register-street"
                         type="text"
                         required
                         value={registerStreet}
                         onChange={(event) =>
                           setRegisterStreet(event.target.value)
                         }
-                        className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                        autoComplete="street-address"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError ? "register-error" : undefined
+                        }
+                        className="form-input"
                       />
                     </label>
 
-                    <label className="grid gap-1">
-                      <span className="text-sm font-semibold text-slate-700">
-                        Postcode
+                    <label className="grid gap-1.5">
+                      <span className="form-label">
+                        Postcode<span className="form-required">*</span>
                       </span>
                       <input
+                        id="register-postcode"
                         type="text"
                         required
                         value={registerPostalCode}
                         onChange={(event) =>
                           setRegisterPostalCode(event.target.value)
                         }
-                        className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                        autoComplete="postal-code"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError ? "register-error" : undefined
+                        }
+                        className="form-input"
                       />
                     </label>
 
-                    <label className="grid gap-1 md:col-span-2">
-                      <span className="text-sm font-semibold text-slate-700">
-                        Gemeente
+                    <label className="grid gap-1.5 md:col-span-2">
+                      <span className="form-label">
+                        Gemeente<span className="form-required">*</span>
                       </span>
                       <input
+                        id="register-city"
                         type="text"
                         required
                         value={registerCity}
                         onChange={(event) =>
                           setRegisterCity(event.target.value)
                         }
-                        className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                        autoComplete="address-level2"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError ? "register-error" : undefined
+                        }
+                        className="form-input"
                       />
                     </label>
 
-                    <label className="grid gap-1 md:col-span-3">
-                      <span className="text-sm font-semibold text-slate-700">
-                        VAPH-nummer
-                      </span>
+                    <label className="grid gap-1.5 md:col-span-3">
+                      <span className="form-label">VAPH-nummer</span>
                       <input
+                        id="register-vaph"
                         type="text"
                         value={registerVaphNumber}
                         onChange={(event) =>
                           setRegisterVaphNumber(event.target.value)
                         }
-                        className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError ? "register-error" : undefined
+                        }
+                        className="form-input"
                       />
+                      <span className="form-help">
+                        Alleen invullen indien van toepassing.
+                      </span>
                     </label>
                   </div>
                 </div>
               )}
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-slate-700">
-                  Account beveiliging
-                </h3>
+              <div className="form-section">
+                <h3 className="form-section-title">Account beveiliging</h3>
+                <p className="form-section-subtitle">
+                  Kies een sterk wachtwoord van minstens 8 tekens.
+                </p>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-1">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Wachtwoord
+                  <label className="grid gap-1.5">
+                    <span className="form-label">
+                      Wachtwoord<span className="form-required">*</span>
                     </span>
                     <input
+                      id="register-password"
                       type="password"
                       minLength={8}
                       required
@@ -341,15 +488,21 @@ export default function AuthPage({ mode }: AuthPageProps) {
                       onChange={(event) =>
                         setRegisterPassword(event.target.value)
                       }
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      autoComplete="new-password"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-input"
                     />
                   </label>
 
-                  <label className="grid gap-1">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Herhaal wachtwoord
+                  <label className="grid gap-1.5">
+                    <span className="form-label">
+                      Herhaal wachtwoord<span className="form-required">*</span>
                     </span>
                     <input
+                      id="register-password-confirmation"
                       type="password"
                       minLength={8}
                       required
@@ -357,7 +510,12 @@ export default function AuthPage({ mode }: AuthPageProps) {
                       onChange={(event) =>
                         setRegisterPasswordConfirmation(event.target.value)
                       }
-                      className="h-11 rounded-lg border border-slate-300 bg-white px-3 outline-none transition focus:border-slate-400"
+                      autoComplete="new-password"
+                      aria-invalid={Boolean(registerError)}
+                      aria-describedby={
+                        registerError ? "register-error" : undefined
+                      }
+                      className="form-input"
                     />
                   </label>
                 </div>

@@ -14,9 +14,10 @@ class CustomerContractController extends Controller
     public function sign(Request $request)
     {
         $data = $request->validate([
-            'signer_name' => ['required', 'string', 'max:255'],
+            'signer_name' => ['required', 'string', 'min:2', 'max:255'],
             'signer_date' => ['required', 'date', 'before_or_equal:today'],
             'signature_method' => ['required', 'in:name,draw'],
+            'accepted_terms' => ['required', 'accepted'],
         ]);
 
         $user = $request->user();
