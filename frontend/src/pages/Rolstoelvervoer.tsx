@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { Accessibility, Check, Heart, Shield } from "lucide-react";
 
 type Feature = {
@@ -36,6 +37,11 @@ export default function Rolstoelvervoer() {
     "" | "luchthaven" | "ziekenhuis"
   >("");
   const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [departureDate, setDepartureDate] = useState("");
+  const [returnTripDate, setReturnTripDate] = useState("");
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
     <div className="page-modern">
@@ -208,7 +214,13 @@ export default function Rolstoelvervoer() {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input id="vertrekdatum" label="Datum" type="date" />
+                  <CalendarDateField
+                    id="vertrekdatum"
+                    label="Datum"
+                    value={departureDate}
+                    onChange={setDepartureDate}
+                    minDate={minDate}
+                  />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
               </div>
@@ -241,10 +253,12 @@ export default function Rolstoelvervoer() {
                       Terugreis details
                     </p>
 
-                    <Input
+                    <CalendarDateField
                       id="terugreis_datum"
                       label="Terugreis datum"
-                      type="date"
+                      value={returnTripDate}
+                      onChange={setReturnTripDate}
+                      minDate={departureDate || minDate}
                     />
 
                     <div className="mt-4 grid grid-cols-2 gap-4">

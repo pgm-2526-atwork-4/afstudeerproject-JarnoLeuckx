@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { Users, UserCircle, Heart, Calendar } from "lucide-react";
 
 type Feature = {
@@ -96,6 +97,9 @@ export default function Assistentie() {
         };
     }
   }, [formData.assistentieType]);
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const toggleHulpbehoefte = (optie: string) => {
     setFormData((prev) => ({
@@ -250,14 +254,14 @@ export default function Assistentie() {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
+                <CalendarDateField
                   id="datum"
                   label="Gewenste datum"
-                  type="date"
                   value={formData.datum}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, datum: e.target.value }))
+                  onChange={(value) =>
+                    setFormData((p) => ({ ...p, datum: value }))
                   }
+                  minDate={minDate}
                 />
                 <Input
                   id="tijd"
@@ -422,17 +426,17 @@ export default function Assistentie() {
                         aria-hidden={formData.meerdereDagen !== "ja"}
                       >
                         <div className="pt-2">
-                          <Input
+                          <CalendarDateField
                             id="eindDatum"
                             label="Einddatum"
-                            type="date"
                             value={formData.eindDatum}
-                            onChange={(e) =>
+                            onChange={(value) =>
                               setFormData((p) => ({
                                 ...p,
-                                eindDatum: e.target.value,
+                                eindDatum: value,
                               }))
                             }
+                            minDate={formData.datum || minDate}
                           />
                         </div>
                       </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/ui/Button";
+import CalendarDateField from "../components/forms/CalendarDateField";
 import { createCustomerRide } from "../lib/customer.api";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 
@@ -65,6 +66,14 @@ function calculatePrice(
 const POSTCODE_REGEX = /^[0-9]{4}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function todayAsInputDate() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ReserverenPage() {
   const currentUser = getCurrentUser();
   const fullName = currentUser?.name?.trim() ?? "";
@@ -92,9 +101,11 @@ export default function ReserverenPage() {
   const [dropoffPostcode, setDropoffPostcode] = useState("");
   const [dropoffCity, setDropoffCity] = useState("");
 
-  const [pickupDatetime, setPickupDatetime] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
   const [hasReturnTrip, setHasReturnTrip] = useState(false);
-  const [returnDatetime, setReturnDatetime] = useState("");
+  const [returnDate, setReturnDate] = useState("");
+  const [returnTime, setReturnTime] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +118,11 @@ export default function ReserverenPage() {
     serviceType,
     hasAssistance ? assistentieType : "",
   );
+
+  const pickupDatetime =
+    pickupDate && pickupTime ? `${pickupDate}T${pickupTime}` : "";
+  const returnDatetime =
+    returnDate && returnTime ? `${returnDate}T${returnTime}` : "";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -210,9 +226,11 @@ export default function ReserverenPage() {
       setDropoffNumber("");
       setDropoffPostcode("");
       setDropoffCity("");
-      setPickupDatetime("");
+      setPickupDate("");
+      setPickupTime("");
       setHasReturnTrip(false);
-      setReturnDatetime("");
+      setReturnDate("");
+      setReturnTime("");
       setNotes("");
       setHasAssistance(false);
       setAssistentieType("");
@@ -558,17 +576,25 @@ export default function ReserverenPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <CalendarDateField
+                id="pickup-date"
+                label="Heenrit datum"
+                value={pickupDate}
+                onChange={setPickupDate}
+                required
+                minDate={todayAsInputDate()}
+              />
+
               <label className="block">
                 <span className="form-label">
-                  Heenrit datum & uur
+                  Heenrit uur
                   <span className="form-required">*</span>
                 </span>
                 <input
-                  type="datetime-local"
-                  value={pickupDatetime}
-                  onChange={(e) => setPickupDatetime(e.target.value)}
+                  type="time"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
                   required
-                  min={new Date().toISOString().slice(0, 16)}
                   className="form-input"
                 />
               </label>
@@ -585,7 +611,8 @@ export default function ReserverenPage() {
                     onChange={(e) => {
                       setHasReturnTrip(e.target.checked);
                       if (!e.target.checked) {
-                        setReturnDatetime("");
+                        setReturnDate("");
+                        setReturnTime("");
                       }
                     }}
                     className="form-checkbox"
@@ -598,17 +625,27 @@ export default function ReserverenPage() {
             </div>
 
             {hasReturnTrip && (
-              <label className="block">
-                <span className="form-label">Terugrit datum & uur</span>
-                <input
-                  type="datetime-local"
-                  value={returnDatetime}
-                  onChange={(e) => setReturnDatetime(e.target.value)}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <CalendarDateField
+                  id="return-date"
+                  label="Terugrit datum"
+                  value={returnDate}
+                  onChange={setReturnDate}
                   required={hasReturnTrip}
-                  min={pickupDatetime || new Date().toISOString().slice(0, 16)}
-                  className="form-input"
+                  minDate={pickupDate || todayAsInputDate()}
                 />
-              </label>
+
+                <label className="block">
+                  <span className="form-label">Terugrit uur</span>
+                  <input
+                    type="time"
+                    value={returnTime}
+                    onChange={(e) => setReturnTime(e.target.value)}
+                    required={hasReturnTrip}
+                    className="form-input"
+                  />
+                </label>
+              </div>
             )}
 
             <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] px-4 py-3">

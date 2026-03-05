@@ -36,6 +36,30 @@ function todayAsInputDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function parseInputDate(value: string) {
+  const [yyyy, mm, dd] = value.split("-").map(Number);
+
+  if (!yyyy || !mm || !dd) {
+    return null;
+  }
+
+  const date = new Date(yyyy, mm - 1, dd);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
 function getTimeBasedGreeting(name: string) {
   const hour = new Date().getHours();
 
@@ -84,6 +108,13 @@ export default function CustomerAccountPage() {
     null,
   );
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityStatus, setAvailabilityStatus] = useState<
+    "idle" | "available" | "unavailable"
+  >("idle");
+  const [visibleCalendarMonth, setVisibleCalendarMonth] = useState(() => {
+    const selectedDate = parseInputDate(todayAsInputDate()) ?? new Date();
+    return startOfMonth(selectedDate);
+  });
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(
     Boolean(
       currentUser &&
@@ -111,12 +142,14 @@ export default function CustomerAccountPage() {
       if (!calendarDate || !calendarStartTime || !calendarEndTime) {
         setAvailabilityMessage("Kies datum, starttijd en eindtijd.");
         setAvailableDrivers([]);
+        setAvailabilityStatus("idle");
         return;
       }
 
       if (calendarEndTime <= calendarStartTime) {
         setAvailabilityMessage("Eindtijd moet na starttijd liggen.");
         setAvailableDrivers([]);
+        setAvailabilityStatus("idle");
         return;
       }
 
@@ -129,9 +162,12 @@ export default function CustomerAccountPage() {
       setAvailableDrivers(result.drivers);
 
       if (result.drivers.length === 0) {
+        setAvailabilityStatus("unavailable");
         setAvailabilityMessage(
           "Geen vrije chauffeurs gevonden voor dit tijdslot.",
         );
+      } else {
+        setAvailabilityStatus("available");
       }
     } catch (err) {
       setAvailabilityMessage(
@@ -140,10 +176,17 @@ export default function CustomerAccountPage() {
           : "Vrije chauffeurs ophalen mislukt.",
       );
       setAvailableDrivers([]);
+      setAvailabilityStatus("idle");
     } finally {
       setAvailabilityLoading(false);
     }
   }
+
+  useEffect(() => {
+    setAvailableDrivers([]);
+    setAvailabilityMessage(null);
+    setAvailabilityStatus("idle");
+  }, [calendarDate, calendarStartTime, calendarEndTime]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -229,6 +272,76 @@ export default function CustomerAccountPage() {
         ...values,
       };
     });
+
+  const selectedCalendarDate = parseInputDate(calendarDate);
+  const todayInputDate = todayAsInputDate();
+  const weekdayLabels = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
+  const monthLabel = new Intl.DateTimeFormat("nl-BE", {
+    month: "long",
+    year: "numeric",
+  }).format(visibleCalendarMonth);
+
+  const calendarCells = (() => {
+    const year = visibleCalendarMonth.getFullYear();
+    const month = visibleCalendarMonth.getMonth();
+    const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPreviousMonth = new Date(year, month, 0).getDate();
+
+    const cells: Array<{
+      dateValue: string;
+      dayNumber: number;
+      isCurrentMonth: boolean;
+      isDisabled: boolean;
+      isSelected: boolean;
+      isToday: boolean;
+    }> = [];
+
+    for (let index = firstWeekday - 1; index >= 0; index -= 1) {
+      const dayNumber = daysInPreviousMonth - index;
+      const date = new Date(year, month - 1, dayNumber);
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+
+      cells.push({
+        dateValue: formattedDate,
+        dayNumber,
+        isCurrentMonth: false,
+        isDisabled: formattedDate < todayInputDate,
+        isSelected: calendarDate === formattedDate,
+        isToday: formattedDate === todayInputDate,
+      });
+    }
+
+    for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
+      const formattedDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+
+      cells.push({
+        dateValue: formattedDate,
+        dayNumber,
+        isCurrentMonth: true,
+        isDisabled: formattedDate < todayInputDate,
+        isSelected: calendarDate === formattedDate,
+        isToday: formattedDate === todayInputDate,
+      });
+    }
+
+    const remaining = 42 - cells.length;
+    for (let dayNumber = 1; dayNumber <= remaining; dayNumber += 1) {
+      const date = new Date(year, month + 1, dayNumber);
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+
+      cells.push({
+        dateValue: formattedDate,
+        dayNumber,
+        isCurrentMonth: false,
+        isDisabled: formattedDate < todayInputDate,
+        isSelected: calendarDate === formattedDate,
+        isToday: formattedDate === todayInputDate,
+      });
+    }
+
+    return cells;
+  })();
 
   async function handleDownloadContract() {
     if (!currentUser) return;
@@ -401,64 +514,151 @@ export default function CustomerAccountPage() {
             definitieve toewijzing wordt altijd door een admin bevestigd.
           </p>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-4">
-            <label className="grid gap-1.5">
-              <span className="form-label">Datum</span>
-              <input
-                type="date"
-                value={calendarDate}
-                min={todayAsInputDate()}
-                onChange={(event) => setCalendarDate(event.target.value)}
-                className="form-input"
-              />
-            </label>
+          <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+            <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-2">
+              <div className="mb-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleCalendarMonth((current) => addMonths(current, -1))
+                  }
+                  className="btn-outline px-2.5 py-1 text-xs"
+                >
+                  Vorige
+                </button>
 
-            <label className="grid gap-1.5">
-              <span className="form-label">Starttijd</span>
-              <input
-                type="time"
-                value={calendarStartTime}
-                onChange={(event) => setCalendarStartTime(event.target.value)}
-                className="form-input"
-              />
-            </label>
+                <p className="text-sm font-bold text-slate-900">
+                  {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
+                </p>
 
-            <label className="grid gap-1.5">
-              <span className="form-label">Eindtijd</span>
-              <input
-                type="time"
-                value={calendarEndTime}
-                onChange={(event) => setCalendarEndTime(event.target.value)}
-                className="form-input"
-              />
-            </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleCalendarMonth((current) => addMonths(current, 1))
+                  }
+                  className="btn-outline px-2.5 py-1 text-xs"
+                >
+                  Volgende
+                </button>
+              </div>
 
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={() => {
-                  void loadAvailableDrivers();
-                }}
-                className="btn-accent w-full"
-              >
-                {availabilityLoading ? "Laden..." : "Controleer chauffeurs"}
-              </button>
+              <div className="grid grid-cols-7 gap-0.5">
+                {weekdayLabels.map((label) => (
+                  <div
+                    key={label}
+                    className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                  >
+                    {label}
+                  </div>
+                ))}
+
+                {calendarCells.map((cell) => (
+                  <button
+                    key={`${cell.dateValue}-${cell.dayNumber}`}
+                    type="button"
+                    disabled={cell.isDisabled}
+                    onClick={() => {
+                      setCalendarDate(cell.dateValue);
+                      const selectedDate = parseInputDate(cell.dateValue);
+                      if (selectedDate) {
+                        setVisibleCalendarMonth(startOfMonth(selectedDate));
+                      }
+                    }}
+                    className={[
+                      "h-8 rounded-md border text-xs font-semibold transition",
+                      cell.isDisabled
+                        ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                        : cell.isSelected
+                          ? availabilityStatus === "available"
+                            ? "border-emerald-500 bg-emerald-100 text-emerald-800"
+                            : availabilityStatus === "unavailable"
+                              ? "border-red-500 bg-red-100 text-red-800"
+                              : "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                          : cell.isToday
+                            ? "border-slate-300 bg-white text-slate-900"
+                            : cell.isCurrentMonth
+                              ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                              : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
+                    ].join(" ")}
+                  >
+                    {cell.dayNumber}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                Geselecteerde datum:{" "}
+                <span className="font-semibold text-slate-900">
+                  {selectedCalendarDate
+                    ? new Intl.DateTimeFormat("nl-BE", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      }).format(selectedCalendarDate)
+                    : "-"}
+                </span>
+              </div>
+
+              <label className="grid gap-1.5">
+                <span className="form-label">Starttijd</span>
+                <input
+                  type="time"
+                  value={calendarStartTime}
+                  onChange={(event) => setCalendarStartTime(event.target.value)}
+                  className="form-input"
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="form-label">Eindtijd</span>
+                <input
+                  type="time"
+                  value={calendarEndTime}
+                  onChange={(event) => setCalendarEndTime(event.target.value)}
+                  className="form-input"
+                />
+              </label>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void loadAvailableDrivers();
+                  }}
+                  className="btn-accent w-full"
+                >
+                  {availabilityLoading ? "Laden..." : "Controleer chauffeurs"}
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500">
+                Enkel vandaag en toekomstige dagen zijn selecteerbaar.
+              </p>
             </div>
           </div>
 
           {availabilityMessage && (
-            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <div
+              className={[
+                "mt-3 rounded-lg px-3 py-2 text-sm",
+                availabilityStatus === "unavailable"
+                  ? "border border-red-200 bg-red-50 text-red-700"
+                  : "border border-slate-200 bg-slate-50 text-slate-700",
+              ].join(" ")}
+            >
               {availabilityMessage}
             </div>
           )}
 
           {availableDrivers.length > 0 && (
             <>
-              <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+              <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
                 Er is minstens één vrije chauffeur gevonden. Een admin bevestigt
                 de uiteindelijke toewijzing.
               </div>
-              <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+              <ul className="mt-4 divide-y divide-emerald-100 rounded-lg border border-emerald-200 bg-white">
                 {availableDrivers.map((driver) => (
                   <li
                     key={driver.id}
