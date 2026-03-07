@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 
-use App\Filament\Resources\RideResource\Pages;
+use App\Filament\Resources\RideResource\Pages\CreateRide;
+use App\Filament\Resources\RideResource\Pages\EditRide;
+use App\Filament\Resources\RideResource\Pages\ListRides;
 use App\Models\Ride;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -201,9 +203,9 @@ class RideResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRides::route('/'),
-            'create' => Pages\CreateRide::route('/create'),
-            'edit' => Pages\EditRide::route('/{record}/edit'),
+            'index' => ListRides::route('/'),
+            'create' => CreateRide::route('/create'),
+            'edit' => EditRide::route('/{record}/edit'),
         ];
     }
 }

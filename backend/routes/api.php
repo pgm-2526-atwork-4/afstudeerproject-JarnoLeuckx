@@ -1,11 +1,12 @@
 <?php
+
 use App\Http\Controllers\Api\AuthController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CustomerContractController;
+use App\Http\Controllers\Api\CustomerRideController;
 use App\Http\Controllers\Api\DriverAvailabilityController;
 use App\Http\Controllers\Api\DriverRideController;
-use App\Http\Controllers\Api\CustomerRideController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\CustomerContractController;
+use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -40,8 +41,8 @@ Route::middleware(['auth:sanctum', 'role:driver'])
 Route::middleware(['auth:sanctum', 'role:customer'])
     ->prefix('customer')
     ->group(function () {
-        Route::get('/rides', [CustomerRideController::class, 'index']);
-        Route::post('/rides', [CustomerRideController::class, 'store']);
-        Route::get('/available-drivers', [CustomerRideController::class, 'availableDrivers']);
-        Route::post('/contract/sign', [CustomerContractController::class, 'sign']);
+        Route::get('/rides', [\App\Http\Controllers\Api\CustomerRideController::class, 'index']);
+        Route::post('/rides', [\App\Http\Controllers\Api\CustomerRideController::class, 'store']);
+        Route::get('/available-drivers', [\App\Http\Controllers\Api\CustomerRideController::class, 'availableDrivers']);
+        Route::post('/contract/sign', [\App\Http\Controllers\Api\CustomerContractController::class, 'sign']);
     });
