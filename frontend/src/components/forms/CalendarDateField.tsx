@@ -16,6 +16,10 @@ type CalendarDateFieldProps = {
     | "leave_pending"
     | "leave_approved"
     | "sick";
+  dayHighlights?: Record<
+    string,
+    "available" | "leave_pending" | "leave_approved" | "sick"
+  >;
   minDate?: string;
   required?: boolean;
   className?: string;
@@ -71,6 +75,7 @@ export default function CalendarDateField({
   highlightStart,
   highlightEnd,
   highlightVariant = "default",
+  dayHighlights,
   minDate,
   required = false,
   className,
@@ -122,6 +127,12 @@ export default function CalendarDateField({
       isDisabled: boolean;
       isSelected: boolean;
       isToday: boolean;
+      dayHighlight:
+        | "available"
+        | "leave_pending"
+        | "leave_approved"
+        | "sick"
+        | null;
     }> = [];
 
     for (let index = firstWeekday - 1; index >= 0; index -= 1) {
@@ -136,6 +147,7 @@ export default function CalendarDateField({
         isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
         isSelected: displayStart === dateValue || displayEnd === dateValue,
         isToday: dateValue === todayDateValue,
+        dayHighlight: dayHighlights?.[dateValue] ?? null,
       });
     }
 
@@ -150,6 +162,7 @@ export default function CalendarDateField({
         isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
         isSelected: displayStart === dateValue || displayEnd === dateValue,
         isToday: dateValue === todayDateValue,
+        dayHighlight: dayHighlights?.[dateValue] ?? null,
       });
     }
 
@@ -165,6 +178,7 @@ export default function CalendarDateField({
         isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
         isSelected: displayStart === dateValue || displayEnd === dateValue,
         isToday: dateValue === todayDateValue,
+        dayHighlight: dayHighlights?.[dateValue] ?? null,
       });
     }
 
@@ -172,6 +186,7 @@ export default function CalendarDateField({
   }, [
     displayEnd,
     displayStart,
+    dayHighlights,
     minSelectableDate,
     todayDateValue,
     visibleMonth,
@@ -202,6 +217,15 @@ export default function CalendarDateField({
 
   const selectedDate = parseDate(effectiveStart);
   const selectedEndDate = parseDate(effectiveEnd);
+  const dayHighlightClasses: Record<
+    "available" | "leave_pending" | "leave_approved" | "sick",
+    string
+  > = {
+    available: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    leave_pending: "border-gray-300 bg-gray-100 text-gray-800",
+    leave_approved: "border-orange-200 bg-orange-50 text-orange-800",
+    sick: "border-red-200 bg-red-50 text-red-800",
+  };
 
   return (
     <div className={className}>
@@ -331,11 +355,13 @@ export default function CalendarDateField({
                         ? highlightClasses.selected
                         : inRange
                           ? highlightClasses.range
-                          : cell.isToday
-                            ? "border-slate-300 bg-white text-slate-900"
-                            : cell.isCurrentMonth
-                              ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                              : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
+                          : cell.dayHighlight
+                            ? dayHighlightClasses[cell.dayHighlight]
+                            : cell.isToday
+                              ? "border-slate-300 bg-white text-slate-900"
+                              : cell.isCurrentMonth
+                                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                                : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
                   ].join(" ")}
                 >
                   {cell.dayNumber}

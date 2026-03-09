@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DriverAvailabilityResource\Pages;
 use App\Filament\Resources\DriverAvailabilityResource;
 use App\Models\DriverAvailability;
 use App\Models\User;
+use App\Support\AvailabilityCalendarColor;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\Page;
@@ -50,7 +51,9 @@ class CalendarDriverAvailabilities extends Page
 
     public function getMonthLabelProperty(): string
     {
-        return Carbon::parse($this->month)->translatedFormat('F Y');
+        return Carbon::parse($this->month)
+            ->locale('nl_BE')
+            ->translatedFormat('F Y');
     }
 
     public function getWeekdayLabelsProperty(): array
@@ -58,6 +61,7 @@ class CalendarDriverAvailabilities extends Page
         return ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
     }
 
+    
     public function getCalendarWeeksProperty(): array
     {
         $monthStart = Carbon::parse($this->month)->startOfMonth();
@@ -68,7 +72,7 @@ class CalendarDriverAvailabilities extends Page
 
         $records = DriverAvailability::query()
             ->with('driver:id,name,email')
-            ->whereBetween('date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->when($this->driverId, fn ($query) => $query->where('driver_id', $this->driverId))
             ->orderBy('date')
             ->orderBy('start_time')
@@ -80,25 +84,39 @@ class CalendarDriverAvailabilities extends Page
 
         while ($cursor->lte($end)) {
             $dateKey = $cursor->toDateString();
+            $items = ($records->get($dateKey) ?? collect())
+                ->map(function (DriverAvailability $item) {
+                    return [
+                        'id' => $item->id,
+                        'edit_url' => DriverAvailabilityResource::getUrl('edit', ['record' => $item->id]),
+                        'name' => $item->driver?->name ?? $item->driver?->email ?? 'Onbekend',
+                        'start' => substr((string) $item->start_time, 0, 5),
+                        'end' => substr((string) $item->end_time, 0, 5),
+                        'status' => $item->status,
+                        'type' => $item->availability_type,
+                        'approval' => $item->approval_status,
+                        'color_key' => AvailabilityCalendarColor::resolve(
+                            $item->availability_type,
+                            $item->status,
+                            $item->approval_status,
+                        ),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $dayColorKey = collect($items)
+                ->sortByDesc(fn (array $item) => $this->colorPriority((string) ($item['color_key'] ?? 'available')))
+                ->pluck('color_key')
+                ->first();
 
             $days[] = [
                 'date' => $dateKey,
                 'day' => (int) $cursor->format('d'),
                 'is_in_month' => $cursor->month === $monthStart->month,
                 'is_today' => $cursor->isToday(),
-                'items' => ($records->get($dateKey) ?? collect())
-                    ->map(function (DriverAvailability $item) {
-                        return [
-                            'name' => $item->driver?->name ?? $item->driver?->email ?? 'Onbekend',
-                            'start' => substr((string) $item->start_time, 0, 5),
-                            'end' => substr((string) $item->end_time, 0, 5),
-                            'status' => $item->status,
-                            'type' => $item->availability_type,
-                            'approval' => $item->approval_status,
-                        ];
-                    })
-                    ->values()
-                    ->all(),
+                'color_key' => $dayColorKey,
+                'items' => $items,
             ];
 
             $cursor->addDay();
@@ -117,5 +135,16 @@ class CalendarDriverAvailabilities extends Page
                 $driver->id => trim(($driver->name ?? '') . ' (' . $driver->email . ')'),
             ])
             ->all();
+    }
+
+    private function colorPriority(string $colorKey): int
+    {
+        return match ($colorKey) {
+            AvailabilityCalendarColor::SICK => 4,
+            AvailabilityCalendarColor::LEAVE_PENDING => 3,
+            AvailabilityCalendarColor::LEAVE_APPROVED => 2,
+            AvailabilityCalendarColor::AVAILABLE => 1,
+            default => 0,
+        };
     }
 }

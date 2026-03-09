@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { createAvailability } from "../../lib/driver.api";
+import { useMemo, useState } from "react";
+import { createAvailability, type Availability } from "../../lib/driver.api";
 import CalendarDateField from "../forms/CalendarDateField";
 
 type Props = {
-  onCreated: () => void;
+  availabilities: Availability[];
+  onCreated: () => void | Promise<void>;
 };
 
 type PeriodPreset = "one_day" | "one_month" | "six_months" | "custom";
@@ -41,7 +42,25 @@ function calculateEndDate(startDate: string, preset: PeriodPreset) {
   return formatDate(end);
 }
 
-export default function AvailabilityForm({ onCreated }: Props) {
+function toCalendarDateKey(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const parsed = new Date(value);
+
+  if (!Number.isNaN(parsed.getTime())) {
+    return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+  }
+
+  return value.slice(0, 10);
+}
+
+export default function AvailabilityForm({ availabilities, onCreated }: Props) {
   const [date, setDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("one_day");
@@ -64,6 +83,65 @@ export default function AvailabilityForm({ onCreated }: Props) {
       : availabilityType === "sick"
         ? "sick"
         : "leave_pending";
+  const dayHighlights = useMemo(() => {
+    const score: Record<
+      "available" | "leave_approved" | "leave_pending" | "sick",
+      number
+    > = {
+      available: 1,
+      leave_approved: 2,
+      leave_pending: 3,
+      sick: 4,
+    };
+
+    const resolveVariant = (availability: Availability) => {
+      if (availability.calendar_color_key) {
+        return availability.calendar_color_key;
+      }
+
+      if (availability.availability_type === "leave") {
+        if (
+          availability.approval_status === "approved" ||
+          availability.approval_status === "not_required"
+        ) {
+          return "leave_approved" as const;
+        }
+
+        return "leave_pending" as const;
+      }
+
+      if (availability.availability_type === "sick") {
+        return "sick" as const;
+      }
+
+      if (availability.availability_type === "available") {
+        return "available" as const;
+      }
+
+      return availability.status === "unavailable"
+        ? ("sick" as const)
+        : ("available" as const);
+    };
+
+    return availabilities.reduce<
+      Record<string, "available" | "leave_approved" | "leave_pending" | "sick">
+    >((carry, item) => {
+      const date = toCalendarDateKey(item.date);
+
+      if (!date) {
+        return carry;
+      }
+
+      const next = resolveVariant(item);
+      const current = carry[date];
+
+      if (!current || score[next] >= score[current]) {
+        carry[date] = next;
+      }
+
+      return carry;
+    }, {});
+  }, [availabilities]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,9 +193,7 @@ export default function AvailabilityForm({ onCreated }: Props) {
         availability_type: availabilityType,
       });
 
-      setDate("");
-      setEndDate("");
-      onCreated(); // refresh parent
+      await Promise.resolve(onCreated());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Er ging iets mis.");
     } finally {
@@ -186,6 +262,7 @@ export default function AvailabilityForm({ onCreated }: Props) {
               setEndDate(finishDate);
             }}
             highlightVariant={highlightVariant}
+            dayHighlights={dayHighlights}
             required
             minDate={todayString}
           />
@@ -201,6 +278,7 @@ export default function AvailabilityForm({ onCreated }: Props) {
             highlightStart={date}
             highlightEnd={previewEndDate}
             highlightVariant={highlightVariant}
+            dayHighlights={dayHighlights}
             required
             minDate={todayString}
           />
