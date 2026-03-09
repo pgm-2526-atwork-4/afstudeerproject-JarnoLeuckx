@@ -74,6 +74,8 @@ export default function AccessDeniedPage() {
                   Naar home
                 </Link>
 
+                
+
                 <button
                   type="button"
                   onClick={() => window.history.back()}
