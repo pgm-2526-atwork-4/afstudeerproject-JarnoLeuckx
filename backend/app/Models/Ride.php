@@ -36,16 +36,37 @@ class Ride extends Model
 
     public function customer()
     {
-        return $this->belongsTo(User::class, 'customer_id', 'id');
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
     public function driver()
     {
-        return $this->belongsTo(User::class, 'driver_id', 'id');
+        return $this->belongsTo(User::class, 'driver_id');
     }
 
     public function vehicle()
     {
-        return $this->belongsTo(Vehicle::class, 'vehicle_id', 'id');
+        return $this->belongsTo(Vehicle::class, 'vehicle_id');
+    }
+
+    public function getPickupAddressAttribute(): string
+    {
+        return "{$this->pickup_street} {$this->pickup_number}, {$this->pickup_postcode} {$this->pickup_city}";
+    }
+
+    public function getDropoffAddressAttribute(): string
+    {
+        return "{$this->dropoff_street} {$this->dropoff_number}, {$this->dropoff_postcode} {$this->dropoff_city}";
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'pending' => 'In behandeling',
+            'approved' => 'Goedgekeurd',
+            'rejected' => 'Geweigerd',
+            'completed' => 'Afgerond',
+            default => $this->status,
+        };
     }
 }

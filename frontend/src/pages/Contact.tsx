@@ -1,6 +1,8 @@
+import { useState } from "react";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Mail, Phone, MapPin, Clock, AlertCircle } from "lucide-react";
+import { sendContactMessage } from "../lib/contact.api";
 
 type InfoItem = {
   title: string;
@@ -46,6 +48,51 @@ type SubjectOption =
   | "anders";
 
 export default function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [subject, setSubject] = useState<SubjectOption>("");
+  const [message, setMessage] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+    setFormSuccess(null);
+
+    if (!subject) {
+      setFormError("Kies eerst een onderwerp.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await sendContactMessage({
+        name,
+        email,
+        phone: phone || undefined,
+        subject,
+        message,
+      });
+
+      setFormSuccess(response.message);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setSubject("");
+      setMessage("");
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "Bericht verzenden mislukt.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="page-modern">
       <main className="max-w-7xl mx-auto px-6 py-12">
@@ -123,26 +170,42 @@ export default function ContactPage() {
               Stuur ons een bericht
             </h2>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {formError && <div className="form-alert-error">{formError}</div>}
+              {formSuccess && (
+                <div className="form-alert-success">{formSuccess}</div>
+              )}
+
               <Input
                 id="naam"
+                name="name"
                 label="Volledige naam"
                 type="text"
                 placeholder="Uw naam"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
               />
 
               <Input
                 id="email"
+                name="email"
                 label="E-mailadres"
                 type="email"
                 placeholder="naam@email.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
               />
 
               <Input
                 id="telefoon"
+                name="phone"
                 label="Telefoonnummer"
                 type="tel"
                 placeholder="+32 ..."
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
               />
 
               {/* Onderwerp (simple select - future-proof) */}
@@ -152,9 +215,13 @@ export default function ContactPage() {
                 </span>
 
                 <select
-                  name="onderwerp"
-                  defaultValue={"" satisfies SubjectOption}
+                  name="subject"
+                  value={subject}
+                  onChange={(event) =>
+                    setSubject(event.target.value as SubjectOption)
+                  }
                   className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                  required
                 >
                   <option value="" disabled>
                     Selecteer een onderwerp
@@ -175,14 +242,23 @@ export default function ContactPage() {
                   Bericht
                 </span>
                 <textarea
-                  name="bericht"
+                  name="message"
                   placeholder="Typ hier uw bericht..."
                   className="min-h-[160px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30 placeholder:text-slate-400"
+                  value={message}
+                  onChange={(event) => setMessage(event.target.value)}
+                  required
                 />
               </label>
 
-              <Button variant="accent" className="w-full">
-                Verstuur bericht
+              <Button
+                variant="accent"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? "Bericht wordt verzonden..."
+                  : "Verstuur bericht"}
               </Button>
 
               <p className="text-sm text-gray-600 text-center">

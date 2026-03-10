@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'contact' => [
+        'recipient_address' => env('CONTACT_MAIL_TO_ADDRESS', env('MAIL_FROM_ADDRESS')),
+        'recipient_name' => env('CONTACT_MAIL_TO_NAME', env('APP_NAME')),
+    ],
+
+    'frontend' => [
+        'url' => env('FRONTEND_URL', 'http://localhost:5173'),
+    ],
+
 ];
