@@ -53,6 +53,20 @@ function addMonths(date: Date, amount: number) {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }
 
+function formatDisplayDate(value: string) {
+  const date = parseDate(value);
+
+  if (!date) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat("nl-BE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 function resolveDefaultMonth(minSelectableDate: string) {
   if (minSelectableDate) {
     const min = parseDate(minSelectableDate);
@@ -227,6 +241,14 @@ export default function CalendarDateField({
     sick: "border-red-200 bg-red-50 text-red-800",
   };
 
+  const formattedStart = formatDisplayDate(effectiveStart);
+  const formattedEnd = formatDisplayDate(effectiveEnd);
+  const selectionLabel = formattedStart
+    ? isRangeMode && formattedEnd
+      ? `Van ${formattedStart} t.e.m. ${formattedEnd}`
+      : formattedStart
+    : "Nog geen datum geselecteerd.";
+
   return (
     <div className={className}>
       <span className="form-label">
@@ -250,12 +272,24 @@ export default function CalendarDateField({
         />
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-2">
-        <div className="mb-2 flex items-center justify-between">
+      <div className="rounded-2xl border border-[#dbe7ff] bg-white p-3 shadow-sm">
+        <div className="mb-4 rounded-2xl border border-[#dbe7ff] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#0043A8]">
+            Geselecteerde datum
+          </p>
+          <p className="mt-1 text-base font-bold text-slate-900">
+            {selectionLabel}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-600">
+            Kies hieronder rechtstreeks een dag in de kalender.
+          </p>
+        </div>
+
+        <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
           <button
             type="button"
             onClick={() => setVisibleMonth((current) => addMonths(current, -1))}
-            className="btn-outline px-2.5 py-1 text-xs"
+            className="btn-outline px-3 py-1.5 text-xs"
           >
             Vorige
           </button>
@@ -265,7 +299,7 @@ export default function CalendarDateField({
           <button
             type="button"
             onClick={() => setVisibleMonth((current) => addMonths(current, 1))}
-            className="btn-outline px-2.5 py-1 text-xs"
+            className="btn-outline px-3 py-1.5 text-xs"
           >
             Volgende
           </button>
@@ -291,11 +325,11 @@ export default function CalendarDateField({
           </div>
         )}
 
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-2">
           {weekdayLabels.map((weekdayLabel) => (
             <div
               key={weekdayLabel}
-              className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+              className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500"
             >
               {weekdayLabel}
             </div>
@@ -348,7 +382,7 @@ export default function CalendarDateField({
                     }
                   }}
                   className={[
-                    "h-8 rounded-md border text-xs font-semibold transition",
+                    "h-12 rounded-xl border text-sm font-semibold shadow-sm transition",
                     cell.isDisabled
                       ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
                       : cell.isSelected
@@ -373,26 +407,7 @@ export default function CalendarDateField({
       </div>
 
       <p className="mt-2 text-xs text-slate-500">
-        {selectedDate
-          ? isRangeMode && selectedEndDate
-            ? `Van ${new Intl.DateTimeFormat("nl-BE", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              }).format(selectedDate)} t.e.m. ${new Intl.DateTimeFormat(
-                "nl-BE",
-                {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                },
-              ).format(selectedEndDate)}`
-            : new Intl.DateTimeFormat("nl-BE", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              }).format(selectedDate)
-          : "Nog geen datum geselecteerd."}
+        Klik rechtstreeks op een dag in de kalender.
       </p>
     </div>
   );

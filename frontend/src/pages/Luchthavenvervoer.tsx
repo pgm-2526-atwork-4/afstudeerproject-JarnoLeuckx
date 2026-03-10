@@ -1,15 +1,86 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import CalendarDateField from "../components/forms/CalendarDateField";
-import { Plane, Check } from "lucide-react";
+import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
+import ReservationFormSection from "../components/reservation/ReservationFormSection";
+import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
+import {
+  Plane,
+  Check,
+  Clock3,
+  Luggage,
+  ShieldCheck,
+  MapPin,
+} from "lucide-react";
+
+type AirportCard = {
+  code: string;
+  name: string;
+  description: string;
+};
+
+type JourneyStep = {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const AIRPORTS: AirportCard[] = [
+  {
+    code: "BRU",
+    name: "Brussels Airport",
+    description:
+      "Voor internationale vluchten, family drop-offs en assistentie aan de vertrekhal.",
+  },
+  {
+    code: "CRL",
+    name: "Charleroi Airport",
+    description:
+      "Extra comfortabel voor vroege of late vluchten zonder overstappen onderweg.",
+  },
+  {
+    code: "ANR",
+    name: "Antwerp Airport",
+    description:
+      "Ideaal voor korte transfers en persoonlijke begeleiding van deur tot terminal.",
+  },
+];
+
+const JOURNEY_STEPS: JourneyStep[] = [
+  {
+    title: "We plannen ruim op tijd",
+    description:
+      "We vertrekken met voldoende marge zodat files, bagage en check-in geen stressmoment worden.",
+    icon: Clock3,
+  },
+  {
+    title: "Bagage en instap worden ondersteund",
+    description:
+      "Indien gewenst helpt de chauffeur met koffers, rolwagens en het veilig in- en uitstappen.",
+    icon: Luggage,
+  },
+  {
+    title: "Veilig tot aan de terminal",
+    description:
+      "U wordt afgezet op een praktische locatie dicht bij de juiste ingang of ophaalzone.",
+    icon: ShieldCheck,
+  },
+];
 
 export function LuchthavenVervoer() {
+  const navigate = useNavigate();
+  const currentUser = getCurrentUser();
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [assistentie, setAssistentie] = useState<"nee" | "ja">("nee");
   const [assistentieType, setAssistentieType] = useState<"" | "bagage">("");
   const [departureDate, setDepartureDate] = useState("");
   const [returnTripDate, setReturnTripDate] = useState("");
+  const [accountPrompt, setAccountPrompt] = useState<
+    null | "login" | "register"
+  >(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const today = new Date();
   const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -22,6 +93,41 @@ export function LuchthavenVervoer() {
     "Ervaren chauffeurs",
     "24/7 beschikbaar",
   ];
+
+  function buildReservationPath() {
+    return "/reserveren?service=airport";
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+    setAccountPrompt(null);
+
+    if (currentUser?.role === "customer") {
+      navigate(buildReservationPath());
+      return;
+    }
+
+    if (currentUser) {
+      setFormError("Alleen klanten kunnen een reservatie aanvragen.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+
+    if (!email) {
+      setFormError("Geef eerst een e-mailadres in.");
+      return;
+    }
+
+    try {
+      const result = await checkEmailExists(email);
+      setAccountPrompt(result.exists ? "login" : "register");
+    } catch {
+      setFormError("E-mailadres controleren mislukt. Probeer opnieuw.");
+    }
+  }
 
   return (
     <div className="page-modern">
@@ -53,6 +159,50 @@ export function LuchthavenVervoer() {
                 ))}
               </ul>
             </div>
+
+            <div className="surface-card p-8 border-[#d6e6ff] bg-[#edf4ff]">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">
+                Inbegrepen in uw transfer
+              </h3>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Deur-tot-terminal
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Een rechtstreekse rit zonder onnodige tussenstops.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Hulp bij bagage
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Praktische ondersteuning bij laden, lossen en verplaatsen.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Comfortabele voertuigen
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Ruime instap, aangename zitruimte en een rustige rit.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Persoonlijke opvolging
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Een service op maat van uw uurrooster en ondersteuning.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="surface-card-strong p-8">
@@ -60,62 +210,79 @@ export function LuchthavenVervoer() {
               Boek uw rit
             </h2>
 
-            <form className="space-y-6">
-              <Input
-                id="naam"
-                label="Volledige naam"
-                type="text"
-                placeholder="Uw naam"
-              />
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {formError && <div className="form-alert-error">{formError}</div>}
 
-              <Input
-                id="email"
-                label="E-mailadres"
-                type="email"
-                placeholder="naam@email.com"
-              />
-
-              <Input
-                id="telefoon"
-                label="Telefoonnummer"
-                type="tel"
-                placeholder="+32 000 00 00 00"
-              />
-
-              <Input
-                id="luchthaven"
-                label="Luchthaven"
-                type="text"
-                placeholder="Selecteer luchthaven"
-              />
-
-              <div className="grid grid-cols-2 gap-4">
+              <ReservationFormSection
+                step={1}
+                title="Contactgegevens"
+                description="Laat je contactgegevens achter zodat we de transfer kunnen voorbereiden."
+                defaultOpen
+              >
                 <Input
-                  id="vertrekstraat"
-                  label="Straat & nummer"
+                  id="naam"
+                  label="Volledige naam"
                   type="text"
-                  placeholder="Straat, huisnummer"
+                  placeholder="Uw naam"
                 />
-                <Input
-                  id="verkpostcode"
-                  label="Postcode"
-                  type="text"
-                  placeholder="1234 AB"
-                />
-              </div>
-              <Input
-                id="verkstad"
-                label="Stad"
-                type="text"
-                placeholder="Uw stad"
-              />
 
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-4 text-primary">
-                  Wanneer wilt u vertrekken?
-                </h3>
+                <Input
+                  id="email"
+                  name="email"
+                  label="E-mailadres"
+                  type="email"
+                  placeholder="naam@email.com"
+                  required
+                />
+
+                <Input
+                  id="telefoon"
+                  label="Telefoonnummer"
+                  type="tel"
+                  placeholder="+32 000 00 00 00"
+                />
+              </ReservationFormSection>
+
+              <ReservationFormSection
+                step={2}
+                title="Vertrekgegevens"
+                description="Kies de luchthaven en vul het ophaaladres duidelijk in."
+              >
+                <Input
+                  id="luchthaven"
+                  label="Luchthaven"
+                  type="text"
+                  placeholder="Selecteer luchthaven"
+                />
 
                 <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    id="vertrekstraat"
+                    label="Straat & nummer"
+                    type="text"
+                    placeholder="Straat, huisnummer"
+                  />
+                  <Input
+                    id="verkpostcode"
+                    label="Postcode"
+                    type="text"
+                    placeholder="1234 AB"
+                  />
+                </div>
+                <Input
+                  id="verkstad"
+                  label="Stad"
+                  type="text"
+                  placeholder="Uw stad"
+                />
+              </ReservationFormSection>
+
+              <ReservationFormSection
+                step={3}
+                title="Planning"
+                description="Duid je vertrekmoment aan en voeg optioneel meteen de terugreis toe."
+              >
+                <div className="space-y-4">
                   <CalendarDateField
                     id="vertrekdatum"
                     label="Datum"
@@ -125,9 +292,7 @@ export function LuchthavenVervoer() {
                   />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
-              </div>
 
-              <div className="border-t pt-6">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -173,9 +338,13 @@ export function LuchthavenVervoer() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </ReservationFormSection>
 
-              <div className="border-t pt-6">
+              <ReservationFormSection
+                step={4}
+                title="Assistentie en ritinformatie"
+                description="Geef aan of je extra hulp nodig hebt voor bagage of begeleiding."
+              >
                 <p className="mb-4 text-xs font-semibold text-primary">
                   Assistentie nodig?
                 </p>
@@ -262,26 +431,138 @@ export function LuchthavenVervoer() {
                     </div>
                   </div>
                 </div>
+
+                <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
+                  <h4 className="mb-2 font-semibold text-slate-900">
+                    Ritinformatie
+                  </h4>
+
+                  <p className="text-sm text-slate-600">
+                    Afstand en prijs worden hier automatisch berekend.
+                  </p>
+                </div>
+              </ReservationFormSection>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button variant="primary" type="submit">
+                  Boek nu
+                </Button>
+
+                <Button variant="outline" type="button">
+                  Offerte aanvragen
+                </Button>
               </div>
+            </form>
 
-              <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
-                <h4 className="mb-2 font-semibold text-slate-900">
-                  Ritinformatie
-                </h4>
+            {accountPrompt && (
+              <ReservationAccountPrompt
+                mode={accountPrompt}
+                onClose={() => setAccountPrompt(null)}
+                loginTo={`/login?redirect=${encodeURIComponent(buildReservationPath())}`}
+              />
+            )}
+          </div>
+        </div>
 
-                <p className="text-sm text-slate-600">
-                  Afstand en prijs worden hier automatisch berekend.
+        <section className="mt-16 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="surface-card-strong p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
+              Zo verloopt uw luchthavenrit
+            </h2>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {JOURNEY_STEPS.map((step) => (
+                <div
+                  key={step.title}
+                  className="rounded-2xl border border-slate-200 bg-white p-5"
+                >
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf4ff] text-[#0043A8]">
+                    <step.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-8 text-white shadow-md">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-100/80">
+              Handig om te weten
+            </p>
+            <h2 className="mt-3 text-2xl font-black">
+              Een rustige start van uw reis
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-blue-100/90">
+              Vooral bij vroege vluchten of extra bagage is een voorspelbare rit
+              een groot verschil. Daarom plannen we deze service met focus op
+              rust, timing en duidelijke begeleiding.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="text-sm font-semibold text-white">
+                  Beste moment om te reserveren
+                </p>
+                <p className="mt-1 text-sm text-blue-100/90">
+                  Liefst minstens 24 uur op voorhand, zeker voor piekmomenten of
+                  assistentie.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="primary">Boek nu</Button>
-
-                <Button variant="outline">Offerte aanvragen</Button>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                <p className="text-sm font-semibold text-white">
+                  Vroege of late vluchten
+                </p>
+                <p className="mt-1 text-sm text-blue-100/90">
+                  Ook dan voorzien we een comfortabele transfer zonder dat u
+                  afhankelijk bent van overstappen.
+                </p>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="mt-16">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf4ff] text-[#0043A8]">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Vaak gekozen luchthavens
+              </h2>
+              <p className="text-sm text-slate-600">
+                We verzorgen ritten naar meerdere vertrek- en aankomstlocaties.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            {AIRPORTS.map((airport) => (
+              <div
+                key={airport.code}
+                className="surface-card rounded-3xl p-6 transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {airport.name}
+                  </h3>
+                  <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-[#0043A8]">
+                    {airport.code}
+                  </span>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                  {airport.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
