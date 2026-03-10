@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import CalendarDateField from "../components/forms/CalendarDateField";
+import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
+import ReservationFormSection from "../components/reservation/ReservationFormSection";
+import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 import { Accessibility, Check, Heart, Shield } from "lucide-react";
 
 type Feature = {
@@ -32,6 +36,8 @@ const FEATURES: Feature[] = [
 ];
 
 export default function Rolstoelvervoer() {
+  const navigate = useNavigate();
+  const currentUser = getCurrentUser();
   const [assistentie, setAssistentie] = useState<"nee" | "ja">("nee");
   const [assistentieType, setAssistentieType] = useState<
     "" | "luchthaven" | "ziekenhuis"
@@ -39,9 +45,54 @@ export default function Rolstoelvervoer() {
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [departureDate, setDepartureDate] = useState("");
   const [returnTripDate, setReturnTripDate] = useState("");
+  const [accountPrompt, setAccountPrompt] = useState<
+    null | "login" | "register"
+  >(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const today = new Date();
   const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  function buildReservationPath() {
+    const params = new URLSearchParams({ service: "wheelchair" });
+
+    if (assistentie === "ja" && assistentieType) {
+      params.set("assistanceType", assistentieType);
+    }
+
+    return `/reserveren?${params.toString()}`;
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+    setAccountPrompt(null);
+
+    if (currentUser?.role === "customer") {
+      navigate(buildReservationPath());
+      return;
+    }
+
+    if (currentUser) {
+      setFormError("Alleen klanten kunnen een reservatie aanvragen.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+
+    if (!email) {
+      setFormError("Geef eerst een e-mailadres in.");
+      return;
+    }
+
+    try {
+      const result = await checkEmailExists(email);
+      setAccountPrompt(result.exists ? "login" : "register");
+    } catch {
+      setFormError("E-mailadres controleren mislukt. Probeer opnieuw.");
+    }
+  }
 
   return (
     <div className="page-modern">
@@ -144,76 +195,93 @@ export default function Rolstoelvervoer() {
               Boek uw rit
             </h2>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <Input
-                id="naam"
-                label="Volledige naam"
-                type="text"
-                placeholder="Uw naam"
-              />
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {formError && <div className="form-alert-error">{formError}</div>}
 
-              <Input
-                id="email"
-                label="E-mailadres"
-                type="email"
-                placeholder="naam@email.com"
-              />
-
-              <Input
-                id="telefoon"
-                label="Telefoonnummer"
-                type="tel"
-                placeholder="+32 ..."
-              />
-
-              <div className="grid grid-cols-2 gap-4">
+              <ReservationFormSection
+                step={1}
+                title="Contactgegevens"
+                description="Vul eerst je basisgegevens in zodat we je reservatie correct kunnen opvolgen."
+                defaultOpen
+              >
                 <Input
-                  id="ophaalstraat"
-                  label="Straat & nummer (ophaal)"
+                  id="naam"
+                  label="Volledige naam"
                   type="text"
-                  placeholder="Straat, huisnummer"
+                  placeholder="Uw naam"
                 />
-                <Input
-                  id="ophaalpostcode"
-                  label="Postcode (ophaal)"
-                  type="text"
-                  placeholder="1234 AB"
-                />
-              </div>
-              <Input
-                id="ophaalstad"
-                label="Stad (ophaal)"
-                type="text"
-                placeholder="Uw stad"
-              />
 
-              <div className="grid grid-cols-2 gap-4">
                 <Input
-                  id="bestemmingstraat"
-                  label="Straat & nummer (bestemming)"
-                  type="text"
-                  placeholder="Straat, huisnummer"
+                  id="email"
+                  name="email"
+                  label="E-mailadres"
+                  type="email"
+                  placeholder="naam@email.com"
+                  required
                 />
-                <Input
-                  id="bestemmingpostcode"
-                  label="Postcode (bestemming)"
-                  type="text"
-                  placeholder="1234 AB"
-                />
-              </div>
-              <Input
-                id="bestemmingstad"
-                label="Stad (bestemming)"
-                type="text"
-                placeholder="Uw stadsbestemming"
-              />
 
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-4 text-primary">
-                  Wanneer wilt u vertrekken?
-                </h3>
+                <Input
+                  id="telefoon"
+                  label="Telefoonnummer"
+                  type="tel"
+                  placeholder="+32 ..."
+                />
+              </ReservationFormSection>
+
+              <ReservationFormSection
+                step={2}
+                title="Traject"
+                description="Geef duidelijk aan waar we je ophalen en waar de rit eindigt."
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    id="ophaalstraat"
+                    label="Straat & nummer (ophaal)"
+                    type="text"
+                    placeholder="Straat, huisnummer"
+                  />
+                  <Input
+                    id="ophaalpostcode"
+                    label="Postcode (ophaal)"
+                    type="text"
+                    placeholder="1234 AB"
+                  />
+                </div>
+                <Input
+                  id="ophaalstad"
+                  label="Stad (ophaal)"
+                  type="text"
+                  placeholder="Uw stad"
+                />
 
                 <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    id="bestemmingstraat"
+                    label="Straat & nummer (bestemming)"
+                    type="text"
+                    placeholder="Straat, huisnummer"
+                  />
+                  <Input
+                    id="bestemmingpostcode"
+                    label="Postcode (bestemming)"
+                    type="text"
+                    placeholder="1234 AB"
+                  />
+                </div>
+                <Input
+                  id="bestemmingstad"
+                  label="Stad (bestemming)"
+                  type="text"
+                  placeholder="Uw stadsbestemming"
+                />
+              </ReservationFormSection>
+
+              <ReservationFormSection
+                step={3}
+                title="Vertrek en terugreis"
+                description="Kies wanneer je wil vertrekken en voeg indien nodig een terugrit toe."
+              >
+                <div className="space-y-4">
                   <CalendarDateField
                     id="vertrekdatum"
                     label="Datum"
@@ -223,9 +291,7 @@ export default function Rolstoelvervoer() {
                   />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
-              </div>
 
-              <div className="border-t pt-6">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -261,7 +327,7 @@ export default function Rolstoelvervoer() {
                       minDate={departureDate || minDate}
                     />
 
-                    <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="mt-4 space-y-4">
                       <Input
                         id="terugstraat"
                         label="Straat & nummer (terug)"
@@ -284,30 +350,34 @@ export default function Rolstoelvervoer() {
                     />
                   </div>
                 </div>
-              </div>
+              </ReservationFormSection>
 
-              <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
-                <h4 className="mb-2 font-semibold text-slate-900">
-                  Ritinformatie
-                </h4>
-                <p className="text-sm text-slate-700">
-                  Afstand en prijs kunnen later automatisch berekend worden.
-                </p>
-              </div>
+              <ReservationFormSection
+                step={4}
+                title="Extra ondersteuning"
+                description="Voeg bijkomende info toe en geef aan of assistentie nodig is."
+              >
+                <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] p-4">
+                  <h4 className="mb-2 font-semibold text-slate-900">
+                    Ritinformatie
+                  </h4>
+                  <p className="text-sm text-slate-700">
+                    Afstand en prijs kunnen later automatisch berekend worden.
+                  </p>
+                </div>
 
-              <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-primary">
-                  Bijzonderheden (optioneel)
-                </span>
-                <textarea
-                  id="opmerkingen"
-                  name="opmerkingen"
-                  placeholder="Bijv. type rolstoel, medische informatie, speciale wensen..."
-                  className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
-                />
-              </label>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-semibold text-primary">
+                    Bijzonderheden (optioneel)
+                  </span>
+                  <textarea
+                    id="opmerkingen"
+                    name="opmerkingen"
+                    placeholder="Bijv. type rolstoel, medische informatie, speciale wensen..."
+                    className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                  />
+                </label>
 
-              <div className="border-t pt-6">
                 <p className="mb-4 text-xs font-semibold text-primary">
                   Assistentie nodig?
                 </p>
@@ -435,7 +505,7 @@ export default function Rolstoelvervoer() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </ReservationFormSection>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button variant="primary" className="w-full">
@@ -452,6 +522,14 @@ export default function Rolstoelvervoer() {
                 toegevoegd.
               </p>
             </form>
+
+            {accountPrompt && (
+              <ReservationAccountPrompt
+                mode={accountPrompt}
+                onClose={() => setAccountPrompt(null)}
+                loginTo={`/login?redirect=${encodeURIComponent(buildReservationPath())}`}
+              />
+            )}
           </div>
         </div>
       </main>

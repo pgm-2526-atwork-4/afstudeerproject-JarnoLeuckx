@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import CalendarDateField from "../components/forms/CalendarDateField";
+import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
+import ReservationFormSection from "../components/reservation/ReservationFormSection";
+import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 import { Users, UserCircle, Heart, Calendar } from "lucide-react";
 
 type Feature = {
@@ -43,6 +47,8 @@ const HULPBEHOEFTEN: string[] = [
 ];
 
 export default function Assistentie() {
+  const navigate = useNavigate();
+  const currentUser = getCurrentUser();
   const [formData, setFormData] = useState({
     naam: "",
     email: "",
@@ -58,6 +64,10 @@ export default function Assistentie() {
     assistentieType: "" as AssistentieType,
     assistentieDetails: "",
   });
+  const [accountPrompt, setAccountPrompt] = useState<
+    null | "login" | "register"
+  >(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const assistentieHint = useMemo(() => {
     switch (formData.assistentieType) {
@@ -109,6 +119,46 @@ export default function Assistentie() {
         : [...prev.hulpbehoeften, optie],
     }));
   };
+
+  function buildReservationPath() {
+    const params = new URLSearchParams({ service: "assistance" });
+
+    if (formData.assistentieType === "luchthaven") {
+      params.set("assistanceType", "luchthaven");
+    }
+
+    return `/reserveren?${params.toString()}`;
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+    setAccountPrompt(null);
+
+    if (currentUser?.role === "customer") {
+      navigate(buildReservationPath());
+      return;
+    }
+
+    if (currentUser) {
+      setFormError("Alleen klanten kunnen een reservatie aanvragen.");
+      return;
+    }
+
+    const email = formData.email.trim();
+
+    if (!email) {
+      setFormError("Geef eerst een e-mailadres in.");
+      return;
+    }
+
+    try {
+      const result = await checkEmailExists(email);
+      setAccountPrompt(result.exists ? "login" : "register");
+    } catch {
+      setFormError("E-mailadres controleren mislukt. Probeer opnieuw.");
+    }
+  }
 
   return (
     <div className="page-modern">
@@ -208,74 +258,88 @@ export default function Assistentie() {
               Vraag assistentie aan
             </h2>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <Input
-                id="naam"
-                label="Volledige naam"
-                type="text"
-                placeholder="Uw naam"
-                value={formData.naam}
-                onChange={(e) =>
-                  setFormData((p) => ({ ...p, naam: e.target.value }))
-                }
-              />
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {formError && <div className="form-alert-error">{formError}</div>}
 
-              <Input
-                id="email"
-                label="E-mailadres"
-                type="email"
-                placeholder="naam@email.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((p) => ({ ...p, email: e.target.value }))
-                }
-              />
-
-              <Input
-                id="telefoon"
-                label="Telefoonnummer"
-                type="tel"
-                placeholder="+32 ..."
-                value={formData.telefoon}
-                onChange={(e) =>
-                  setFormData((p) => ({ ...p, telefoon: e.target.value }))
-                }
-              />
-
-              <Input
-                id="adres"
-                label="Adres"
-                type="text"
-                placeholder="Straat, huisnummer, postcode, stad"
-                value={formData.adres}
-                onChange={(e) =>
-                  setFormData((p) => ({ ...p, adres: e.target.value }))
-                }
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CalendarDateField
-                  id="datum"
-                  label="Gewenste datum"
-                  value={formData.datum}
-                  onChange={(value) =>
-                    setFormData((p) => ({ ...p, datum: value }))
-                  }
-                  minDate={minDate}
-                />
+              <ReservationFormSection
+                step={1}
+                title="Contact en aanvraag"
+                description="Vul je contactgegevens en het gewenste moment voor de assistentie in."
+                defaultOpen
+              >
                 <Input
-                  id="tijd"
-                  label="Gewenste tijd"
-                  type="time"
-                  value={formData.tijd}
+                  id="naam"
+                  label="Volledige naam"
+                  type="text"
+                  placeholder="Uw naam"
+                  value={formData.naam}
                   onChange={(e) =>
-                    setFormData((p) => ({ ...p, tijd: e.target.value }))
+                    setFormData((p) => ({ ...p, naam: e.target.value }))
                   }
                 />
-              </div>
 
-              {/* Hulpbehoeften */}
-              <div className="border-t pt-6">
+                <Input
+                  id="email"
+                  name="email"
+                  label="E-mailadres"
+                  type="email"
+                  placeholder="naam@email.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, email: e.target.value }))
+                  }
+                  required
+                />
+
+                <Input
+                  id="telefoon"
+                  label="Telefoonnummer"
+                  type="tel"
+                  placeholder="+32 ..."
+                  value={formData.telefoon}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, telefoon: e.target.value }))
+                  }
+                />
+
+                <Input
+                  id="adres"
+                  label="Adres"
+                  type="text"
+                  placeholder="Straat, huisnummer, postcode, stad"
+                  value={formData.adres}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, adres: e.target.value }))
+                  }
+                />
+
+                <div className="space-y-4">
+                  <CalendarDateField
+                    id="datum"
+                    label="Gewenste datum"
+                    value={formData.datum}
+                    onChange={(value) =>
+                      setFormData((p) => ({ ...p, datum: value }))
+                    }
+                    minDate={minDate}
+                  />
+                  <Input
+                    id="tijd"
+                    label="Gewenste tijd"
+                    type="time"
+                    value={formData.tijd}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, tijd: e.target.value }))
+                    }
+                  />
+                </div>
+              </ReservationFormSection>
+
+              <ReservationFormSection
+                step={2}
+                title="Ondersteuningsnoden"
+                description="Laat weten waarmee we concreet kunnen helpen tijdens de begeleiding."
+              >
                 <p className="mb-4 text-xs font-semibold text-primary">
                   Waarmee kunnen we helpen?
                 </p>
@@ -299,25 +363,30 @@ export default function Assistentie() {
                     );
                   })}
                 </div>
-              </div>
 
-              {/* Toelichting */}
-              <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-primary">
-                  Aanvullende informatie (optioneel)
-                </span>
-                <textarea
-                  value={formData.toelichting}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, toelichting: e.target.value }))
-                  }
-                  placeholder="Vertel ons meer over uw specifieke behoeften..."
-                  className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
-                />
-              </label>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-semibold text-primary">
+                    Aanvullende informatie (optioneel)
+                  </span>
+                  <textarea
+                    value={formData.toelichting}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        toelichting: e.target.value,
+                      }))
+                    }
+                    placeholder="Vertel ons meer over uw specifieke behoeften..."
+                    className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                  />
+                </label>
+              </ReservationFormSection>
 
-              {/* Assistentie voor reis (animated) */}
-              <div className="border-t pt-6">
+              <ReservationFormSection
+                step={3}
+                title="Extra assistentie op locatie"
+                description="Geef aan of de ondersteuning deel uitmaakt van een traject of meerdere dagen omvat."
+              >
                 <p className="mb-4 text-xs font-semibold text-primary">
                   Assistentie voor reis?
                 </p>
@@ -494,7 +563,7 @@ export default function Assistentie() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </ReservationFormSection>
 
               {/* Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -512,6 +581,14 @@ export default function Assistentie() {
                 toegevoegd.
               </p>
             </form>
+
+            {accountPrompt && (
+              <ReservationAccountPrompt
+                mode={accountPrompt}
+                onClose={() => setAccountPrompt(null)}
+                loginTo={`/login?redirect=${encodeURIComponent(buildReservationPath())}`}
+              />
+            )}
           </div>
         </div>
       </main>

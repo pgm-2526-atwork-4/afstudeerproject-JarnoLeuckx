@@ -16,6 +16,46 @@ import CustomerAccountPage from "./pages/CustomerAccount";
 import CustomerSettingsPage from "./pages/CustomerSettings";
 import AccessDeniedPage from "./pages/AccessDenied";
 
+type ProtectedRouteProps = {
+  user: User | null;
+  children: React.ReactElement;
+  requiredRole?: "customer" | "driver";
+};
+
+function ProtectedRoute({ user, children, requiredRole }: ProtectedRouteProps) {
+  const currentPath = window.location.pathname;
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: currentPath }} />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return (
+      <Navigate
+        to="/geen-toegang"
+        replace
+        state={{ from: currentPath, requiredRole }}
+      />
+    );
+  }
+
+  return children;
+}
+
+type GuestRouteProps = {
+  user: User | null;
+  accountPath: string;
+  children: React.ReactElement;
+};
+
+function GuestRoute({ user, accountPath, children }: GuestRouteProps) {
+  if (user) {
+    return <Navigate to={accountPath} replace />;
+  }
+
+  return children;
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(() => getCurrentUser());
 
@@ -53,21 +93,17 @@ export default function App() {
         <Route
           path="/login"
           element={
-            user ? (
-              <Navigate to={accountPath} replace />
-            ) : (
+            <GuestRoute user={user} accountPath={accountPath}>
               <AuthPage mode="login" />
-            )
+            </GuestRoute>
           }
         />
         <Route
           path="/register"
           element={
-            user ? (
-              <Navigate to={accountPath} replace />
-            ) : (
+            <GuestRoute user={user} accountPath={accountPath}>
               <AuthPage mode="register" />
-            )
+            </GuestRoute>
           }
         />
         <Route
@@ -82,49 +118,25 @@ export default function App() {
         <Route
           path="/customer/account"
           element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role !== "customer" ? (
-              <Navigate
-                to="/geen-toegang"
-                replace
-                state={{ from: "/customer/account", requiredRole: "customer" }}
-              />
-            ) : (
+            <ProtectedRoute user={user} requiredRole="customer">
               <CustomerAccountPage />
-            )
+            </ProtectedRoute>
           }
         />
         <Route
           path="/customer/settings"
           element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role !== "customer" ? (
-              <Navigate
-                to="/geen-toegang"
-                replace
-                state={{ from: "/customer/settings", requiredRole: "customer" }}
-              />
-            ) : (
+            <ProtectedRoute user={user} requiredRole="customer">
               <CustomerSettingsPage />
-            )
+            </ProtectedRoute>
           }
         />
         <Route
           path="/driver/account"
           element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role !== "driver" ? (
-              <Navigate
-                to="/geen-toegang"
-                replace
-                state={{ from: "/driver/account", requiredRole: "driver" }}
-              />
-            ) : (
+            <ProtectedRoute user={user} requiredRole="driver">
               <DriverAccountPage />
-            )
+            </ProtectedRoute>
           }
         />
       </Routes>

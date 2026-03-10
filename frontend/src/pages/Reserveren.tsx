@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Button from "../components/ui/Button";
 import CalendarDateField from "../components/forms/CalendarDateField";
+import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import { createCustomerRide } from "../lib/customer.api";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 
@@ -75,6 +76,7 @@ function todayAsInputDate() {
 }
 
 export default function ReserverenPage() {
+  const [searchParams] = useSearchParams();
   const currentUser = getCurrentUser();
   const fullName = currentUser?.name?.trim() ?? "";
   const [defaultFirstName, ...lastNameParts] = fullName.split(/\s+/);
@@ -83,13 +85,30 @@ export default function ReserverenPage() {
   const defaultPhone = currentUser?.phone ?? "";
   const [contactEmail, setContactEmail] = useState(defaultEmail);
 
-  const [hasAssistance, setHasAssistance] = useState(false);
+  const initialServiceType = searchParams.get("service");
+  const initialAssistanceType = searchParams.get("assistanceType");
+  const [hasAssistance, setHasAssistance] = useState(
+    initialAssistanceType === "luchthaven" ||
+      initialAssistanceType === "ziekenhuis",
+  );
   const [assistentieType, setAssistentieType] = useState<
     "" | "luchthaven" | "ziekenhuis"
-  >("");
+  >(
+    initialAssistanceType === "luchthaven" ||
+      initialAssistanceType === "ziekenhuis"
+      ? initialAssistanceType
+      : "",
+  );
   const [serviceType, setServiceType] = useState<
     "airport" | "wheelchair" | "medical" | "assistance"
-  >("airport");
+  >(
+    initialServiceType === "airport" ||
+      initialServiceType === "wheelchair" ||
+      initialServiceType === "medical" ||
+      initialServiceType === "assistance"
+      ? initialServiceType
+      : "airport",
+  );
 
   const [pickupStreet, setPickupStreet] = useState("");
   const [pickupNumber, setPickupNumber] = useState("");
@@ -182,14 +201,11 @@ export default function ReserverenPage() {
 
         if (result.exists) {
           setAccountPrompt("login");
-          setError(
-            "Dit e-mailadres bestaat al. Log eerst in om een rit aan te vragen.",
-          );
         } else {
           setAccountPrompt("register");
         }
       } catch {
-        setAccountPrompt("register");
+        setError("E-mailadres controleren mislukt. Probeer opnieuw.");
       }
 
       return;
@@ -270,33 +286,6 @@ export default function ReserverenPage() {
             {success && (
               <div role="status" className="form-alert-success">
                 {success}
-              </div>
-            )}
-
-            {accountPrompt === "register" && (
-              <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <p>
-                  Dit e-mailadres is nog niet gekend. Wil je een account
-                  aanmaken?
-                </p>
-                <div className="mt-2">
-                  <Link to="/register" className="btn-outline px-3 py-1.5">
-                    Ja, account aanmaken
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {accountPrompt === "login" && (
-              <div className="rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                <p>
-                  Met dit e-mailadres bestaat al een account. Wil je inloggen?
-                </p>
-                <div className="mt-2">
-                  <Link to="/login" className="btn-outline px-3 py-1.5">
-                    Ja, inloggen
-                  </Link>
-                </div>
               </div>
             )}
 
@@ -575,7 +564,7 @@ export default function ReserverenPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-6">
               <CalendarDateField
                 id="pickup-date"
                 label="Heenrit datum"
@@ -625,7 +614,7 @@ export default function ReserverenPage() {
             </div>
 
             {hasReturnTrip && (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-6">
                 <CalendarDateField
                   id="return-date"
                   label="Terugrit datum"
@@ -666,6 +655,13 @@ export default function ReserverenPage() {
           </form>
         </div>
       </div>
+
+      {accountPrompt && (
+        <ReservationAccountPrompt
+          mode={accountPrompt}
+          onClose={() => setAccountPrompt(null)}
+        />
+      )}
     </div>
   );
 }

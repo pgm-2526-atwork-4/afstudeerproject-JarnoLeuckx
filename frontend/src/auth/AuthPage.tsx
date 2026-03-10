@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, register, saveAuth } from "./auth.api";
 
 type AuthPageProps = {
@@ -12,6 +12,8 @@ const POSTCODE_REGEX = /^[0-9]{4}$/;
 
 export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +59,11 @@ export default function AuthPage({ mode }: AuthPageProps) {
     try {
       const data = await login(cleanEmail, cleanPassword);
       saveAuth(data.token, data.user);
+
+      if (redirectTo && data.user.role === "customer") {
+        navigate(redirectTo);
+        return;
+      }
 
       if (data.user.role === "driver") {
         navigate("/driver/account");
