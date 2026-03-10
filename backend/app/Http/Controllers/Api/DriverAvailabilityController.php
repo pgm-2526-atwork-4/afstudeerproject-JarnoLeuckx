@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DriverAvailability;
+use App\Support\AvailabilityCalendarColor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -85,6 +86,11 @@ class DriverAvailabilityController extends Controller
             'availability_type' => $availability->availability_type,
             'approval_status' => $availability->approval_status,
             'requested_by_role' => $availability->requested_by_role,
+            'calendar_color_key' => AvailabilityCalendarColor::resolve(
+                $availability->availability_type,
+                $availability->status,
+                $availability->approval_status,
+            ),
             'status_label' => match ($availability->status) {
                 DriverAvailability::STATUS_AVAILABLE => 'Beschikbaar',
                 DriverAvailability::STATUS_UNAVAILABLE => 'Niet beschikbaar',

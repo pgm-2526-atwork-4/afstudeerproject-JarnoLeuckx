@@ -85,7 +85,10 @@ export default function DriverAccountPage() {
 
         {activeTab === "availabilities" && (
           <div className="space-y-5">
-            <AvailabilityForm onCreated={loadData} />
+            <AvailabilityForm
+              availabilities={availabilities}
+              onCreated={loadData}
+            />
           </div>
         )}
 

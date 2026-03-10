@@ -36,10 +36,22 @@
             <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Legenda</p>
                 <div class="flex flex-wrap gap-2 text-xs">
-                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">Beschikbaar</span>
-                    <span class="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 font-medium text-orange-800">Verlof toegekend</span>
-                    <span class="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 font-medium text-gray-700">Verlof in afwachting</span>
-                    <span class="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 font-medium text-red-800">Ziekte / afwezig</span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        Beschikbaar
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 font-medium text-orange-800">
+                        <span class="h-2 w-2 rounded-full bg-orange-500"></span>
+                        Verlof toegekend
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
+                        <span class="h-2 w-2 rounded-full bg-gray-500"></span>
+                        Verlof in afwachting
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 font-medium text-red-800">
+                        <span class="h-2 w-2 rounded-full bg-red-500"></span>
+                        Ziekte / afwezig
+                    </span>
                 </div>
             </div>
         </div>
@@ -61,6 +73,10 @@
                                 'min-h-[160px] border-r border-gray-100 p-2 last:border-r-0',
                                 'bg-white' => $day['is_in_month'],
                                 'bg-gray-50/60 text-gray-400' => ! $day['is_in_month'],
+                                'ring-1 ring-inset ring-emerald-200 bg-emerald-50/30' => $day['is_in_month'] && $day['color_key'] === 'available',
+                                'ring-1 ring-inset ring-orange-200 bg-orange-50/30' => $day['is_in_month'] && $day['color_key'] === 'leave_approved',
+                                'ring-1 ring-inset ring-gray-300 bg-gray-100/50' => $day['is_in_month'] && $day['color_key'] === 'leave_pending',
+                                'ring-1 ring-inset ring-red-200 bg-red-50/30' => $day['is_in_month'] && $day['color_key'] === 'sick',
                             ])
                         >
                             <div class="mb-2 flex items-center justify-between">
@@ -76,27 +92,52 @@
                                 </span>
 
                                 @if (count($day['items']) > 0)
-                                    <span class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
-                                        {{ count($day['items']) }}
-                                    </span>
+                                    <div class="flex items-center gap-1">
+                                        @if (!empty($day['color_key']))
+                                            <span
+                                                @class([
+                                                    'h-2 w-2 rounded-full',
+                                                    'bg-emerald-500' => $day['color_key'] === 'available',
+                                                    'bg-orange-500' => $day['color_key'] === 'leave_approved',
+                                                    'bg-gray-500' => $day['color_key'] === 'leave_pending',
+                                                    'bg-red-500' => $day['color_key'] === 'sick',
+                                                ])
+                                            ></span>
+                                        @endif
+
+                                        <span class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                                            {{ count($day['items']) }}
+                                        </span>
+                                    </div>
                                 @endif
                             </div>
 
                             <div class="space-y-1.5">
                                 @foreach (array_slice($day['items'], 0, 3) as $item)
-                                    <div
+                                    <a
+                                        href="{{ $item['edit_url'] }}"
                                         @class([
-                                            'rounded-lg border px-2 py-1 text-[10px] leading-tight',
-                                            'border-emerald-200 bg-emerald-50 text-emerald-900' => $item['type'] === 'available',
-                                            'border-orange-200 bg-orange-50 text-orange-900' => $item['type'] === 'leave' && $item['approval'] === 'approved',
-                                            'border-gray-300 bg-gray-100 text-gray-800' => $item['type'] === 'leave' && $item['approval'] === 'pending',
-                                            'border-red-200 bg-red-50 text-red-900' => $item['type'] === 'sick' || $item['status'] === 'unavailable',
-                                            'border-gray-200 bg-white text-gray-700' => !in_array($item['type'], ['available', 'sick', 'leave']),
+                                            'block rounded-lg border px-2 py-1 text-[10px] leading-tight transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+                                            'border-emerald-200 bg-emerald-50 text-emerald-900' => $item['color_key'] === 'available',
+                                            'border-orange-200 bg-orange-50 text-orange-900' => $item['color_key'] === 'leave_approved',
+                                            'border-gray-300 bg-gray-100 text-gray-800' => $item['color_key'] === 'leave_pending',
+                                            'border-red-200 bg-red-50 text-red-900' => $item['color_key'] === 'sick',
+                                            'border-gray-200 bg-white text-gray-700' => !in_array($item['color_key'], ['available', 'leave_approved', 'leave_pending', 'sick']),
                                         ])
                                     >
-                                        <p class="truncate font-semibold">{{ $item['name'] }}</p>
+                                        <p
+                                            @class([
+                                                'truncate font-semibold',
+                                                'text-emerald-900' => $item['color_key'] === 'available',
+                                                'text-orange-900' => $item['color_key'] === 'leave_approved',
+                                                'text-red-900' => $item['color_key'] === 'sick',
+                                                'text-gray-800' => !in_array($item['color_key'], ['available', 'leave_approved', 'sick']),
+                                            ])
+                                        >
+                                            {{ $item['name'] }}
+                                        </p>
                                         <p>{{ $item['start'] }} - {{ $item['end'] }}</p>
-                                    </div>
+                                    </a>
                                 @endforeach
 
                                 @if (count($day['items']) > 3)

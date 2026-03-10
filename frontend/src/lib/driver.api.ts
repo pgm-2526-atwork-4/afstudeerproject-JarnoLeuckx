@@ -8,6 +8,11 @@ export type ApprovalStatus =
   | "approved"
   | "rejected";
 export type RequestedByRole = "driver" | "admin";
+export type CalendarColorKey =
+  | "available"
+  | "leave_approved"
+  | "leave_pending"
+  | "sick";
 
 export type Availability = {
   id: number;
@@ -19,6 +24,7 @@ export type Availability = {
   availability_type?: AvailabilityType;
   approval_status?: ApprovalStatus;
   requested_by_role?: RequestedByRole;
+  calendar_color_key?: CalendarColorKey;
   status_label?: string;
   availability_type_label?: string;
   approval_status_label?: string;
@@ -32,8 +38,35 @@ export type Ride = {
   status: string;
 };
 
-export function getMyAvailabilities() {
-  return apiFetch<Availability[]>("/driver/availabilities");
+function normalizeDateValue(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const parsed = new Date(value);
+
+  if (!Number.isNaN(parsed.getTime())) {
+    return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+  }
+
+  return value.slice(0, 10);
+}
+
+function normalizeAvailability(availability: Availability): Availability {
+  return {
+    ...availability,
+    date: normalizeDateValue(availability.date),
+  };
+}
+
+export async function getMyAvailabilities() {
+  const items = await apiFetch<Availability[]>("/driver/availabilities");
+
+  return items.map(normalizeAvailability);
 }
 
 export function getMyRides() {
@@ -66,7 +99,10 @@ export function createAvailability(payload: {
       method: "POST",
       body: JSON.stringify(payload),
     },
-  );
+  ).then((response) => ({
+    ...response,
+    items: response.items.map(normalizeAvailability),
+  }));
 }
 
 export function deleteAvailability(id: number) {
