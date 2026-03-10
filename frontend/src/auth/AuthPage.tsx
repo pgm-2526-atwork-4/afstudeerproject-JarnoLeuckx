@@ -14,6 +14,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || null;
+  const verificationStatus = searchParams.get("verified");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -205,6 +206,26 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 className="form-alert-error mb-4"
               >
                 {loginError}
+              </div>
+            )}
+
+            {verificationStatus === "success" && (
+              <div className="form-alert-success mb-4">
+                Je e-mailadres is bevestigd. Je kan nu inloggen.
+              </div>
+            )}
+
+            {verificationStatus === "already" && (
+              <div className="form-alert-success mb-4">
+                Je e-mailadres was al bevestigd. Je kan inloggen.
+              </div>
+            )}
+
+            {(verificationStatus === "invalid" ||
+              verificationStatus === "not-found") && (
+              <div className="form-alert-error mb-4">
+                De bevestigingslink is ongeldig. Vraag indien nodig een nieuwe
+                verificatiemail aan.
               </div>
             )}
 
