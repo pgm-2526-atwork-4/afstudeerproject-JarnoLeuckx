@@ -96,7 +96,7 @@ export default function Rolstoelvervoer() {
 
   return (
     <div className="page-modern">
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
@@ -111,12 +111,12 @@ export default function Rolstoelvervoer() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="mb-12 grid gap-6 md:grid-cols-3 md:gap-8">
           {FEATURES.map((feature) => {
             return (
               <div
                 key={feature.title}
-                className="surface-card-strong p-8 text-center transition-all hover:-translate-y-1 hover:shadow-lg"
+                className="surface-card-strong p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg md:p-8"
               >
                 <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
                   <feature.icon className="h-7 w-7 text-[#0043A8]" />
@@ -135,10 +135,10 @@ export default function Rolstoelvervoer() {
         </div>
 
         {/* Content */}
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Info Section */}
           <div>
-            <div className="surface-card-strong p-8 mb-8">
+            <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Onze diensten
               </h2>
@@ -175,7 +175,7 @@ export default function Rolstoelvervoer() {
               </ul>
             </div>
 
-            <div className="surface-card p-8 border-[#d6e6ff] bg-[#edf4ff]">
+            <div className="surface-card border-[#d6e6ff] bg-[#edf4ff] p-6 md:p-8">
               <h3 className="text-xl font-semibold text-slate-900 mb-4">
                 Belangrijk om te weten
               </h3>
@@ -190,7 +190,7 @@ export default function Rolstoelvervoer() {
           </div>
 
           {/* Booking Form (frontend-only) */}
-          <div className="surface-card-strong p-8">
+          <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
             </h2>
@@ -233,7 +233,7 @@ export default function Rolstoelvervoer() {
                 title="Traject"
                 description="Geef duidelijk aan waar we je ophalen en waar de rit eindigt."
               >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input
                     id="ophaalstraat"
                     label="Straat & nummer (ophaal)"
@@ -254,7 +254,7 @@ export default function Rolstoelvervoer() {
                   placeholder="Uw stad"
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input
                     id="bestemmingstraat"
                     label="Straat & nummer (bestemming)"

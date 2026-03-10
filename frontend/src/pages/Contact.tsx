@@ -95,7 +95,7 @@ export default function ContactPage() {
 
   return (
     <div className="page-modern">
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="section-title mb-4">Contact</h1>
@@ -105,10 +105,10 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Contact info */}
           <div>
-            <div className="surface-card-strong p-8 mb-8">
+            <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Contactgegevens
               </h2>
@@ -142,8 +142,8 @@ export default function ContactPage() {
             </div>
 
             {/* Emergency */}
-            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-8 text-white shadow-lg">
-              <div className="flex items-start gap-4">
+            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-6 text-white shadow-lg md:p-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="mt-1 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
                   <AlertCircle className="h-6 w-6 text-white" />
                 </div>
@@ -165,7 +165,7 @@ export default function ContactPage() {
           </div>
 
           {/* Contact form */}
-          <div className="surface-card-strong p-8">
+          <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Stuur ons een bericht
             </h2>

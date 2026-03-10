@@ -102,7 +102,7 @@ export default function CustomerSettingsPage() {
 
   return (
     <div className="page-modern">
-      <div className="mx-auto w-full max-w-4xl px-6 py-8">
+      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <div className="mb-6 surface-card-strong p-6">
           <h1 className="text-3xl font-black text-slate-900">Mijn gegevens</h1>
           <p className="mt-1 text-sm text-slate-600">
@@ -199,7 +199,7 @@ export default function CustomerSettingsPage() {
               </label>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
               <button
                 type="submit"
                 disabled={saveLoading}

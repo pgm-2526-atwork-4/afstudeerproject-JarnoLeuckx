@@ -111,15 +111,15 @@ function RideCard({ ride }: { ride: CustomerRide }) {
         </div>
       )}
 
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
         <button
-          className="btn-outline px-3 py-2"
+          className="btn-outline w-full px-3 py-2 sm:w-auto"
           onClick={() => alert("Bewerken later")}
         >
           ✏️ Bewerken
         </button>
         <button
-          className="btn-danger px-3 py-2"
+          className="btn-danger w-full px-3 py-2 sm:w-auto"
           onClick={() => alert("Annuleren later")}
         >
           🗑️ Annuleren
