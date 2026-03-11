@@ -163,7 +163,7 @@ export default function Assistentie() {
   return (
     <div className="page-modern">
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
-        {/* Header */}
+       
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Users className="h-9 w-9 text-[#0043A8]" />
@@ -177,7 +177,7 @@ export default function Assistentie() {
           </p>
         </div>
 
-        {/* Features */}
+
         <div className="mb-12 grid gap-6 md:grid-cols-3 md:gap-8">
           {FEATURES.map((feature) => {
             return (
@@ -202,7 +202,7 @@ export default function Assistentie() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Info Section */}
+      
           <div>
             <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
@@ -234,7 +234,7 @@ export default function Assistentie() {
               <ul className="space-y-3 text-white/95">
                 <li className="flex gap-3">
                   <span className="text-2xl leading-none">✓</span>
-                  <span>Persoonlijke kennismaking (indien nodig)</span>
+                  <span> Persoonlijke aanpak </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-2xl leading-none">✓</span>
@@ -252,7 +252,7 @@ export default function Assistentie() {
             </div>
           </div>
 
-          {/* Form */}
+         
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Vraag assistentie aan
@@ -575,11 +575,6 @@ export default function Assistentie() {
                   Offerte aanvragen
                 </Button>
               </div>
-
-              <p className="text-xs text-gray-500 text-center">
-                Dit is een design preview. Functionaliteit wordt later
-                toegevoegd.
-              </p>
             </form>
 
             {accountPrompt && (

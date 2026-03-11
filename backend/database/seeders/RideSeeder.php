@@ -15,36 +15,51 @@ class RideSeeder extends Seeder
         $driver = User::where('role', 'driver')->first();
         $vehicle = Vehicle::first();
 
-        Ride::create([
-            'customer_id' => $customer->id,
-            'driver_id' => $driver->id,
-            'vehicle_id' => $vehicle->id,
-            'service_type' => 'airport',
-            'pickup_street' => 'Stationsstraat',
-            'pickup_postcode' => '2800',
-            'pickup_city' => 'Mechelen',
-            'dropoff_street' => 'Brussels Airport',
-            'dropoff_postcode' => '1930',
-            'dropoff_city' => 'Zaventem',
-            'pickup_datetime' => now()->addDays(2),
-            'distance_km' => 25,
-            'total_price' => 55.00,
-            'status' => 'confirmed',
-        ]);
+        if (! $customer) {
+            return;
+        }
 
-        Ride::create([
-            'customer_id' => $customer->id,
-            'service_type' => 'wheelchair',
-            'pickup_street' => 'Kerkstraat',
-            'pickup_postcode' => '2800',
-            'pickup_city' => 'Mechelen',
-            'dropoff_street' => 'AZ Sint-Maarten',
-            'dropoff_postcode' => '2800',
-            'dropoff_city' => 'Mechelen',
-            'pickup_datetime' => now()->addDays(5),
-            'distance_km' => 8,
-            'total_price' => 21.00,
-            'status' => 'pending',
-        ]);
+        $airportPickupAt = now()->addDays(2)->startOfDay()->setHour(9);
+        $wheelchairPickupAt = now()->addDays(5)->startOfDay()->setHour(10);
+
+        Ride::updateOrCreate(
+            [
+                'customer_id' => $customer->id,
+                'service_type' => 'airport',
+                'pickup_street' => 'Stationsstraat',
+                'pickup_postcode' => '2800',
+                'pickup_city' => 'Mechelen',
+                'dropoff_street' => 'Brussels Airport',
+                'dropoff_postcode' => '1930',
+                'dropoff_city' => 'Zaventem',
+            ],
+            [
+                'driver_id' => $driver?->id,
+                'vehicle_id' => $vehicle?->id,
+                'pickup_datetime' => $airportPickupAt,
+                'distance_km' => 25,
+                'total_price' => 55.00,
+                'status' => 'confirmed',
+            ]
+        );
+
+        Ride::updateOrCreate(
+            [
+                'customer_id' => $customer->id,
+                'service_type' => 'wheelchair',
+                'pickup_street' => 'Kerkstraat',
+                'pickup_postcode' => '2800',
+                'pickup_city' => 'Mechelen',
+                'dropoff_street' => 'AZ Sint-Maarten',
+                'dropoff_postcode' => '2800',
+                'dropoff_city' => 'Mechelen',
+            ],
+            [
+                'pickup_datetime' => $wheelchairPickupAt,
+                'distance_km' => 8,
+                'total_price' => 21.00,
+                'status' => 'pending',
+            ]
+        );
     }
 }

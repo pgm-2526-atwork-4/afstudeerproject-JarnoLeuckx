@@ -516,11 +516,6 @@ export default function Rolstoelvervoer() {
                   Offerte aanvragen
                 </Button>
               </div>
-
-              <p className="text-xs text-gray-500 text-center">
-                Dit is een design preview. Functionaliteit wordt later
-                toegevoegd.
-              </p>
             </form>
 
             {accountPrompt && (

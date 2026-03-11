@@ -67,7 +67,7 @@ class DriverAvailabilityController extends Controller
 
         return response()->json([
             'message' => $data['availability_type'] === 'leave'
-                ? 'Verlofaanvraag ingediend. Een admin moet deze goedkeuren.'
+                ? 'Verlofaanvraag ingediend. Een beheerder moet deze goedkeuren.'
                 : 'Beschikbaarheid succesvol opgeslagen.',
             'count' => count($records),
             'items' => collect($records)->map(fn (DriverAvailability $availability) => $this->toApiPayload($availability))->values(),

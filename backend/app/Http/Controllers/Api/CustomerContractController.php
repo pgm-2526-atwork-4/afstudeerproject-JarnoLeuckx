@@ -37,7 +37,7 @@ class CustomerContractController extends Controller
 
         if ($alreadySignedForCurrentPricing) {
             return response()->json([
-                'message' => 'Dit contract is al ondertekend. Opnieuw ondertekenen kan pas na een prijswijziging door admin.',
+                'message' => 'Dit contract is al ondertekend. Opnieuw ondertekenen kan pas na een prijswijziging door een beheerder.',
             ], 422);
         }
 

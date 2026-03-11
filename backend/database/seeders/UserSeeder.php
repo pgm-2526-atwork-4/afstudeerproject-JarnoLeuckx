@@ -10,28 +10,34 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@socialdrive.test',
-            'phone' => null,
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@socialdrive.test'],
+            [
+                'name' => 'Admin',
+                'phone' => null,
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+            ]
+        );
 
-        User::create([
-            'name' => 'Driver Test',
-            'email' => 'driver@socialdrive.test',
-            'phone' => '0400000000',
-            'password' => Hash::make('password123'),
-            'role' => 'driver',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'driver@socialdrive.test'],
+            [
+                'name' => 'Driver Test',
+                'phone' => '0400000000',
+                'password' => Hash::make('password123'),
+                'role' => 'driver',
+            ]
+        );
 
-        User::create([
-            'name' => 'Customer Test',
-            'email' => 'customer@socialdrive.test',
-            'phone' => '0499000000',
-            'password' => Hash::make('password123'),
-            'role' => 'customer',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'customer@socialdrive.test'],
+            [
+                'name' => 'Customer Test',
+                'phone' => '0499000000',
+                'password' => Hash::make('password123'),
+                'role' => 'customer',
+            ]
+        );
     }
 }

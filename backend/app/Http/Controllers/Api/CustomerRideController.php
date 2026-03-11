@@ -128,7 +128,7 @@ class CustomerRideController extends Controller
             Notification::make()
                 ->title('Nieuwe ritaanvraag')
                 ->body($availableDriver
-                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Er is wel een vrije chauffeur gevonden ({$availableDriver->name})."
+                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Er werd al een vrije chauffeur gevonden ({$availableDriver->name})."
                     : "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}.")
                 ->icon('heroicon-o-bell-alert')
                 ->actions([
@@ -143,15 +143,15 @@ class CustomerRideController extends Controller
         if ($availableDriver) {
             Notification::make()
                 ->title('Vrije chauffeur gevonden')
-                ->body("Voor je rit (#{$ride->id}) is chauffeur {$availableDriver->name} beschikbaar. Een admin bevestigt de toewijzing.")
+                ->body("Voor je rit (#{$ride->id}) is chauffeur {$availableDriver->name} beschikbaar. Een beheerder bevestigt de toewijzing.")
                 ->icon('heroicon-o-check-circle')
                 ->sendToDatabase([$request->user()]);
         }
 
         return response()->json([
             'message' => $availableDriver
-                ? "Rit aangevraagd. Er is een vrije chauffeur gevonden ({$availableDriver->name}). Een admin bevestigt de toewijzing."
-                : 'Rit aangevraagd. Er is momenteel geen vrije chauffeur, een admin wijst deze later toe.',
+                ? "Rit aangevraagd. Er is een vrije chauffeur gevonden ({$availableDriver->name}). Een beheerder bevestigt de toewijzing."
+                : 'Rit aangevraagd. Er is momenteel geen vrije chauffeur. Een beheerder wijst deze later toe.',
             'ride' => $ride,
         ], 201);
     }

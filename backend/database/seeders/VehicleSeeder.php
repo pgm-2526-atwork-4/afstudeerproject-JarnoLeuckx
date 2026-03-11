@@ -9,12 +9,14 @@ class VehicleSeeder extends Seeder
 {
     public function run(): void
     {
-        Vehicle::create([
-            'name' => 'Social Drive Van',
-            'license_plate' => '1-ABC-123',
-            'seats' => 6,
-            'wheelchair_accessible' => true,
-            'active' => true,
-        ]);
+        Vehicle::updateOrCreate(
+            ['license_plate' => '1-ABC-123'],
+            [
+                'name' => 'Social Drive Van',
+                'seats' => 6,
+                'wheelchair_accessible' => true,
+                'active' => true,
+            ]
+        );
     }
 }
