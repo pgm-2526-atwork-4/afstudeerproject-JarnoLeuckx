@@ -184,7 +184,7 @@ export function Home() {
             {HOW_IT_WORKS.map((item) => (
               <div
                 key={item.step}
-                className="surface-card rounded-3xl p-6 text-center transition hover:shadow-lg sm:p-8 md:p-10"
+                className="surface-card rounded-3xl p-6 text-center sm:p-8 md:p-10"
               >
                 <div className="w-20 h-20 mx-auto mb-6 bg-slate-900 text-white border-2 border-slate-900 rounded-full flex items-center justify-center text-2xl font-bold">
                   {item.step}
