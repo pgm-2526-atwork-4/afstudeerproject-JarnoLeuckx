@@ -52,6 +52,8 @@ class AuthController extends Controller
             'approval_status' => $approvalStatus,
         ]);
 
+        $user->sendEmailVerificationNotification();
+
         if ($validated['role'] === 'driver') {
             $admins = User::query()
                 ->where('role', 'admin')
@@ -73,8 +75,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $validated['role'] === 'driver'
-                ? 'Registratie ontvangen. Je account wacht op goedkeuring door een admin.'
-                : 'Registratie gelukt. Je kan meteen inloggen.',
+                ? 'Registratie ontvangen. Controleer eerst je mailbox om je e-mailadres te bevestigen. Daarna wacht je account nog op goedkeuring door een admin.'
+                : 'Registratie gelukt. Controleer je mailbox om je e-mailadres te bevestigen voor je inlogt.',
             'user' => $user,
         ], 201);
     }
@@ -100,6 +102,12 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Ongeldige login gegevens.'
             ], 401);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Bevestig eerst je e-mailadres via de mail die we je hebben gestuurd.'
+            ], 403);
         }
 
         if ($user->role === 'driver' && $user->approval_status !== 'approved') {
@@ -129,6 +137,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
+        $originalEmail = $user->email;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
@@ -148,8 +157,18 @@ class AuthController extends Controller
             'email_notifications_enabled' => $validated['email_notifications_enabled'] ?? $user->email_notifications_enabled,
         ]);
 
+        if ($validated['email'] !== $originalEmail) {
+            $user->forceFill([
+                'email_verified_at' => null,
+            ])->save();
+
+            $user->sendEmailVerificationNotification();
+        }
+
         return response()->json([
-            'message' => 'Profiel succesvol bijgewerkt.',
+            'message' => $validated['email'] !== $originalEmail
+                ? 'Profiel succesvol bijgewerkt. Bevestig je nieuwe e-mailadres via de mail die we net hebben gestuurd.'
+                : 'Profiel succesvol bijgewerkt.',
             'user' => $user->fresh(),
         ]);
     }

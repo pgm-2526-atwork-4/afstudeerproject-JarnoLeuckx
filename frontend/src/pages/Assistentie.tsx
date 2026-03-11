@@ -162,7 +162,7 @@ export default function Assistentie() {
 
   return (
     <div className="page-modern">
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
@@ -178,12 +178,12 @@ export default function Assistentie() {
         </div>
 
         {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="mb-12 grid gap-6 md:grid-cols-3 md:gap-8">
           {FEATURES.map((feature) => {
             return (
               <div
                 key={feature.title}
-                className="surface-card-strong p-8 text-center transition-all hover:-translate-y-1 hover:shadow-lg"
+                className="surface-card-strong p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg md:p-8"
               >
                 <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
                   <feature.icon className="h-7 w-7 text-[#0043A8]" />
@@ -201,10 +201,10 @@ export default function Assistentie() {
           })}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Info Section */}
           <div>
-            <div className="surface-card-strong p-8 mb-8">
+            <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Wanneer assistentie?
               </h2>
@@ -227,7 +227,7 @@ export default function Assistentie() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-8 text-white shadow-md">
+            <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-6 text-white shadow-md md:p-8">
               <h3 className="text-xl font-semibold mb-4">
                 Wat mag u verwachten?
               </h3>
@@ -253,7 +253,7 @@ export default function Assistentie() {
           </div>
 
           {/* Form */}
-          <div className="surface-card-strong p-8">
+          <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Vraag assistentie aan
             </h2>

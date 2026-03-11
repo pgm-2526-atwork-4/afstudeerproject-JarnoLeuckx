@@ -54,7 +54,7 @@ export default function DriverAccountPage() {
 
   return (
     <div className="page-modern">
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-6 surface-card-strong p-6">
           <h1 className="text-3xl font-black text-slate-900">
             Chauffeur account · {displayName}

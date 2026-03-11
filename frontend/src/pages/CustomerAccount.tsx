@@ -455,7 +455,7 @@ export default function CustomerAccountPage() {
 
   return (
     <div className="page-modern">
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-5 surface-card-strong p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -464,7 +464,7 @@ export default function CustomerAccountPage() {
               </h1>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap">
               <Link to="/reserveren" className="btn-primary">
                 Rit aanvragen
               </Link>
@@ -514,8 +514,8 @@ export default function CustomerAccountPage() {
             definitieve toewijzing wordt altijd door een admin bevestigd.
           </p>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-            <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-2">
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+            <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-2 max-lg:mx-auto">
               <div className="mb-2 flex items-center justify-between">
                 <button
                   type="button"
@@ -542,48 +542,50 @@ export default function CustomerAccountPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-7 gap-0.5">
-                {weekdayLabels.map((label) => (
-                  <div
-                    key={label}
-                    className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500"
-                  >
-                    {label}
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <div className="grid min-w-[300px] grid-cols-7 gap-0.5 sm:min-w-0">
+                  {weekdayLabels.map((label) => (
+                    <div
+                      key={label}
+                      className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      {label}
+                    </div>
+                  ))}
 
-                {calendarCells.map((cell) => (
-                  <button
-                    key={`${cell.dateValue}-${cell.dayNumber}`}
-                    type="button"
-                    disabled={cell.isDisabled}
-                    onClick={() => {
-                      setCalendarDate(cell.dateValue);
-                      const selectedDate = parseInputDate(cell.dateValue);
-                      if (selectedDate) {
-                        setVisibleCalendarMonth(startOfMonth(selectedDate));
-                      }
-                    }}
-                    className={[
-                      "h-8 rounded-md border text-xs font-semibold transition",
-                      cell.isDisabled
-                        ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                        : cell.isSelected
-                          ? availabilityStatus === "available"
-                            ? "border-emerald-500 bg-emerald-100 text-emerald-800"
-                            : availabilityStatus === "unavailable"
-                              ? "border-red-500 bg-red-100 text-red-800"
-                              : "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
-                          : cell.isToday
-                            ? "border-slate-300 bg-white text-slate-900"
-                            : cell.isCurrentMonth
-                              ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                              : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
-                    ].join(" ")}
-                  >
-                    {cell.dayNumber}
-                  </button>
-                ))}
+                  {calendarCells.map((cell) => (
+                    <button
+                      key={`${cell.dateValue}-${cell.dayNumber}`}
+                      type="button"
+                      disabled={cell.isDisabled}
+                      onClick={() => {
+                        setCalendarDate(cell.dateValue);
+                        const selectedDate = parseInputDate(cell.dateValue);
+                        if (selectedDate) {
+                          setVisibleCalendarMonth(startOfMonth(selectedDate));
+                        }
+                      }}
+                      className={[
+                        "h-8 rounded-md border text-xs font-semibold transition",
+                        cell.isDisabled
+                          ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                          : cell.isSelected
+                            ? availabilityStatus === "available"
+                              ? "border-emerald-500 bg-emerald-100 text-emerald-800"
+                              : availabilityStatus === "unavailable"
+                                ? "border-red-500 bg-red-100 text-red-800"
+                                : "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                            : cell.isToday
+                              ? "border-slate-300 bg-white text-slate-900"
+                              : cell.isCurrentMonth
+                                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                                : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
+                      ].join(" ")}
+                    >
+                      {cell.dayNumber}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -662,7 +664,7 @@ export default function CustomerAccountPage() {
                 {availableDrivers.map((driver) => (
                   <li
                     key={driver.id}
-                    className="flex items-center justify-between px-4 py-3"
+                    className="flex flex-col items-start gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <p className="text-sm font-bold text-slate-900">
                       {driver.name}
@@ -696,7 +698,7 @@ export default function CustomerAccountPage() {
               {monthlyRideEntries.map((item) => (
                 <li
                   key={item.monthKey}
-                  className="flex items-center justify-between px-4 py-3"
+                  className="flex flex-col items-start gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <span className="text-sm font-semibold text-slate-900">
                     {item.label}
@@ -709,7 +711,7 @@ export default function CustomerAccountPage() {
             </ul>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={() => setActiveRideFilter("all")}
@@ -763,7 +765,7 @@ export default function CustomerAccountPage() {
               </div>
             )}
 
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
               <button
                 type="button"
                 disabled={notificationPromptLoading}
@@ -837,7 +839,7 @@ export default function CustomerAccountPage() {
               <span className="mb-2 block text-xs font-semibold text-primary">
                 Kies ondertekenmethode
               </span>
-              <div className="flex flex-wrap gap-4 text-sm text-slate-700">
+              <div className="flex flex-col gap-3 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:gap-4">
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -872,7 +874,7 @@ export default function CustomerAccountPage() {
                 <div className="mb-2 text-xs font-semibold text-primary">
                   Teken hier je handtekening
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
                   <SignatureCanvas
                     ref={signatureCanvasRef}
                     penColor="black"
@@ -887,7 +889,7 @@ export default function CustomerAccountPage() {
                     }}
                   />
                 </div>
-                <div className="mt-2 flex justify-end">
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
                   <button
                     type="button"
                     onClick={() => {
@@ -931,7 +933,7 @@ export default function CustomerAccountPage() {
               </div>
             )}
 
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
               <button
                 type="button"
                 onClick={() => setIsContractModalOpen(false)}

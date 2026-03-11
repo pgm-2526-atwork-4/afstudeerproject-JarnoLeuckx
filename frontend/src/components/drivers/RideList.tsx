@@ -79,7 +79,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
       {sorted.map((ride) => (
         <div
           key={ride.id}
-          className="mb-3 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 p-4"
+          className="mb-3 flex flex-col gap-4 rounded-xl border border-slate-200 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
         >
           <div>
             <div className="text-base font-black text-slate-900">
@@ -95,13 +95,13 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             {ride.status === "assigned" && (
               <>
                 <button
                   onClick={() => handleAccept(ride.id)}
                   disabled={loadingId === ride.id}
-                  className="btn-primary px-3 py-1.5 text-sm"
+                  className="btn-primary w-full px-3 py-1.5 text-sm sm:w-auto"
                 >
                   {loadingId === ride.id ? "..." : "Bevestigen"}
                 </button>
@@ -109,7 +109,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                 <button
                   onClick={() => handleReject(ride.id)}
                   disabled={loadingId === ride.id}
-                  className="btn-outline px-3 py-1.5 text-sm"
+                  className="btn-outline w-full px-3 py-1.5 text-sm sm:w-auto"
                 >
                   {loadingId === ride.id ? "..." : "Weigeren"}
                 </button>

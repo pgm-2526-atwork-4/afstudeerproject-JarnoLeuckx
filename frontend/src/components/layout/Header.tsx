@@ -6,7 +6,7 @@ import {
   onAuthChanged,
   type User,
 } from "../../auth/auth.api";
-import { Bell } from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import {
   getMyNotifications,
   markNotificationAsRead,
@@ -20,6 +20,7 @@ export default function Header() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const notificationMenuRef = useRef<HTMLDivElement | null>(null);
 
   const accountPath =
@@ -48,6 +49,7 @@ export default function Header() {
       setNotifications([]);
       setUnreadCount(0);
       setIsNotificationsOpen(false);
+      setIsMobileNavOpen(false);
       return;
     }
 
@@ -74,6 +76,7 @@ export default function Header() {
       if (event.key === "Escape") {
         setIsNotificationsOpen(false);
         setIsAccountMenuOpen(false);
+        setIsMobileNavOpen(false);
       }
     };
 
@@ -90,7 +93,14 @@ export default function Header() {
     await logout();
     setIsAccountMenuOpen(false);
     setIsNotificationsOpen(false);
+    setIsMobileNavOpen(false);
     setUser(getCurrentUser());
+  }
+
+  function closeMenus() {
+    setIsAccountMenuOpen(false);
+    setIsNotificationsOpen(false);
+    setIsMobileNavOpen(false);
   }
 
   async function loadNotifications() {
@@ -132,22 +142,26 @@ export default function Header() {
 
   return (
     <header className="relative z-[80] border-b border-[#D7E3F7] bg-[linear-gradient(90deg,rgba(255,255,255,0.92)_0%,rgba(234,243,255,0.92)_50%,rgba(255,255,255,0.92)_100%)] backdrop-blur-md">
-      <div className="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-5 px-4 py-2">
+      <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-2 md:grid-cols-[auto_1fr_auto] md:gap-5">
         <div className="justify-self-start">
           <a href="/" className="shrink-0 no-underline">
             <img
               src="/image/logo.png"
               alt="Social Drive"
-              className="h-24 w-auto object-contain drop-shadow-[0_4px_10px_rgba(15,23,42,0.2)] transition duration-300 hover:scale-[1.02]"
+              className="h-16 w-auto object-contain drop-shadow-[0_4px_10px_rgba(15,23,42,0.2)] transition duration-300 hover:scale-[1.02] sm:h-20 md:h-24"
             />
           </a>
         </div>
 
-        <nav aria-label="Hoofdnavigatie" className="justify-self-center">
+        <nav
+          aria-label="Hoofdnavigatie"
+          className="hidden justify-self-center md:block"
+        >
           <ul className="flex list-none items-center gap-2">
             <li>
               <NavLink
                 to="/rolstoelvervoer"
+                onClick={closeMenus}
                 className={({ isActive }) =>
                   `relative rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-[0.04em] transition-all duration-200 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-[#0043A8] after:transition-transform after:duration-200 hover:after:scale-x-100 ${
                     isActive
@@ -162,6 +176,7 @@ export default function Header() {
             <li>
               <NavLink
                 to="/luchthavenvervoer"
+                onClick={closeMenus}
                 className={({ isActive }) =>
                   `relative rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-[0.04em] transition-all duration-200 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-[#0043A8] after:transition-transform after:duration-200 hover:after:scale-x-100 ${
                     isActive
@@ -176,6 +191,7 @@ export default function Header() {
             <li>
               <NavLink
                 to="/assistentie"
+                onClick={closeMenus}
                 className={({ isActive }) =>
                   `relative rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-[0.04em] transition-all duration-200 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-[#0043A8] after:transition-transform after:duration-200 hover:after:scale-x-100 ${
                     isActive
@@ -190,6 +206,7 @@ export default function Header() {
             <li>
               <NavLink
                 to="/contact"
+                onClick={closeMenus}
                 className={({ isActive }) =>
                   `relative rounded-md px-4 py-2 text-[13px] font-bold uppercase tracking-[0.04em] transition-all duration-200 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-[#0043A8] after:transition-transform after:duration-200 hover:after:scale-x-100 ${
                     isActive
@@ -206,16 +223,50 @@ export default function Header() {
 
         <div className="flex shrink-0 items-center gap-2 justify-self-end">
           {!user ? (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `btn-accent rounded-full ${isActive ? "" : "opacity-95"}`
-              }
-            >
-              Login
-            </NavLink>
+            <>
+              <NavLink
+                to="/login"
+                onClick={closeMenus}
+                className={({ isActive }) =>
+                  `btn-accent hidden rounded-full sm:inline-flex ${isActive ? "" : "opacity-95"}`
+                }
+              >
+                Login
+              </NavLink>
+
+              <button
+                type="button"
+                onClick={() => setIsMobileNavOpen((prev) => !prev)}
+                className="btn-outline rounded-full px-3 py-2 md:hidden"
+                aria-expanded={isMobileNavOpen}
+                aria-label="Open navigatie"
+              >
+                {isMobileNavOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
+            </>
           ) : (
-            <div className="relative" ref={notificationMenuRef}>
+            <div
+              className="relative flex items-center gap-2"
+              ref={notificationMenuRef}
+            >
+              <button
+                type="button"
+                onClick={() => setIsMobileNavOpen((prev) => !prev)}
+                className="btn-outline rounded-full px-3 py-2 md:hidden"
+                aria-expanded={isMobileNavOpen}
+                aria-label="Open navigatie"
+              >
+                {isMobileNavOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -224,12 +275,13 @@ export default function Header() {
                     void loadNotifications();
                   }
                 }}
-                className="btn-outline rounded-full"
+                className="btn-outline rounded-full px-3 py-2 sm:px-4 sm:py-2.5"
                 aria-expanded={isAccountMenuOpen}
                 aria-haspopup="menu"
                 aria-controls="account-menu"
               >
-                Mijn account
+                <span className="hidden sm:inline">Mijn account</span>
+                <span className="sm:hidden">Account</span>
               </button>
 
               {isAccountMenuOpen && (
@@ -237,13 +289,12 @@ export default function Header() {
                   id="account-menu"
                   role="menu"
                   aria-label="Account menu"
-                  className="absolute right-0 z-[90] mt-2 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
+                  className="absolute right-0 z-[90] mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
                 >
                   <NavLink
                     to={accountPath}
                     onClick={() => {
-                      setIsAccountMenuOpen(false);
-                      setIsNotificationsOpen(false);
+                      closeMenus();
                     }}
                     className="btn-outline w-full justify-start"
                   >
@@ -254,8 +305,7 @@ export default function Header() {
                     <NavLink
                       to="/customer/settings"
                       onClick={() => {
-                        setIsAccountMenuOpen(false);
-                        setIsNotificationsOpen(false);
+                        closeMenus();
                       }}
                       className="btn-outline mt-2 w-full justify-start"
                     >
@@ -347,6 +397,53 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {isMobileNavOpen && (
+        <div className="border-t border-[#D7E3F7] px-4 pb-4 md:hidden">
+          <nav
+            aria-label="Mobiele hoofdnavigatie"
+            className="mx-auto max-w-6xl"
+          >
+            <ul className="mt-3 grid gap-2">
+              {[
+                ["/rolstoelvervoer", "Rolstoelvervoer"],
+                ["/luchthavenvervoer", "Luchthaven"],
+                ["/assistentie", "Assistentie"],
+                ["/contact", "Contact"],
+              ].map(([to, label]) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    onClick={closeMenus}
+                    className={({ isActive }) =>
+                      [
+                        "block rounded-xl border px-4 py-3 text-sm font-semibold transition",
+                        isActive
+                          ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                          : "border-slate-200 bg-white text-slate-700",
+                      ].join(" ")
+                    }
+                  >
+                    {label}
+                  </NavLink>
+                </li>
+              ))}
+
+              {!user && (
+                <li>
+                  <NavLink
+                    to="/login"
+                    onClick={closeMenus}
+                    className="btn-accent w-full justify-center"
+                  >
+                    Login
+                  </NavLink>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

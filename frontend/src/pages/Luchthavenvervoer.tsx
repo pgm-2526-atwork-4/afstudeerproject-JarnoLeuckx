@@ -131,7 +131,7 @@ export function LuchthavenVervoer() {
 
   return (
     <div className="page-modern">
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Plane className="h-9 w-9 text-[#0043A8]" />
@@ -143,9 +143,9 @@ export function LuchthavenVervoer() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <div>
-            <div className="surface-card-strong p-8 mb-8">
+            <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
                 Waarom kiezen voor ons?
               </h2>
@@ -160,7 +160,7 @@ export function LuchthavenVervoer() {
               </ul>
             </div>
 
-            <div className="surface-card p-8 border-[#d6e6ff] bg-[#edf4ff]">
+            <div className="surface-card border-[#d6e6ff] bg-[#edf4ff] p-6 md:p-8">
               <h3 className="text-xl font-semibold text-slate-900 mb-4">
                 Inbegrepen in uw transfer
               </h3>
@@ -205,7 +205,7 @@ export function LuchthavenVervoer() {
             </div>
           </div>
 
-          <div className="surface-card-strong p-8">
+          <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
             </h2>
@@ -255,7 +255,7 @@ export function LuchthavenVervoer() {
                   placeholder="Selecteer luchthaven"
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input
                     id="vertrekstraat"
                     label="Straat & nummer"

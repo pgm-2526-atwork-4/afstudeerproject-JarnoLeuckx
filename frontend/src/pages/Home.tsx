@@ -67,19 +67,19 @@ export function Home() {
   return (
     <main className="page-modern w-full">
       {/* HERO */}
-      <section className="px-6 py-20">
-        <div className="max-w-6xl mx-auto rounded-3xl border border-[#1f335e] bg-[linear-gradient(130deg,#0A0A0E_0%,#0E1A39_52%,#0043A8_100%)] p-10 md:p-14 shadow-[0_20px_50px_rgba(2,6,23,0.28)]">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+        <div className="max-w-6xl mx-auto rounded-3xl border border-[#1f335e] bg-[linear-gradient(130deg,#0A0A0E_0%,#0E1A39_52%,#0043A8_100%)] p-6 sm:p-10 md:p-14 shadow-[0_20px_50px_rgba(2,6,23,0.28)]">
+          <div className="grid gap-8 md:grid-cols-2 md:gap-12 items-center">
             <div className="max-w-xl">
               <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-100">
                 Premium taxidienst
               </span>
 
-              <h1 className="mt-4 text-5xl md:text-6xl font-black leading-tight text-white">
+              <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
                 Persoonlijk vervoer met zorg
               </h1>
 
-              <p className="text-lg text-blue-100/90 mt-6 leading-relaxed">
+              <p className="mt-6 text-base leading-relaxed text-blue-100/90 sm:text-lg">
                 Betrouwbaar en comfortabel vervoer voor mensen met een
                 beperking. Wij bieden luchthavenvervoer, rolstoelvervoer en
                 persoonlijke assistentie.
@@ -88,14 +88,14 @@ export function Home() {
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link
                   to="/reserveren"
-                  className="btn-primary border-white/20 bg-white text-slate-900 hover:bg-slate-100 px-8 py-3 text-base"
+                  className="btn-primary w-full border-white/20 bg-white px-6 py-3 text-base text-slate-900 hover:bg-slate-100 sm:w-auto sm:px-8"
                   aria-label="Ga naar reserveren"
                 >
                   Plan uw rit
                 </Link>
                 <Link
                   to="/contact"
-                  className="btn-outline border-white/30 bg-white/10 text-white hover:bg-white/20 px-8 py-3 text-base"
+                  className="btn-outline w-full border-white/30 bg-white/10 px-6 py-3 text-base text-white hover:bg-white/20 sm:w-auto sm:px-8"
                   aria-label="Ga naar contact"
                 >
                   Contacteer ons
@@ -134,11 +134,13 @@ export function Home() {
       </section>
 
       {/* SERVICES */}
-      <section className="px-6 py-20">
+      <section className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
         <div className="max-w-6xl mx-auto">
-          <h2 className="section-title text-center mb-16">Onze diensten</h2>
+          <h2 className="section-title text-center mb-10 sm:mb-16">
+            Onze diensten
+          </h2>
 
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid gap-6 md:grid-cols-3 md:gap-10">
             {SERVICES.map((service) => (
               <Link
                 key={service.title}
@@ -147,7 +149,7 @@ export function Home() {
                 aria-label={`Meer informatie over ${service.title}`}
               >
                 <Card className="group surface-card-strong rounded-3xl h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                  <CardContent className="p-10 flex flex-col h-full">
+                  <CardContent className="flex h-full flex-col p-6 sm:p-8 md:p-10">
                     <div className="brand-badge w-16 h-16 mb-6 transition group-hover:bg-[#dcecff]">
                       <service.icon className="w-8 h-8 text-[#0043A8]" />
                     </div>
@@ -172,17 +174,17 @@ export function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="w-full py-20 bg-[#f3f7ff] border-y border-[#dbe7ff]">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="section-title md:text-5xl text-center mb-16">
+      <section className="w-full border-y border-[#dbe7ff] bg-[#f3f7ff] py-12 sm:py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="section-title text-center mb-10 md:text-5xl sm:mb-16">
             Hoe werkt het?
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid gap-6 md:grid-cols-3 md:gap-12">
             {HOW_IT_WORKS.map((item) => (
               <div
                 key={item.step}
-                className="surface-card rounded-3xl p-10 text-center transition hover:shadow-lg"
+                className="surface-card rounded-3xl p-6 text-center transition hover:shadow-lg sm:p-8 md:p-10"
               >
                 <div className="w-20 h-20 mx-auto mb-6 bg-slate-900 text-white border-2 border-slate-900 rounded-full flex items-center justify-center text-2xl font-bold">
                   {item.step}
