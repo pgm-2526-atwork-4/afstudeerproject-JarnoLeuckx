@@ -52,6 +52,8 @@ class AuthController extends Controller
             'approval_status' => $approvalStatus,
         ]);
 
+        $user->sendEmailVerificationNotification();
+
         if ($validated['role'] === 'driver') {
             $admins = User::query()
                 ->where('role', 'admin')
@@ -73,8 +75,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $validated['role'] === 'driver'
-                ? 'Registratie ontvangen. Je account wacht nog op goedkeuring door een beheerder.'
-                : 'Registratie gelukt. Je kan meteen inloggen.',
+                ? 'Registratie ontvangen. Bevestig eerst je e-mailadres. Daarna wacht je account nog op goedkeuring door een beheerder.'
+                : 'Registratie gelukt. Controleer je mailbox om je e-mailadres te bevestigen voor je inlogt.',
             'user' => $user,
         ], 201);
     }
@@ -100,6 +102,12 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Ongeldige login gegevens.'
             ], 401);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
+            ], 403);
         }
 
         if ($user->role === 'driver' && $user->approval_status !== 'approved') {
@@ -149,8 +157,20 @@ class AuthController extends Controller
             'email_notifications_enabled' => $validated['email_notifications_enabled'] ?? $user->email_notifications_enabled,
         ]);
 
+        $emailChanged = $validated['email'] !== $originalEmail;
+
+        if ($emailChanged) {
+            $user->forceFill([
+                'email_verified_at' => null,
+            ])->save();
+
+            $user->sendEmailVerificationNotification();
+        }
+
         return response()->json([
-            'message' => 'Profiel succesvol bijgewerkt.',
+            'message' => $emailChanged
+                ? 'Profiel succesvol bijgewerkt. Controleer je mailbox om je nieuwe e-mailadres te bevestigen.'
+                : 'Profiel succesvol bijgewerkt.',
             'user' => $user->fresh(),
         ]);
     }
