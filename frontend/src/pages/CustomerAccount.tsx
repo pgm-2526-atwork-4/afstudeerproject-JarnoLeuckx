@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SignatureCanvas from "react-signature-canvas";
 import CustomerRideList from "../components/customers/CustomerRideList";
@@ -128,6 +128,12 @@ export default function CustomerAccountPage() {
     string | null
   >(null);
   const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
+  const notificationPromptTitleId = useId();
+  const notificationPromptDescriptionId = useId();
+  const contractModalTitleId = useId();
+  const contractModalDescriptionId = useId();
+  const notificationDismissButtonRef = useRef<HTMLButtonElement | null>(null);
+  const contractCloseButtonRef = useRef<HTMLButtonElement | null>(null);
 
   async function loadData() {
     const result = await getMyCustomerRides();
@@ -222,6 +228,52 @@ export default function CustomerAccountPage() {
       setWelcomeGreeting(getTimeBasedGreeting(displayName));
     }
   }, [currentUser?.id, displayName]);
+
+  useEffect(() => {
+    if (!showNotificationPrompt) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    notificationDismissButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !notificationPromptLoading) {
+        void handleNotificationPreferenceChoice(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [notificationPromptLoading, showNotificationPrompt]);
+
+  useEffect(() => {
+    if (!isContractModalOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    contractCloseButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsContractModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isContractModalOpen]);
 
   const ridesTotalCount = rides.length;
   const ridesAcceptedCount = rides.filter(
@@ -752,11 +804,23 @@ export default function CustomerAccountPage() {
 
       {showNotificationPrompt && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h2 className="text-2xl font-black text-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={notificationPromptTitleId}
+            aria-describedby={notificationPromptDescriptionId}
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+          >
+            <h2
+              id={notificationPromptTitleId}
+              className="text-2xl font-black text-slate-900"
+            >
               Meldingen via e-mail
             </h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <p
+              id={notificationPromptDescriptionId}
+              className="mt-2 text-sm text-slate-600"
+            >
               Wil je meldingen ontvangen via e-mail? Deze keuze kan je later
               altijd aanpassen in je instellingen.
             </p>
@@ -769,6 +833,7 @@ export default function CustomerAccountPage() {
 
             <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
               <button
+                ref={notificationDismissButtonRef}
                 type="button"
                 disabled={notificationPromptLoading}
                 onClick={() => {
@@ -795,11 +860,23 @@ export default function CustomerAccountPage() {
 
       {isContractModalOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h2 className="text-2xl font-black text-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={contractModalTitleId}
+            aria-describedby={contractModalDescriptionId}
+            className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+          >
+            <h2
+              id={contractModalTitleId}
+              className="text-2xl font-black text-slate-900"
+            >
               PVB-contact nakijken & ondertekenen
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p
+              id={contractModalDescriptionId}
+              className="mt-1 text-sm text-slate-600"
+            >
               Controleer je gegevens en onderteken digitaal indien alles correct
               is.
             </p>
@@ -937,6 +1014,7 @@ export default function CustomerAccountPage() {
 
             <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
               <button
+                ref={contractCloseButtonRef}
                 type="button"
                 onClick={() => setIsContractModalOpen(false)}
                 className="btn-outline"

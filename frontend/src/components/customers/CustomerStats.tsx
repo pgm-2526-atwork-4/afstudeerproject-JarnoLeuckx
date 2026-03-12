@@ -74,7 +74,10 @@ function Stat({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
+      aria-label={`Filter ritten: ${title}`}
       className={`rounded-2xl bg-white p-4 text-left transition-all ${
         active
           ? "border-2 border-[#0043A8] bg-[#EAF3FF] shadow-sm"
@@ -85,7 +88,9 @@ function Stat({
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           {title}
         </div>
-        <div className="text-xl">{icon}</div>
+        <div className="text-xl" aria-hidden="true">
+          {icon}
+        </div>
       </div>
       <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
     </button>

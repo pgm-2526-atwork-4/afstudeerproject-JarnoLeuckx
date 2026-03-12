@@ -277,8 +277,8 @@ export default function Header() {
                 }}
                 className="btn-outline rounded-full px-3 py-2 sm:px-4 sm:py-2.5"
                 aria-expanded={isAccountMenuOpen}
-                aria-haspopup="menu"
                 aria-controls="account-menu"
+                aria-label="Open accountpaneel"
               >
                 <span className="hidden sm:inline">Mijn account</span>
                 <span className="sm:hidden">Account</span>
@@ -287,8 +287,7 @@ export default function Header() {
               {isAccountMenuOpen && (
                 <div
                   id="account-menu"
-                  role="menu"
-                  aria-label="Account menu"
+                  aria-label="Accountpaneel"
                   className="absolute right-0 z-[90] mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
                 >
                   <NavLink
@@ -322,13 +321,18 @@ export default function Header() {
                       }
                     }}
                     className="btn-outline mt-2 flex w-full items-center justify-between"
+                    aria-expanded={isNotificationsOpen}
+                    aria-controls="notification-menu"
                   >
                     <span className="inline-flex items-center gap-2">
-                      <Bell className="h-4 w-4" />
+                      <Bell className="h-4 w-4" aria-hidden="true" />
                       Meldingen
                     </span>
                     {unreadCount > 0 && (
-                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                      <span
+                        className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
+                        aria-label={`${unreadCount > 9 ? "Meer dan 9" : unreadCount} ongelezen meldingen`}
+                      >
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
@@ -347,7 +351,6 @@ export default function Header() {
                   {isNotificationsOpen && (
                     <div
                       id="notification-menu"
-                      role="menu"
                       aria-label="Meldingen"
                       className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2"
                     >
@@ -370,7 +373,6 @@ export default function Header() {
                               onClick={() => {
                                 void handleNotificationClick(notification);
                               }}
-                              role="menuitem"
                               className={`w-full rounded-lg border px-3 py-2 text-left transition ${
                                 notification.read_at
                                   ? "border-slate-200 bg-white"

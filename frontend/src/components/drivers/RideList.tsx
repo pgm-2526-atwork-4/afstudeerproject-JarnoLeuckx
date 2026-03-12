@@ -90,7 +90,10 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
       </h3>
 
       {error && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div
+          className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          role="alert"
+        >
           {error}
         </div>
       )}
@@ -109,6 +112,9 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
             onClick={() =>
               setOpenRideId((current) => (current === ride.id ? null : ride.id))
             }
+            aria-expanded={openRideId === ride.id}
+            aria-controls={`ride-details-${ride.id}`}
+            aria-label={`Toon details van rit R-${String(ride.id).padStart(3, "0")}`}
             className="flex w-full flex-col gap-4 p-4 text-left transition hover:bg-[#F8FBFF] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
           >
             <div>
@@ -132,6 +138,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                 Details
                 <ChevronDown
                   size={16}
+                  aria-hidden="true"
                   className={`transition-transform ${openRideId === ride.id ? "rotate-180" : "rotate-0"}`}
                 />
               </span>
@@ -139,7 +146,10 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
           </button>
 
           {openRideId === ride.id && (
-            <div className="border-t border-slate-200 bg-[#F8FBFF] p-4">
+            <div
+              id={`ride-details-${ride.id}`}
+              className="border-t border-slate-200 bg-[#F8FBFF] p-4"
+            >
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <InlineBadge
                   label={serviceTypeLabel(ride.service_type)}

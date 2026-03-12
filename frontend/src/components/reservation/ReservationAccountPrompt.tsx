@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
 
@@ -15,21 +16,54 @@ export default function ReservationAccountPrompt({
   registerTo = "/register",
 }: ReservationAccountPromptProps) {
   const isLoginPrompt = mode === "login";
+  const titleId = useId();
+  const descriptionId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
   const modal = (
     <div className="fixed inset-0 z-[120] grid place-items-center bg-slate-900/50 px-4">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <h2 className="text-2xl font-black text-slate-900">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+      >
+        <h2 id={titleId} className="text-2xl font-black text-slate-900">
           {isLoginPrompt ? "Account gevonden" : "Nog geen account gevonden"}
         </h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p id={descriptionId} className="mt-2 text-sm text-slate-600">
           {isLoginPrompt
             ? "Dit e-mailadres is gekoppeld aan een bestaand account. Log eerst in om je reservatie verder te zetten."
             : "Voor dit e-mailadres bestaat nog geen account. Wil je eerst een account aanmaken?"}
         </p>
 
         <div className="mt-5 flex flex-wrap justify-end gap-2">
-          <button type="button" onClick={onClose} className="btn-outline">
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            className="btn-outline"
+          >
             {isLoginPrompt ? "Sluiten" : "Nog niet"}
           </button>
           <Link
