@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\DriverApprovedMail;
 use Filament\Panel;
 use App\Notifications\VerifyEmailAddressNotification;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -9,11 +10,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, MustVerifyEmailTrait, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $user): void {
+            if (! $user->isDriver()) {
+                return;
+            }
+
+            if ($user->approval_status !== 'approved' || empty($user->email)) {
+                return;
+            }
+
+            if (! $user->wasRecentlyCreated && ! $user->wasChanged('approval_status')) {
+                return;
+            }
+
+            Mail::to($user->email)->send(new DriverApprovedMail(
+                $user,
+                $user->driverLoginUrl(),
+            ));
+        });
+    }
 
    
     protected $fillable = [
@@ -108,5 +132,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailAddressNotification());
+    }
+
+    public function driverLoginUrl(): string
+    {
+        return rtrim((string) config('services.frontend.url', config('app.url')), '/') . '/login';
     }
 }

@@ -31,7 +31,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255', 'required_if:role,customer'],
             'vaph_number' => ['nullable', 'string', 'max:50'],
@@ -52,7 +52,9 @@ class AuthController extends Controller
             'approval_status' => $approvalStatus,
         ]);
 
-        $user->sendEmailVerificationNotification();
+        if ($validated['role'] !== 'driver') {
+            $user->sendEmailVerificationNotification();
+        }
 
         if ($validated['role'] === 'driver') {
             $admins = User::query()
@@ -75,7 +77,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $validated['role'] === 'driver'
-                ? 'Registratie ontvangen. Bevestig eerst je e-mailadres. Daarna wacht je account nog op goedkeuring door een beheerder.'
+                ? 'Registratie ontvangen. Je account wacht op goedkeuring door een beheerder. Na goedkeuring ontvang je een bevestigingsmail.'
                 : 'Registratie gelukt. Controleer je mailbox om je e-mailadres te bevestigen voor je inlogt.',
             'user' => $user,
         ], 201);
@@ -104,15 +106,15 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
-            ], 403);
-        }
-
         if ($user->role === 'driver' && $user->approval_status !== 'approved') {
             return response()->json([
                 'message' => 'Je account is nog niet goedgekeurd door een beheerder.'
+            ], 403);
+        }
+
+        if ($user->role !== 'driver' && ! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
             ], 403);
         }
 
@@ -141,7 +143,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', "unique:users,email,{$user->id}"],
+            'email' => ['required', 'email:rfc', 'max:255', "unique:users,email,{$user->id}"],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255'],
             'vaph_number' => ['nullable', 'string', 'max:50'],
@@ -159,7 +161,7 @@ class AuthController extends Controller
 
         $emailChanged = $validated['email'] !== $originalEmail;
 
-        if ($emailChanged) {
+        if ($emailChanged && $user->role !== 'driver') {
             $user->forceFill([
                 'email_verified_at' => null,
             ])->save();
@@ -168,7 +170,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => $emailChanged
+            'message' => $emailChanged && $user->role !== 'driver'
                 ? 'Profiel succesvol bijgewerkt. Controleer je mailbox om je nieuwe e-mailadres te bevestigen.'
                 : 'Profiel succesvol bijgewerkt.',
             'user' => $user->fresh(),
