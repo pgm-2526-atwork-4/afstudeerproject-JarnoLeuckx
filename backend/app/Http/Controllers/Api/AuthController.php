@@ -7,8 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -88,6 +91,58 @@ class AuthController extends Controller
         $request->merge(['role' => 'driver']);
 
         return $this->register($request);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email:rfc'],
+        ]);
+
+        $status = Password::sendResetLink([
+            'email' => $validated['email'],
+        ]);
+
+        if ($status === Password::RESET_LINK_SENT || $status === Password::INVALID_USER) {
+            return response()->json([
+                'message' => 'Als er een account bestaat met dit e-mailadres, ontvangt u een e-mail om uw wachtwoord opnieuw in te stellen.',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'De resetmail kon momenteel niet verstuurd worden. Probeer het later opnieuw.',
+        ], 429);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email:rfc'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $validated,
+            function (User $user, string $password): void {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'De resetlink is ongeldig of vervallen. Vraag een nieuwe resetmail aan.',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Uw wachtwoord is opnieuw ingesteld. U kunt nu inloggen.',
+        ]);
     }
 
     // 🔐 LOGIN

@@ -10,6 +10,8 @@ import Assistentie from "./pages/Assistentie";
 import Contact from "./pages/Contact";
 import Reserveren from "./pages/Reserveren";
 import AuthPage from "./auth/AuthPage";
+import ForgotPasswordPage from "./auth/ForgotPasswordPage";
+import ResetPasswordPage from "./auth/ResetPasswordPage";
 
 import DriverAccountPage from "./pages/DriverAccount";
 import CustomerAccountPage from "./pages/CustomerAccount";
@@ -106,6 +108,8 @@ export default function App() {
             </GuestRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/driver/login"
           element={<Navigate to="/login" replace />}

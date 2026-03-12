@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\DriverApprovedMail;
+use App\Notifications\ResetPasswordNotification;
 use Filament\Panel;
 use App\Notifications\VerifyEmailAddressNotification;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -134,8 +135,20 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new VerifyEmailAddressNotification());
     }
 
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
     public function driverLoginUrl(): string
     {
         return rtrim((string) config('services.frontend.url', config('app.url')), '/') . '/login';
+    }
+
+    public function passwordResetUrl(string $token): string
+    {
+        $baseUrl = rtrim((string) config('services.frontend.url', config('app.url')), '/');
+
+        return $baseUrl . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode((string) $this->email);
     }
 }

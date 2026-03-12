@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, register, saveAuth } from "./auth.api";
@@ -18,6 +19,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -251,17 +253,35 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 <span className="form-label">
                   Wachtwoord<span className="form-required">*</span>
                 </span>
-                <input
-                  id="login-password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="current-password"
-                  aria-invalid={Boolean(loginError)}
-                  aria-describedby={loginError ? "login-error" : undefined}
-                  className="form-input"
-                />
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    type={showLoginPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                    aria-invalid={Boolean(loginError)}
+                    aria-describedby={loginError ? "login-error" : undefined}
+                    className="form-input pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((current) => !current)}
+                    className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                    aria-label={
+                      showLoginPassword
+                        ? "Verberg wachtwoord"
+                        : "Toon wachtwoord"
+                    }
+                  >
+                    {showLoginPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
                 <span className="form-help">
                   Gebruik je account wachtwoord.
                 </span>
@@ -274,6 +294,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
               >
                 {loginLoading ? "Bezig..." : "Inloggen"}
               </button>
+
+              <p className="text-sm text-slate-600">
+                <Link
+                  to="/forgot-password"
+                  className="font-semibold text-[#0043A8] underline underline-offset-2"
+                >
+                  Wachtwoord vergeten?
+                </Link>
+              </p>
 
               <p className="text-sm text-slate-600">
                 Nog geen account?{" "}

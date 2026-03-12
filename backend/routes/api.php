@@ -16,6 +16,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register/driver', [AuthController::class, 'registerDriver']);
 Route::post('/email-exists', [AuthController::class, 'emailExists']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/contact', [ContactController::class, 'store']);
 
 
