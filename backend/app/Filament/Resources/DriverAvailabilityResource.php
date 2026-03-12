@@ -114,6 +114,7 @@ class DriverAvailabilityResource extends Resource
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'available' => 'Beschikbaar',
                         'unavailable' => 'Niet beschikbaar',
+                        'busy' => 'Bezet',
                         default => $state,
                     })
                     ->sortable(),
@@ -173,6 +174,7 @@ class DriverAvailabilityResource extends Resource
                     ->options([
                         'available' => 'Beschikbaar',
                         'unavailable' => 'Niet beschikbaar',
+                        'busy' => 'Bezet',
                     ]),
 
                 Tables\Filters\SelectFilter::make('availability_type')
@@ -204,7 +206,8 @@ class DriverAvailabilityResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (DriverAvailability $record) => ! $record->ride_id),
                 Tables\Actions\Action::make('approve_leave')
                     ->label('Verlof goedkeuren')
                     ->icon('heroicon-o-check')
@@ -230,7 +233,8 @@ class DriverAvailabilityResource extends Resource
                             'availability_type' => 'available',
                         ]);
                     }),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (DriverAvailability $record) => ! $record->ride_id),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ride;
+use App\Services\RideAssignmentService;
 use Illuminate\Http\Request;
 
 class DriverRideController extends Controller
@@ -48,7 +49,7 @@ class DriverRideController extends Controller
         return response()->json($ride->fresh());
     }
 
-    public function reject(Request $request, Ride $ride)
+    public function reject(Request $request, Ride $ride, RideAssignmentService $assignmentService)
     {
         if ((int) $ride->driver_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Forbidden'], 403);
@@ -60,10 +61,22 @@ class DriverRideController extends Controller
             ], 422);
         }
 
+        $rejectedDriverId = (int) $ride->driver_id;
+
         $ride->update([
-            'status' => 'cancelled',
+            'driver_id' => null,
+            'vehicle_id' => null,
+            'status' => Ride::STATUS_PENDING,
         ]);
 
-        return response()->json($ride->fresh());
+        $newDriver = $assignmentService->assignAutomatically(
+            $ride->fresh(),
+            [$rejectedDriverId],
+        );
+
+        return response()->json([
+            'ride' => $ride->fresh(),
+            'reassigned_to' => $newDriver?->only(['id', 'name', 'email']),
+        ]);
     }
 }

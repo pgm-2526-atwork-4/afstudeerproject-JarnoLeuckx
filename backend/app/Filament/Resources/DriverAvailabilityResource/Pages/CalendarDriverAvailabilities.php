@@ -140,6 +140,7 @@ class CalendarDriverAvailabilities extends Page
     private function colorPriority(string $colorKey): int
     {
         return match ($colorKey) {
+            AvailabilityCalendarColor::BUSY => 5,
             AvailabilityCalendarColor::SICK => 4,
             AvailabilityCalendarColor::LEAVE_PENDING => 3,
             AvailabilityCalendarColor::LEAVE_APPROVED => 2,

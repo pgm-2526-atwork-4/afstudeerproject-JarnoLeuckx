@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Filament\Resources\RideResource;
-use App\Models\DriverAvailability;
 use App\Models\Ride;
 use App\Models\User;
+use App\Services\RideAssignmentService;
 use Carbon\Carbon;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 
 class CustomerRideController extends Controller
 {
-    public function availableDrivers(Request $request)
+    public function availableDrivers(Request $request, RideAssignmentService $assignmentService)
     {
         $data = $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
@@ -25,38 +25,8 @@ class CustomerRideController extends Controller
         $pickupAt = Carbon::parse("{$data['date']} {$data['start_time']}");
         $returnAt = Carbon::parse("{$data['date']} {$data['end_time']}");
 
-        $availableDriverIds = DriverAvailability::query()
-            ->where('status', 'available')
-            ->whereIn('approval_status', ['not_required', 'approved'])
-            ->whereDate('date', $pickupAt->toDateString())
-            ->whereTime('start_time', '<=', $pickupAt->format('H:i:s'))
-            ->whereTime('end_time', '>=', $returnAt->format('H:i:s'))
-            ->pluck('driver_id');
-
-        if ($availableDriverIds->isEmpty()) {
-            return response()->json([
-                'drivers' => [],
-            ]);
-        }
-
-        $drivers = User::query()
-            ->where('role', 'driver')
-            ->where('approval_status', 'approved')
-            ->whereIn('id', $availableDriverIds)
-            ->whereDoesntHave('ridesAsDriver', function ($query) use ($pickupAt, $returnAt) {
-                $query
-                    ->whereNotIn('status', ['cancelled'])
-                    ->where('pickup_datetime', '<=', $returnAt->toDateTimeString())
-                    ->whereRaw(
-                        'COALESCE(return_datetime, pickup_datetime) >= ?',
-                        [$pickupAt->toDateTimeString()]
-                    );
-            })
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'email']);
-
         return response()->json([
-            'drivers' => $drivers,
+            'drivers' => $assignmentService->getAvailableDrivers($pickupAt, $returnAt)->values(),
         ]);
     }
 
@@ -68,7 +38,7 @@ class CustomerRideController extends Controller
             ->get();
     }
 
-    public function store(Request $request)
+    public function store(Request $request, RideAssignmentService $assignmentService)
     {
         $data = $request->validate([
             'service_type' => ['required', 'in:airport,wheelchair,medical,assistance'],
@@ -93,11 +63,6 @@ class CustomerRideController extends Controller
         );
 
         $pickupAt = Carbon::parse($data['pickup_datetime']);
-        $returnAt = isset($data['return_datetime'])
-            ? Carbon::parse($data['return_datetime'])
-            : $pickupAt->copy();
-
-        $availableDriver = $this->findAvailableDriver($pickupAt, $returnAt);
 
         $ride = Ride::create([
             'customer_id' => $request->user()->id,
@@ -120,6 +85,9 @@ class CustomerRideController extends Controller
             'status' => 'pending',
         ]);
 
+        $assignedDriver = $assignmentService->assignAutomatically($ride->fresh());
+        $ride = $ride->fresh();
+
         $admins = User::query()
             ->where('role', 'admin')
             ->get();
@@ -127,8 +95,8 @@ class CustomerRideController extends Controller
         if ($admins->isNotEmpty()) {
             Notification::make()
                 ->title('Nieuwe ritaanvraag')
-                ->body($availableDriver
-                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Er werd al een vrije chauffeur gevonden ({$availableDriver->name})."
+                ->body($assignedDriver
+                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Deze werd automatisch toegewezen aan {$assignedDriver->name}."
                     : "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}.")
                 ->icon('heroicon-o-bell-alert')
                 ->actions([
@@ -140,55 +108,20 @@ class CustomerRideController extends Controller
                 ->sendToDatabase($admins);
         }
 
-        if ($availableDriver) {
+        if ($assignedDriver) {
             Notification::make()
-                ->title('Vrije chauffeur gevonden')
-                ->body("Voor je rit (#{$ride->id}) is chauffeur {$availableDriver->name} beschikbaar. Een beheerder bevestigt de toewijzing.")
+                ->title('Chauffeur automatisch toegewezen')
+                ->body("Voor je rit (#{$ride->id}) werd chauffeur {$assignedDriver->name} automatisch toegewezen.")
                 ->icon('heroicon-o-check-circle')
                 ->sendToDatabase([$request->user()]);
         }
 
         return response()->json([
-            'message' => $availableDriver
-                ? "Rit aangevraagd. Er is een vrije chauffeur gevonden ({$availableDriver->name}). Een beheerder bevestigt de toewijzing."
+            'message' => $assignedDriver
+                ? "Rit aangevraagd. Chauffeur {$assignedDriver->name} werd automatisch toegewezen."
                 : 'Rit aangevraagd. Er is momenteel geen vrije chauffeur. Een beheerder wijst deze later toe.',
             'ride' => $ride,
         ], 201);
-    }
-
-    private function findAvailableDriver(Carbon $pickupAt, Carbon $returnAt): ?User
-    {
-        if (! $pickupAt->isSameDay($returnAt)) {
-            return null;
-        }
-
-        $availableDriverIds = DriverAvailability::query()
-            ->where('status', 'available')
-            ->whereIn('approval_status', ['not_required', 'approved'])
-            ->whereDate('date', $pickupAt->toDateString())
-            ->whereTime('start_time', '<=', $pickupAt->format('H:i:s'))
-            ->whereTime('end_time', '>=', $returnAt->format('H:i:s'))
-            ->pluck('driver_id');
-
-        if ($availableDriverIds->isEmpty()) {
-            return null;
-        }
-
-        return User::query()
-            ->where('role', 'driver')
-            ->where('approval_status', 'approved')
-            ->whereIn('id', $availableDriverIds)
-            ->whereDoesntHave('ridesAsDriver', function ($query) use ($pickupAt, $returnAt) {
-                $query
-                    ->whereNotIn('status', ['cancelled'])
-                    ->where('pickup_datetime', '<=', $returnAt->toDateTimeString())
-                    ->whereRaw(
-                        'COALESCE(return_datetime, pickup_datetime) >= ?',
-                        [$pickupAt->toDateTimeString()]
-                    );
-            })
-            ->orderBy('id')
-            ->first();
     }
 
     private function calculatePrice(string $serviceType, ?string $assistanceType): float

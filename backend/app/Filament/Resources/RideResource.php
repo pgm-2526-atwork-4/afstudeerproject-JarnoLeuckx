@@ -36,20 +36,13 @@ class RideResource extends Resource
                         ->preload()
                         ->required(),
                     Forms\Components\Select::make('driver_id')
-                        ->label('Chauffeur/Admin')
+                        ->label('Chauffeur')
                         ->relationship(
                             'driver',
                             'name',
                             modifyQueryUsing: fn (Builder $query) => $query
-                                ->where(function (Builder $nested) {
-                                    $nested
-                                        ->where(function (Builder $driverQuery) {
-                                            $driverQuery
-                                                ->where('role', 'driver')
-                                                ->where('approval_status', 'approved');
-                                        })
-                                        ->orWhere('role', 'admin');
-                                })
+                                ->where('role', 'driver')
+                                ->where('approval_status', 'approved')
                         )
                         ->searchable()
                         ->preload()
@@ -184,7 +177,7 @@ class RideResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn ($record) => $record->update(['status' => 'assigned']))
-                    ->visible(fn ($record) => $record->status === 'pending'),
+                    ->visible(fn ($record) => $record->status === 'pending' && filled($record->driver_id)),
                 Tables\Actions\Action::make('reject')
                     ->label('Afkeuren')
                     ->icon('heroicon-o-x-mark')

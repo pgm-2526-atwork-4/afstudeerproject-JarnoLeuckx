@@ -45,6 +45,7 @@ class DriverAvailabilityController extends Controller
             $availability = DriverAvailability::updateOrCreate(
                 [
                     'driver_id' => $request->user()->id,
+                    'ride_id' => null,
                     'date' => $cursor->toDateString(),
                     'start_time' => $data['start_time'],
                     'end_time' => $data['end_time'],
@@ -94,6 +95,7 @@ class DriverAvailabilityController extends Controller
             'status_label' => match ($availability->status) {
                 DriverAvailability::STATUS_AVAILABLE => 'Beschikbaar',
                 DriverAvailability::STATUS_UNAVAILABLE => 'Niet beschikbaar',
+                DriverAvailability::STATUS_BUSY => 'Bezet',
                 default => (string) $availability->status,
             },
             'availability_type_label' => match ($availability->availability_type) {
@@ -118,6 +120,12 @@ class DriverAvailabilityController extends Controller
     {
         if ($availability->driver_id !== $request->user()->id) {
             return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($availability->ride_id || $availability->status === DriverAvailability::STATUS_BUSY) {
+            return response()->json([
+                'message' => 'Systeem-gegenereerde bezettingen van ritten kunnen niet handmatig verwijderd worden.',
+            ], 422);
         }
 
         $availability->delete();

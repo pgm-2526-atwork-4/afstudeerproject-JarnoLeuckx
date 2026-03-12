@@ -73,6 +73,7 @@
                                 'min-h-[160px] border-r border-gray-100 p-2 last:border-r-0',
                                 'bg-white' => $day['is_in_month'],
                                 'bg-gray-50/60 text-gray-400' => ! $day['is_in_month'],
+                                'ring-1 ring-inset ring-sky-200 bg-sky-50/40' => $day['is_in_month'] && $day['color_key'] === 'busy',
                                 'ring-1 ring-inset ring-emerald-200 bg-emerald-50/30' => $day['is_in_month'] && $day['color_key'] === 'available',
                                 'ring-1 ring-inset ring-orange-200 bg-orange-50/30' => $day['is_in_month'] && $day['color_key'] === 'leave_approved',
                                 'ring-1 ring-inset ring-gray-300 bg-gray-100/50' => $day['is_in_month'] && $day['color_key'] === 'leave_pending',
@@ -97,6 +98,7 @@
                                             <span
                                                 @class([
                                                     'h-2 w-2 rounded-full',
+                                                    'bg-sky-500' => $day['color_key'] === 'busy',
                                                     'bg-emerald-500' => $day['color_key'] === 'available',
                                                     'bg-orange-500' => $day['color_key'] === 'leave_approved',
                                                     'bg-gray-500' => $day['color_key'] === 'leave_pending',
@@ -118,20 +120,22 @@
                                         href="{{ $item['edit_url'] }}"
                                         @class([
                                             'block rounded-lg border px-2 py-1 text-[10px] leading-tight transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+                                            'border-sky-200 bg-sky-50 text-sky-900' => $item['color_key'] === 'busy',
                                             'border-emerald-200 bg-emerald-50 text-emerald-900' => $item['color_key'] === 'available',
                                             'border-orange-200 bg-orange-50 text-orange-900' => $item['color_key'] === 'leave_approved',
                                             'border-gray-300 bg-gray-100 text-gray-800' => $item['color_key'] === 'leave_pending',
                                             'border-red-200 bg-red-50 text-red-900' => $item['color_key'] === 'sick',
-                                            'border-gray-200 bg-white text-gray-700' => !in_array($item['color_key'], ['available', 'leave_approved', 'leave_pending', 'sick']),
+                                            'border-gray-200 bg-white text-gray-700' => !in_array($item['color_key'], ['busy', 'available', 'leave_approved', 'leave_pending', 'sick']),
                                         ])
                                     >
                                         <p
                                             @class([
                                                 'truncate font-semibold',
+                                                'text-sky-900' => $item['color_key'] === 'busy',
                                                 'text-emerald-900' => $item['color_key'] === 'available',
                                                 'text-orange-900' => $item['color_key'] === 'leave_approved',
                                                 'text-red-900' => $item['color_key'] === 'sick',
-                                                'text-gray-800' => !in_array($item['color_key'], ['available', 'leave_approved', 'sick']),
+                                                'text-gray-800' => !in_array($item['color_key'], ['busy', 'available', 'leave_approved', 'sick']),
                                             ])
                                         >
                                             {{ $item['name'] }}
