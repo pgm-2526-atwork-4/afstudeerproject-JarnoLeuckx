@@ -33,8 +33,22 @@ export type Availability = {
 export type Ride = {
   id: number;
   pickup_datetime: string;
+  return_datetime?: string | null;
   pickup_city: string;
   dropoff_city: string;
+  pickup_address?: string;
+  dropoff_address?: string;
+  pickup_street?: string;
+  pickup_number?: string | null;
+  pickup_postcode?: string;
+  dropoff_street?: string;
+  dropoff_number?: string | null;
+  dropoff_postcode?: string;
+  service_type?: string;
+  notes?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
   status: string;
 };
 
@@ -81,6 +95,12 @@ export function acceptRide(id: number) {
 
 export function rejectRide(id: number) {
   return apiFetch<Ride>(`/driver/rides/${id}/reject`, {
+    method: "PATCH",
+  });
+}
+
+export function completeRide(id: number) {
+  return apiFetch<Ride>(`/driver/rides/${id}/complete`, {
     method: "PATCH",
   });
 }

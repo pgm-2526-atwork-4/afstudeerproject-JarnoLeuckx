@@ -11,6 +11,10 @@ class EditRide extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        if (($data['status'] ?? 'pending') === 'accepted' && ($this->record->status ?? null) !== 'accepted') {
+            $data['status'] = ! empty($data['driver_id']) ? 'assigned' : 'pending';
+        }
+
         if (! empty($data['driver_id']) && (($data['status'] ?? 'pending') === 'pending')) {
             $data['status'] = 'assigned';
         }

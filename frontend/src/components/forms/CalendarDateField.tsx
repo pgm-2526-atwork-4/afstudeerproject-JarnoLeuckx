@@ -229,8 +229,6 @@ export default function CalendarDateField({
               : "border-slate-200 bg-[#F3F8FF] text-[#0043A8]",
   };
 
-  const selectedDate = parseDate(effectiveStart);
-  const selectedEndDate = parseDate(effectiveEnd);
   const dayHighlightClasses: Record<
     "available" | "leave_pending" | "leave_approved" | "sick",
     string

@@ -511,7 +511,8 @@ export default function CustomerAccountPage() {
           </h2>
           <p className="mt-1 text-sm text-slate-600">
             Kies een datum en tijdslot om te zien welke chauffeurs vrij zijn. De
-            definitieve toewijzing wordt altijd door een beheerder bevestigd.
+            chauffeur moet een toegewezen rit nog zelf bevestigen voordat die
+            definitief vastligt.
           </p>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
@@ -657,8 +658,9 @@ export default function CustomerAccountPage() {
           {availableDrivers.length > 0 && (
             <>
               <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-                Er is minstens één vrije chauffeur gevonden. Een beheerder
-                bevestigt de uiteindelijke toewijzing.
+                Er is minstens één vrije chauffeur gevonden. Een beheerder kan
+                toewijzen, maar de chauffeur moet de rit daarna nog zelf
+                bevestigen.
               </div>
               <ul className="mt-4 divide-y divide-emerald-100 rounded-lg border border-emerald-200 bg-white">
                 {availableDrivers.map((driver) => (

@@ -85,6 +85,8 @@ class RideResource extends Resource
                             'completed' => 'Afgerond',
                             'cancelled' => 'Geannuleerd',
                         ])
+                        ->disableOptionWhen(fn (string $value): bool => $value === 'accepted')
+                        ->helperText('Een rit kan pas geaccepteerd worden nadat de toegewezen chauffeur deze zelf bevestigt.')
                         ->default('pending')
                         ->required(),
                     Forms\Components\Select::make('service_type')

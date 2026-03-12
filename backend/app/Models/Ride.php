@@ -29,6 +29,12 @@ class Ride extends Model
                 return;
             }
 
+            if ($ride->isDirty('driver_id')) {
+                $ride->status = in_array($ride->status, [self::STATUS_CANCELLED, self::STATUS_COMPLETED], true)
+                    ? $ride->status
+                    : self::STATUS_ASSIGNED;
+            }
+
             app(RideAssignmentService::class)->ensureDriverCanTakeRide(
                 (int) $ride->driver_id,
                 $ride,

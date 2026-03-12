@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])
         Route::get('/schedule', [DriverRideController::class, 'schedule']);
         Route::patch('/rides/{ride}/accept', [DriverRideController::class, 'accept']);
         Route::patch('/rides/{ride}/reject', [DriverRideController::class, 'reject']);
+        Route::patch('/rides/{ride}/complete', [DriverRideController::class, 'complete']);
     });
 
 

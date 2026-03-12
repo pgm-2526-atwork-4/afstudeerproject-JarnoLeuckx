@@ -96,7 +96,7 @@ class CustomerRideController extends Controller
             Notification::make()
                 ->title('Nieuwe ritaanvraag')
                 ->body($assignedDriver
-                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Deze werd automatisch toegewezen aan {$assignedDriver->name}."
+                    ? "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}. Deze werd automatisch toegewezen aan {$assignedDriver->name} en wacht nog op bevestiging door de chauffeur."
                     : "Er is een nieuwe rit (#{$ride->id}) aangemaakt door {$request->user()->name}.")
                 ->icon('heroicon-o-bell-alert')
                 ->actions([
@@ -111,14 +111,14 @@ class CustomerRideController extends Controller
         if ($assignedDriver) {
             Notification::make()
                 ->title('Chauffeur automatisch toegewezen')
-                ->body("Voor je rit (#{$ride->id}) werd chauffeur {$assignedDriver->name} automatisch toegewezen.")
+                ->body("Voor je rit (#{$ride->id}) werd chauffeur {$assignedDriver->name} automatisch toegewezen. De rit is pas bevestigd zodra de chauffeur dit zelf accepteert.")
                 ->icon('heroicon-o-check-circle')
                 ->sendToDatabase([$request->user()]);
         }
 
         return response()->json([
             'message' => $assignedDriver
-                ? "Rit aangevraagd. Chauffeur {$assignedDriver->name} werd automatisch toegewezen."
+                ? "Rit aangevraagd. Chauffeur {$assignedDriver->name} werd automatisch toegewezen en moet de rit nog bevestigen."
                 : 'Rit aangevraagd. Er is momenteel geen vrije chauffeur. Een beheerder wijst deze later toe.',
             'ride' => $ride,
         ], 201);
