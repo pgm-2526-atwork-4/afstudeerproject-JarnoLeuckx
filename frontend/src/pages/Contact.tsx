@@ -41,18 +41,28 @@ type SubjectOption =
   | ""
   | "algemeen"
   | "boeking"
-  | "offerte"
   | "klacht"
   | "compliment"
   | "prijzen"
   | "anders";
 
+type RequestType = "contact" | "offerte";
+
+type ServiceType = "" | "luchthaven" | "rolstoel" | "medisch" | "assistentie";
+
 export default function ContactPage() {
+  const [requestType, setRequestType] = useState<RequestType>("contact");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [subject, setSubject] = useState<SubjectOption>("");
   const [message, setMessage] = useState("");
+  const [serviceType, setServiceType] = useState<ServiceType>("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [dropoffAddress, setDropoffAddress] = useState("");
+  const [travelDate, setTravelDate] = useState("");
+  const [returnTrip, setReturnTrip] = useState(false);
+  const [passengers, setPassengers] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,20 +72,39 @@ export default function ContactPage() {
     setFormError(null);
     setFormSuccess(null);
 
-    if (!subject) {
+    if (requestType === "contact" && !subject) {
       setFormError("Kies eerst een onderwerp.");
       return;
+    }
+
+    if (requestType === "offerte") {
+      if (!serviceType || !pickupAddress || !dropoffAddress || !travelDate) {
+        setFormError(
+          "Vul de dienst, route en gewenste reisdatum in voor uw offerteaanvraag.",
+        );
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     try {
       const response = await sendContactMessage({
+        request_type: requestType,
         name,
         email,
         phone: phone || undefined,
-        subject,
+        subject: requestType === "contact" ? subject : undefined,
         message,
+        service_type: requestType === "offerte" ? serviceType : undefined,
+        pickup_address: requestType === "offerte" ? pickupAddress : undefined,
+        dropoff_address: requestType === "offerte" ? dropoffAddress : undefined,
+        travel_date: requestType === "offerte" ? travelDate : undefined,
+        return_trip: requestType === "offerte" ? returnTrip : undefined,
+        passengers:
+          requestType === "offerte" && passengers
+            ? Number(passengers)
+            : undefined,
       });
 
       setFormSuccess(response.message);
@@ -84,6 +113,12 @@ export default function ContactPage() {
       setPhone("");
       setSubject("");
       setMessage("");
+      setServiceType("");
+      setPickupAddress("");
+      setDropoffAddress("");
+      setTravelDate("");
+      setReturnTrip(false);
+      setPassengers("");
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Bericht verzenden mislukt.",
@@ -167,8 +202,36 @@ export default function ContactPage() {
           {/* Contact form */}
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              Stuur ons een bericht
+              {requestType === "offerte"
+                ? "Vraag een offerte aan"
+                : "Stuur ons een bericht"}
             </h2>
+
+            <div className="mb-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setRequestType("contact")}
+                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+                  requestType === "contact"
+                    ? "border-[#0043A8] bg-[#0043A8] text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-[#0043A8]/40"
+                }`}
+              >
+                Contactbericht
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRequestType("offerte")}
+                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+                  requestType === "offerte"
+                    ? "border-[#0043A8] bg-[#0043A8] text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-[#0043A8]/40"
+                }`}
+              >
+                Offerte aanvragen
+              </button>
+            </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               {formError && <div className="form-alert-error">{formError}</div>}
@@ -208,33 +271,115 @@ export default function ContactPage() {
                 onChange={(event) => setPhone(event.target.value)}
               />
 
-              {/* Onderwerp (simple select - future-proof) */}
-              <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-primary">
-                  Onderwerp
-                </span>
+              {requestType === "contact" ? (
+                <label className="block">
+                  <span className="mb-2 block text-xs font-semibold text-primary">
+                    Onderwerp
+                  </span>
 
-                <select
-                  name="subject"
-                  value={subject}
-                  onChange={(event) =>
-                    setSubject(event.target.value as SubjectOption)
-                  }
-                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
-                  required
-                >
-                  <option value="" disabled>
-                    Selecteer een onderwerp
-                  </option>
-                  <option value="algemeen">Algemene vraag</option>
-                  <option value="boeking">Boeking wijzigen</option>
-                  <option value="offerte">Offerte aanvragen</option>
-                  <option value="klacht">Klacht</option>
-                  <option value="compliment">Compliment</option>
-                  <option value="prijzen">Prijsinformatie</option>
-                  <option value="anders">Anders</option>
-                </select>
-              </label>
+                  <select
+                    name="subject"
+                    value={subject}
+                    onChange={(event) =>
+                      setSubject(event.target.value as SubjectOption)
+                    }
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                    required
+                  >
+                    <option value="" disabled>
+                      Selecteer een onderwerp
+                    </option>
+                    <option value="algemeen">Algemene vraag</option>
+                    <option value="boeking">Boeking wijzigen</option>
+                    <option value="klacht">Klacht</option>
+                    <option value="compliment">Compliment</option>
+                    <option value="prijzen">Prijsinformatie</option>
+                    <option value="anders">Anders</option>
+                  </select>
+                </label>
+              ) : (
+                <>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-semibold text-primary">
+                      Dienst
+                    </span>
+
+                    <select
+                      name="serviceType"
+                      value={serviceType}
+                      onChange={(event) =>
+                        setServiceType(event.target.value as ServiceType)
+                      }
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                      required
+                    >
+                      <option value="" disabled>
+                        Selecteer een dienst
+                      </option>
+                      <option value="luchthaven">Luchthavenvervoer</option>
+                      <option value="rolstoel">Rolstoelvervoer</option>
+                      <option value="medisch">Medisch vervoer</option>
+                      <option value="assistentie">Assistentie</option>
+                    </select>
+                  </label>
+
+                  <Input
+                    id="pickupAddress"
+                    name="pickupAddress"
+                    label="Ophaallocatie"
+                    type="text"
+                    placeholder="Straat, nummer, stad"
+                    value={pickupAddress}
+                    onChange={(event) => setPickupAddress(event.target.value)}
+                    required
+                  />
+
+                  <Input
+                    id="dropoffAddress"
+                    name="dropoffAddress"
+                    label="Bestemming"
+                    type="text"
+                    placeholder="Straat, nummer, stad"
+                    value={dropoffAddress}
+                    onChange={(event) => setDropoffAddress(event.target.value)}
+                    required
+                  />
+
+                  <Input
+                    id="travelDate"
+                    name="travelDate"
+                    label="Gewenste reisdatum"
+                    type="date"
+                    value={travelDate}
+                    onChange={(event) => setTravelDate(event.target.value)}
+                    required
+                  />
+
+                  <Input
+                    id="passengers"
+                    name="passengers"
+                    label="Aantal passagiers (optioneel)"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={passengers}
+                    onChange={(event) => setPassengers(event.target.value)}
+                  />
+
+                  <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      name="returnTrip"
+                      checked={returnTrip}
+                      onChange={(event) => setReturnTrip(event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-[#0043A8] focus:ring-[#0043A8]/40"
+                    />
+                    <span className="text-sm font-medium text-slate-700">
+                      Ik wens ook een retourrit
+                    </span>
+                  </label>
+                </>
+              )}
 
               {/* Bericht */}
               <label className="block">
@@ -257,8 +402,12 @@ export default function ContactPage() {
                 disabled={isSubmitting}
               >
                 {isSubmitting
-                  ? "Bericht wordt verzonden..."
-                  : "Verstuur bericht"}
+                  ? requestType === "offerte"
+                    ? "Offerteaanvraag wordt verzonden..."
+                    : "Bericht wordt verzonden..."
+                  : requestType === "offerte"
+                    ? "Verstuur offerteaanvraag"
+                    : "Verstuur bericht"}
               </Button>
 
               <p className="text-sm text-gray-600 text-center">
