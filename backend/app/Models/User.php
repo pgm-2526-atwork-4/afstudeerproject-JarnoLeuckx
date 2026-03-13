@@ -82,7 +82,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'admin';
     }
 
-    public function isDriver(): bool
+ 
+   public function hasVerifiedEmail(): bool
+   {
+       if ($this->isAdmin()) {
+           return true;
+       }
+
+       return parent::hasVerifiedEmail();
+   }
+
+      public function isDriver(): bool
     {
         return $this->role === 'driver';
     }
