@@ -158,6 +158,7 @@ class ContactRequestResource extends Resource
                         $record->request_type === 'offerte' &&
                         ! in_array($record->status, ['offerte_verstuurd', 'ondertekend', 'afgewerkt'])
                     )
+                    // hier wordt prijs berekeend en opgesgen maar moet nog bugfixen 
                     ->form(static::quoteFields())
                     ->modalHeading('Offerte voorbereiden')
                     ->modalDescription('Sla eerst de prijsgegevens op zodat je de PDF-preview kan controleren voor het versturen.')
@@ -203,7 +204,7 @@ class ContactRequestResource extends Resource
                     ->visible(fn (ContactRequest $record): bool =>
                         $record->request_type === 'offerte' &&
                         ! in_array($record->status, ['offerte_verstuurd', 'ondertekend', 'afgewerkt'])
-                    )
+                    ) //bugfix: status checken zodat je niet per ongeluk een al verstuurde offerte nog eens verstuurt
                     ->form(static::quoteFields())
                     ->modalHeading('Offerte opmaken & versturen')
                     ->modalDescription('Vul de volle en lege kilometers in. Het systeem rekent automatisch met € 2,50 voor volle kilometers en € 0,50 voor lege kilometers.')
