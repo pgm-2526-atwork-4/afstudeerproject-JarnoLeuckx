@@ -37,7 +37,10 @@ class ContactController extends Controller
             ], 422);
         }
 
-        if ($data['request_type'] === 'offerte') {
+        
+        if (($data['request_type'] ?? '') === 'offerte' || ($data['subject'] ?? '') === 'prijzen') {
+            $data['request_type'] = 'offerte';
+
             $requiredFields = [
                 'service_type' => 'Kies een dienst voor de offerteaanvraag.',
                 'pickup_address' => 'Geef een ophaallocatie op.',
@@ -55,6 +58,7 @@ class ContactController extends Controller
         }
 
         ContactRequest::query()->create([
+            'user_id' => $request->user()?->id,
             'request_type' => $data['request_type'],
             'name' => $data['name'],
             'email' => $data['email'],

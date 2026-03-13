@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\CustomerQuoteController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DriverAvailabilityController;
 use App\Http\Controllers\Api\DriverRideController;
@@ -59,4 +60,7 @@ Route::middleware(['auth:sanctum', 'role:customer'])
         Route::get('/available-drivers', [CustomerRideController::class, 'availableDrivers']);
 
         Route::post('/contract/sign', [CustomerContractController::class, 'sign']);
+
+        Route::get('/quotes', [CustomerQuoteController::class, 'index']);
+        Route::post('/quotes/{quote}/sign', [CustomerQuoteController::class, 'sign']);
     });

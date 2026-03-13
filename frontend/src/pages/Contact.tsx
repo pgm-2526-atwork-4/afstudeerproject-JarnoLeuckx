@@ -3,6 +3,7 @@ import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Mail, Phone, MapPin, Clock, AlertCircle } from "lucide-react";
 import { sendContactMessage } from "../lib/contact.api";
+import { getCurrentUser } from "../auth/auth.api";
 
 type InfoItem = {
   title: string;
@@ -46,15 +47,27 @@ type SubjectOption =
   | "prijzen"
   | "anders";
 
+type ServiceType = "" | "luchthaven" | "rolstoel" | "medisch" | "assistentie";
+
 export default function ContactPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const currentUser = getCurrentUser();
+  const [name, setName] = useState(currentUser?.name ?? "");
+  const [email, setEmail] = useState(currentUser?.email ?? "");
+  const [phone, setPhone] = useState(currentUser?.phone ?? "");
   const [subject, setSubject] = useState<SubjectOption>("");
   const [message, setMessage] = useState("");
+  const [serviceType, setServiceType] = useState<ServiceType>("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [dropoffAddress, setDropoffAddress] = useState("");
+  const [travelDate, setTravelDate] = useState("");
+  const [returnTrip, setReturnTrip] = useState(false);
+  const [returnDate, setReturnDate] = useState("");
+  const [passengers, setPassengers] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isPrijzenOfferte = subject === "prijzen";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,16 +79,35 @@ export default function ContactPage() {
       return;
     }
 
+    if (isPrijzenOfferte) {
+      if (!serviceType || !pickupAddress || !dropoffAddress || !travelDate) {
+        setFormError(
+          "Vul de dienst, ophaallocatie, bestemming en reisdatum in.",
+        );
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
       const response = await sendContactMessage({
-        request_type: "contact",
+        request_type: isPrijzenOfferte ? "offerte" : "contact",
         name,
         email,
         phone: phone || undefined,
         subject,
-        message,
+        service_type: isPrijzenOfferte ? serviceType : undefined,
+        pickup_address: isPrijzenOfferte ? pickupAddress : undefined,
+        dropoff_address: isPrijzenOfferte ? dropoffAddress : undefined,
+        travel_date: isPrijzenOfferte ? travelDate : undefined,
+        return_trip: isPrijzenOfferte ? returnTrip : undefined,
+        passengers:
+          isPrijzenOfferte && passengers ? Number(passengers) : undefined,
+        message:
+          isPrijzenOfferte && returnTrip && returnDate
+            ? `${message}\n\nGewenste retourdatum: ${returnDate}`
+            : message,
       });
 
       setFormSuccess(response.message);
@@ -84,6 +116,13 @@ export default function ContactPage() {
       setPhone("");
       setSubject("");
       setMessage("");
+      setServiceType("");
+      setPickupAddress("");
+      setDropoffAddress("");
+      setTravelDate("");
+      setReturnTrip(false);
+      setReturnDate("");
+      setPassengers("");
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Bericht verzenden mislukt.",
@@ -167,7 +206,9 @@ export default function ContactPage() {
           {/* Contact form */}
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              Stuur ons een bericht
+              {isPrijzenOfferte
+                ? "Vraag een prijsofferte aan"
+                : "Stuur ons een bericht"}
             </h2>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -209,30 +250,133 @@ export default function ContactPage() {
               />
 
               <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Onderwerp
-                  </span>
+                <span className="mb-2 block text-xs font-semibold text-primary">
+                  Onderwerp
+                </span>
 
-                  <select
-                    name="subject"
-                    value={subject}
-                    onChange={(event) =>
-                      setSubject(event.target.value as SubjectOption)
-                    }
-                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                <select
+                  name="subject"
+                  value={subject}
+                  onChange={(event) =>
+                    setSubject(event.target.value as SubjectOption)
+                  }
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                  required
+                >
+                  <option value="" disabled>
+                    Selecteer een onderwerp
+                  </option>
+                  <option value="algemeen">Algemene vraag</option>
+                  <option value="boeking">Boeking wijzigen</option>
+                  <option value="klacht">Klacht</option>
+                  <option value="compliment">Compliment</option>
+                  <option value="prijzen">Prijsinformatie</option>
+                  <option value="anders">Anders</option>
+                </select>
+              </label>
+
+              {isPrijzenOfferte && (
+                <>
+                  <p className="rounded-xl border border-[#0043A8]/20 bg-[#0043A8]/5 px-4 py-3 text-sm text-[#0043A8] font-medium">
+                    Vul de onderstaande gegevens in en we bezorgen u snel een
+                    prijsofferte op maat.
+                  </p>
+
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-semibold text-primary">
+                      Dienst
+                    </span>
+                    <select
+                      name="serviceType"
+                      value={serviceType}
+                      onChange={(event) =>
+                        setServiceType(event.target.value as ServiceType)
+                      }
+                      className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none transition-all focus-visible:border-[#0043A8] focus-visible:ring-2 focus-visible:ring-[#0043A8]/30"
+                      required
+                    >
+                      <option value="" disabled>
+                        Selecteer een dienst
+                      </option>
+                      <option value="luchthaven">Luchthavenvervoer</option>
+                      <option value="rolstoel">Rolstoelvervoer</option>
+                      <option value="medisch">Medisch vervoer</option>
+                      <option value="assistentie">Assistentie</option>
+                    </select>
+                  </label>
+
+                  <Input
+                    id="pickupAddress"
+                    name="pickupAddress"
+                    label="Ophaallocatie"
+                    type="text"
+                    placeholder="Straat, nummer, stad"
+                    value={pickupAddress}
+                    onChange={(event) => setPickupAddress(event.target.value)}
                     required
-                  >
-                    <option value="" disabled>
-                      Selecteer een onderwerp
-                    </option>
-                    <option value="algemeen">Algemene vraag</option>
-                    <option value="boeking">Boeking wijzigen</option>
-                    <option value="klacht">Klacht</option>
-                    <option value="compliment">Compliment</option>
-                    <option value="prijzen">Prijsinformatie</option>
-                    <option value="anders">Anders</option>
-                  </select>
-                </label>
+                  />
+
+                  <Input
+                    id="dropoffAddress"
+                    name="dropoffAddress"
+                    label="Bestemming"
+                    type="text"
+                    placeholder="Straat, nummer, stad"
+                    value={dropoffAddress}
+                    onChange={(event) => setDropoffAddress(event.target.value)}
+                    required
+                  />
+
+                  <Input
+                    id="travelDate"
+                    name="travelDate"
+                    label="Gewenste reisdatum"
+                    type="date"
+                    value={travelDate}
+                    onChange={(event) => setTravelDate(event.target.value)}
+                    required
+                  />
+
+                  <Input
+                    id="passengers"
+                    name="passengers"
+                    label="Aantal passagiers (optioneel)"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={passengers}
+                    onChange={(event) => setPassengers(event.target.value)}
+                  />
+
+                  <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      name="returnTrip"
+                      checked={returnTrip}
+                      onChange={(event) => {
+                        setReturnTrip(event.target.checked);
+                        if (!event.target.checked) setReturnDate("");
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-[#0043A8] focus:ring-[#0043A8]/40"
+                    />
+                    <span className="text-sm font-medium text-slate-700">
+                      Ik wens ook een retourrit
+                    </span>
+                  </label>
+
+                  {returnTrip && (
+                    <Input
+                      id="returnDate"
+                      name="returnDate"
+                      label="Gewenste retourdatum"
+                      type="date"
+                      value={returnDate}
+                      onChange={(event) => setReturnDate(event.target.value)}
+                      required
+                    />
+                  )}
+                </>
+              )}
 
               {/* Bericht */}
               <label className="block">
@@ -254,7 +398,13 @@ export default function ContactPage() {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Bericht wordt verzonden..." : "Verstuur bericht"}
+                {isSubmitting
+                  ? isPrijzenOfferte
+                    ? "Offerteaanvraag wordt verzonden..."
+                    : "Bericht wordt verzonden..."
+                  : isPrijzenOfferte
+                    ? "Verstuur offerteaanvraag"
+                    : "Verstuur bericht"}
               </Button>
 
               <p className="text-sm text-gray-600 text-center">

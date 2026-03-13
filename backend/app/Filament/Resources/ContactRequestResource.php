@@ -3,11 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactRequestResource\Pages\ListContactRequests;
+use App\Mail\QuoteResponseMail;
 use App\Models\ContactRequest;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class ContactRequestResource extends Resource
 {
@@ -45,7 +50,11 @@ class ContactRequestResource extends Resource
                     ->copyable(),
                 Tables\Columns\TextColumn::make('service_type')
                     ->label('Dienst')
-                    ->formatStateUsing(fn (?string $state): string => $state ?: '-')
+                    ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : '-')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('total_price')
+                    ->label('Offertebedrag')
+                    ->formatStateUsing(fn (?string $state): string => $state ? '€ ' . number_format((float) $state, 2, ',', '.') : '-')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('travel_date')
                     ->label('Reisdatum')
@@ -57,11 +66,26 @@ class ContactRequestResource extends Resource
                     ->badge()
                     ->sortable()
                     ->color(fn (string $state): string => match ($state) {
-                        'nieuw' => 'warning',
-                        'in_behandeling' => 'info',
-                        'afgewerkt' => 'success',
-                        default => 'gray',
+                        'nieuw'              => 'warning',
+                        'in_behandeling'     => 'info',
+                        'offerte_verstuurd'  => 'primary',
+                        'ondertekend'        => 'success',
+                        'afgewerkt'          => 'success',
+                        default              => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'nieuw'             => 'Nieuw',
+                        'in_behandeling'    => 'In behandeling',
+                        'offerte_verstuurd' => 'Offerte verstuurd',
+                        'ondertekend'       => 'Ondertekend',
+                        'afgewerkt'         => 'Afgewerkt',
+                        default             => ucfirst(str_replace('_', ' ', $state)),
                     }),
+                Tables\Columns\TextColumn::make('quote_signed_at')
+                    ->label('Ondertekend op')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Ontvangen')
                     ->dateTime('d/m/Y H:i')
@@ -77,9 +101,11 @@ class ContactRequestResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'nieuw' => 'Nieuw',
-                        'in_behandeling' => 'In behandeling',
-                        'afgewerkt' => 'Afgewerkt',
+                        'nieuw'             => 'Nieuw',
+                        'in_behandeling'    => 'In behandeling',
+                        'offerte_verstuurd' => 'Offerte verstuurd',
+                        'ondertekend'       => 'Ondertekend',
+                        'afgewerkt'         => 'Afgewerkt',
                     ]),
             ])
             ->actions([
@@ -94,6 +120,78 @@ class ContactRequestResource extends Resource
                     ->modalContent(fn (ContactRequest $record) => view('filament.resources.contact-request-resource.view-request', [
                         'record' => $record,
                     ])),
+
+                Tables\Actions\Action::make('preview_pdf')
+                    ->label('PDF preview')
+                    ->icon('heroicon-o-document-text')
+                    ->color('gray')
+                    ->visible(fn (ContactRequest $record): bool => $record->request_type === 'offerte' && $record->total_price !== null)
+                    ->modalHeading('Offertepreview')
+                    ->modalWidth('5xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Sluiten')
+                    ->modalContent(fn (ContactRequest $record) => view('filament.resources.contact-request-resource.preview-quote', [
+                        'record' => $record,
+                    ])),
+
+                Tables\Actions\Action::make('verstuur_offerte')
+                    ->label('Offerte versturen')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
+                    ->visible(fn (ContactRequest $record): bool =>
+                        $record->request_type === 'offerte' &&
+                        ! in_array($record->status, ['offerte_verstuurd', 'ondertekend', 'afgewerkt'])
+                    )
+                    ->form([
+                        TextInput::make('price_per_km')
+                            ->label('Prijs per km (€)')
+                            ->numeric()
+                            ->minValue(0.01)
+                            ->step(0.01)
+                            ->required()
+                            ->default(fn (ContactRequest $record) => $record->price_per_km)
+                            ->prefix('€'),
+                        TextInput::make('estimated_km')
+                            ->label('Geschatte afstand (km)')
+                            ->numeric()
+                            ->minValue(0.1)
+                            ->step(0.1)
+                            ->required()
+                            ->default(fn (ContactRequest $record) => $record->estimated_km)
+                            ->suffix('km')
+                            ->helperText('De totaalprijs wordt berekend als prijs/km × afstand.'),
+                        Textarea::make('quote_notes')
+                            ->label('Opmerkingen voor de klant (optioneel)')
+                            ->rows(3)
+                            ->maxLength(1000)
+                            ->default(fn (ContactRequest $record) => $record->quote_notes),
+                    ])
+                    ->modalHeading('Offerte opmaken & versturen')
+                    ->modalDescription('Vul de prijs in. Na het versturen ontvangt de klant een e-mail met een PDF-bijlage en kan de offerte digitaal ondertekenen.')
+                    ->action(function (ContactRequest $record, array $data): void {
+                        $pricePerKm  = (float) $data['price_per_km'];
+                        $estimatedKm = (float) $data['estimated_km'];
+                        $totalPrice  = round($pricePerKm * $estimatedKm, 2);
+
+                        $record->update([
+                            'price_per_km'  => $pricePerKm,
+                            'estimated_km'  => $estimatedKm,
+                            'total_price'   => $totalPrice,
+                            'quote_notes'   => $data['quote_notes'] ?? null,
+                            'quote_sent_at' => now(),
+                            'status'        => 'offerte_verstuurd',
+                        ]);
+
+                        Mail::to($record->email, $record->name)
+                            ->send(new QuoteResponseMail($record->fresh()));
+
+                        Notification::make()
+                            ->title('Offerte verstuurd')
+                            ->body("Offerte voor {$record->name} (€ " . number_format($totalPrice, 2, ',', '.') . ") werd succesvol per e-mail verzonden.")
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\Action::make('mark_processing')
                     ->label('In behandeling')
                     ->icon('heroicon-o-arrow-path')
@@ -101,12 +199,13 @@ class ContactRequestResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (ContactRequest $record): bool => $record->status === 'nieuw')
                     ->action(fn (ContactRequest $record) => $record->update(['status' => 'in_behandeling'])),
+
                 Tables\Actions\Action::make('mark_done')
                     ->label('Afgewerkt')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (ContactRequest $record): bool => $record->status !== 'afgewerkt')
+                    ->visible(fn (ContactRequest $record): bool => ! in_array($record->status, ['afgewerkt']))
                     ->action(fn (ContactRequest $record) => $record->update(['status' => 'afgewerkt'])),
             ])
             ->bulkActions([]);

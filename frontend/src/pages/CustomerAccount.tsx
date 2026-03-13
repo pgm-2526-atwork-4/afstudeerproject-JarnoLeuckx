@@ -12,6 +12,8 @@ import {
   downloadSignedCustomerContract,
 } from "../lib/customerContract";
 import { signCustomerContract } from "../lib/customerContract.api";
+import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
+import { downloadQuotePdf } from "../lib/quote";
 
 import {
   getAvailableDrivers,
@@ -128,16 +130,45 @@ export default function CustomerAccountPage() {
     string | null
   >(null);
   const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
+  const quoteSignatureCanvasRef = useRef<SignatureCanvas | null>(null);
   const notificationPromptTitleId = useId();
   const notificationPromptDescriptionId = useId();
   const contractModalTitleId = useId();
   const contractModalDescriptionId = useId();
+  const quoteModalTitleId = useId();
+  const quoteModalDescriptionId = useId();
   const notificationDismissButtonRef = useRef<HTMLButtonElement | null>(null);
   const contractCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+  const quoteCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const [quotes, setQuotes] = useState<CustomerQuote[]>([]);
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<CustomerQuote | null>(
+    null,
+  );
+  const [quoteSignatureName, setQuoteSignatureName] = useState(
+    () => currentUser?.name ?? "",
+  );
+  const [quoteSignatureMethod, setQuoteSignatureMethod] = useState<
+    "draw" | "name"
+  >("draw");
+  const [quoteSignatureDate, setQuoteSignatureDate] =
+    useState(todayAsInputDate());
+  const [quoteAcceptedTerms, setQuoteAcceptedTerms] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quoteHasDrawnSignature, setQuoteHasDrawnSignature] = useState(false);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   async function loadData() {
     const result = await getMyCustomerRides();
     setRides(result);
+
+    try {
+      const quoteResult = await getMyQuotes();
+      setQuotes(quoteResult.quotes);
+    } catch {
+      // Quotes ophalen mislukt — negeer stille fout
+    }
   }
 
   async function loadAvailableDrivers() {
@@ -274,6 +305,29 @@ export default function CustomerAccountPage() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isContractModalOpen]);
+
+  useEffect(() => {
+    if (!isQuoteModalOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    quoteCloseButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !quoteLoading) {
+        setIsQuoteModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isQuoteModalOpen, quoteLoading]);
 
   const ridesTotalCount = rides.length;
   const ridesAcceptedCount = rides.filter(
@@ -483,6 +537,95 @@ export default function CustomerAccountPage() {
           : "Ondertekenen mislukt.";
 
       setContractError(message);
+    }
+  }
+
+  async function handleSignQuote() {
+    if (!selectedQuote) return;
+
+    const cleanName = quoteSignatureName.trim();
+    const today = todayAsInputDate();
+
+    if (!quoteAcceptedTerms) {
+      setQuoteError("Bevestig eerst dat je akkoord gaat met de offerte.");
+      return;
+    }
+
+    if (quoteSignatureMethod === "name" && !cleanName) {
+      setQuoteError("Geef je naam in om digitaal te ondertekenen.");
+      return;
+    }
+
+    if (quoteSignatureMethod === "name" && cleanName.length < 2) {
+      setQuoteError("Naam voor handtekening moet minstens 2 tekens bevatten.");
+      return;
+    }
+
+    if (!quoteSignatureDate) {
+      setQuoteError("Kies een datum van ondertekening.");
+      return;
+    }
+
+    if (quoteSignatureDate > today) {
+      setQuoteError("Datum van ondertekening mag niet in de toekomst liggen.");
+      return;
+    }
+
+    let signerName = cleanName;
+    let drawnSignatureDataUrl: string | undefined;
+
+    if (quoteSignatureMethod === "draw") {
+      signerName = currentUser?.name ?? cleanName;
+
+      if (!quoteSignatureCanvasRef.current || !quoteHasDrawnSignature) {
+        setQuoteError("Plaats eerst je handtekening in het tekenvak.");
+        return;
+      }
+
+      const trimmedCanvas = quoteSignatureCanvasRef.current.getTrimmedCanvas();
+      drawnSignatureDataUrl = trimmedCanvas.toDataURL("image/png");
+    }
+
+    setQuoteError(null);
+    setQuoteLoading(true);
+
+    try {
+      const result = await signQuote(
+        selectedQuote.id,
+        signerName,
+        quoteSignatureDate,
+        quoteSignatureMethod,
+        quoteAcceptedTerms,
+      );
+
+      await downloadQuotePdf(result.quote, {
+        method: quoteSignatureMethod,
+        signerName,
+        signerDate: quoteSignatureDate,
+        signedAt: new Date().toLocaleDateString("nl-BE"),
+        drawnSignatureDataUrl,
+      });
+
+      setQuotes((prev) =>
+        prev.map((q) => (q.id === result.quote.id ? result.quote : q)),
+      );
+      setIsQuoteModalOpen(false);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? (() => {
+              try {
+                const parsed = JSON.parse(err.message) as { message?: string };
+                return parsed.message ?? err.message;
+              } catch {
+                return err.message;
+              }
+            })()
+          : "Ondertekenen mislukt.";
+
+      setQuoteError(message);
+    } finally {
+      setQuoteLoading(false);
     }
   }
 
@@ -800,6 +943,106 @@ export default function CustomerAccountPage() {
         <div className="surface-card p-5">
           <CustomerRideList rides={rides} statusFilter={activeRideFilter} />
         </div>
+
+        {quotes.length > 0 && (
+          <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="text-xl font-extrabold text-slate-900">
+              Mijn offertes
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Overzicht van de prijsoffertes die Social Drive heeft opgemaakt
+              voor jou.
+            </p>
+
+            <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200">
+              {quotes.map((quote) => {
+                const statusLabel: Record<string, string> = {
+                  offerte_verstuurd: "Offerte ontvangen",
+                  ondertekend: "Ondertekend",
+                  afgewerkt: "Afgewerkt",
+                };
+                const statusColor: Record<string, string> = {
+                  offerte_verstuurd: "bg-blue-100 text-blue-800",
+                  ondertekend: "bg-emerald-100 text-emerald-800",
+                  afgewerkt: "bg-slate-100 text-slate-700",
+                };
+
+                return (
+                  <li
+                    key={quote.id}
+                    className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">
+                          Offerte #{String(quote.id).padStart(5, "0")}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusColor[quote.status] ?? "bg-slate-100 text-slate-700"}`}
+                        >
+                          {statusLabel[quote.status] ?? quote.status}
+                        </span>
+                      </div>
+                      {(quote.pickup_address || quote.dropoff_address) && (
+                        <p className="text-xs text-slate-600">
+                          {quote.pickup_address ?? "?"} →{" "}
+                          {quote.dropoff_address ?? "?"}
+                        </p>
+                      )}
+                      {quote.travel_date && (
+                        <p className="text-xs text-slate-500">
+                          Reisdatum:{" "}
+                          {new Date(
+                            `${quote.travel_date}T00:00:00`,
+                          ).toLocaleDateString("nl-BE")}
+                        </p>
+                      )}
+                      {quote.total_price && (
+                        <p className="text-sm font-semibold text-[#0043A8]">
+                          Totaalprijs (excl. BTW): €{" "}
+                          {parseFloat(quote.total_price)
+                            .toFixed(2)
+                            .replace(".", ",")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void downloadQuotePdf(quote);
+                        }}
+                        className="btn-outline px-3 py-1.5 text-xs"
+                      >
+                        PDF downloaden
+                      </button>
+                      {quote.status === "offerte_verstuurd" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedQuote(quote);
+                            setQuoteSignatureName(currentUser?.name ?? "");
+                            setQuoteSignatureMethod("draw");
+                            setQuoteSignatureDate(todayAsInputDate());
+                            setQuoteAcceptedTerms(false);
+                            setQuoteError(null);
+                            setQuoteHasDrawnSignature(false);
+                            quoteSignatureCanvasRef.current?.clear();
+                            setIsQuoteModalOpen(true);
+                          }}
+                          className="btn-primary px-3 py-1.5 text-xs"
+                        >
+                          Ondertekenen
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
       </div>
 
       {showNotificationPrompt && (
@@ -1029,6 +1272,198 @@ export default function CustomerAccountPage() {
                 className="btn-primary"
               >
                 Digitaal ondertekenen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isQuoteModalOpen && selectedQuote && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={quoteModalTitleId}
+            aria-describedby={quoteModalDescriptionId}
+            className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+          >
+            <h2
+              id={quoteModalTitleId}
+              className="text-2xl font-black text-slate-900"
+            >
+              Offerte ondertekenen
+            </h2>
+            <p
+              id={quoteModalDescriptionId}
+              className="mt-1 text-sm text-slate-600"
+            >
+              Offerte #{String(selectedQuote.id).padStart(5, "0")} · Controleer
+              de details en onderteken indien akkoord.
+            </p>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <p className="font-semibold text-slate-900">Offertedetails</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                <li>
+                  Traject: {selectedQuote.pickup_address ?? "-"} →{" "}
+                  {selectedQuote.dropoff_address ?? "-"}
+                </li>
+                {selectedQuote.travel_date && (
+                  <li>
+                    Reisdatum:{" "}
+                    {new Date(
+                      `${selectedQuote.travel_date}T00:00:00`,
+                    ).toLocaleDateString("nl-BE")}
+                  </li>
+                )}
+                {selectedQuote.total_price && (
+                  <li className="font-semibold text-[#0043A8]">
+                    Totaalprijs (excl. BTW): €{" "}
+                    {parseFloat(selectedQuote.total_price)
+                      .toFixed(2)
+                      .replace(".", ",")}
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {quoteSignatureMethod === "name" ? (
+              <label className="mt-4 block">
+                <span className="mb-2 block text-xs font-semibold text-primary">
+                  Naam voor digitale handtekening
+                </span>
+                <input
+                  value={quoteSignatureName}
+                  onChange={(e) => setQuoteSignatureName(e.target.value)}
+                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </label>
+            ) : (
+              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                Ondertekenaar:{" "}
+                <span className="font-semibold">
+                  {currentUser?.name ?? "-"}
+                </span>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <span className="mb-2 block text-xs font-semibold text-primary">
+                Kies ondertekenmethode
+              </span>
+              <div className="flex flex-col gap-3 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="quote_signature_method"
+                    checked={quoteSignatureMethod === "draw"}
+                    onChange={() => {
+                      setQuoteSignatureMethod("draw");
+                      setQuoteError(null);
+                    }}
+                    className="h-4 w-4 accent-[color:var(--accent)]"
+                  />
+                  Handtekening tekenen
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="quote_signature_method"
+                    checked={quoteSignatureMethod === "name"}
+                    onChange={() => {
+                      setQuoteSignatureMethod("name");
+                      setQuoteError(null);
+                    }}
+                    className="h-4 w-4 accent-[color:var(--accent)]"
+                  />
+                  Ondertekenen met naam
+                </label>
+              </div>
+            </div>
+
+            {quoteSignatureMethod === "draw" && (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                <div className="mb-2 text-xs font-semibold text-primary">
+                  Teken hier je handtekening
+                </div>
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
+                  <SignatureCanvas
+                    ref={quoteSignatureCanvasRef}
+                    penColor="black"
+                    onBegin={() => {
+                      setQuoteHasDrawnSignature(true);
+                      setQuoteError(null);
+                    }}
+                    canvasProps={{
+                      width: 700,
+                      height: 180,
+                      className: "h-40 w-full rounded-md bg-white",
+                    }}
+                  />
+                </div>
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      quoteSignatureCanvasRef.current?.clear();
+                      setQuoteHasDrawnSignature(false);
+                    }}
+                    className="btn-outline px-3 py-1.5 text-xs"
+                  >
+                    Wissen
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <label className="mt-4 block">
+              <span className="mb-2 block text-xs font-semibold text-primary">
+                Datum van ondertekening
+              </span>
+              <input
+                type="date"
+                value={quoteSignatureDate}
+                max={todayAsInputDate()}
+                onChange={(e) => setQuoteSignatureDate(e.target.value)}
+                className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              />
+            </label>
+
+            <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={quoteAcceptedTerms}
+                onChange={(e) => setQuoteAcceptedTerms(e.target.checked)}
+                className="h-4 w-4 accent-[color:var(--accent)]"
+              />
+              Ik heb de offerte nagekeken en ga akkoord met het opgegeven bedrag
+              en de voorwaarden.
+            </label>
+
+            {quoteError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {quoteError}
+              </div>
+            )}
+
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+              <button
+                ref={quoteCloseButtonRef}
+                type="button"
+                disabled={quoteLoading}
+                onClick={() => setIsQuoteModalOpen(false)}
+                className="btn-outline"
+              >
+                Sluiten
+              </button>
+              <button
+                type="button"
+                disabled={quoteLoading}
+                onClick={() => {
+                  void handleSignQuote();
+                }}
+                className="btn-primary"
+              >
+                {quoteLoading ? "Bezig..." : "Digitaal ondertekenen"}
               </button>
             </div>
           </div>

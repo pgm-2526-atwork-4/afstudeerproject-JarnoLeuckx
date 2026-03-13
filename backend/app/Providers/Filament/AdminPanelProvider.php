@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->emailVerification()
             ->brandName('Social Drive')
             ->brandLogo(asset('logo.png'))
             ->favicon(asset('logo.png'))
