@@ -11,6 +11,7 @@ export type CustomerQuote = {
   passengers: number | null;
   price_per_km: string | null;
   estimated_km: string | null;
+  empty_km: string | null;
   total_price: string | null;
   quote_notes: string | null;
   quote_sent_at: string | null;

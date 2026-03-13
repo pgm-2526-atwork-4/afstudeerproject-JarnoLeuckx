@@ -29,6 +29,35 @@ class ContactRequestResource extends Resource
         return $form->schema([]);
     }
 
+    protected static function quoteFields(): array
+    {
+        return [
+            TextInput::make('estimated_km')
+                ->label('Volle kilometers')
+                ->numeric()
+                ->minValue(0.1)
+                ->step(0.1)
+                ->required()
+                ->default(fn (ContactRequest $record) => $record->estimated_km)
+                ->suffix('km')
+                ->helperText('Volle kilometers worden automatisch aangerekend aan € 2,50 per km.'),
+            TextInput::make('empty_km')
+                ->label('Lege kilometers')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.1)
+                ->required()
+                ->default(fn (ContactRequest $record) => $record->empty_km ?? 0)
+                ->suffix('km')
+                ->helperText('Lege kilometers worden automatisch aangerekend aan € 0,50 per km.'),
+            Textarea::make('quote_notes')
+                ->label('Opmerkingen voor de klant (optioneel)')
+                ->rows(3)
+                ->maxLength(1000)
+                ->default(fn (ContactRequest $record) => $record->quote_notes),
+        ];
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -121,6 +150,39 @@ class ContactRequestResource extends Resource
                         'record' => $record,
                     ])),
 
+                Tables\Actions\Action::make('voorbereid_offerte')
+                    ->label('Offerte voorbereiden')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('warning')
+                    ->visible(fn (ContactRequest $record): bool =>
+                        $record->request_type === 'offerte' &&
+                        ! in_array($record->status, ['offerte_verstuurd', 'ondertekend', 'afgewerkt'])
+                    )
+                    ->form(static::quoteFields())
+                    ->modalHeading('Offerte voorbereiden')
+                    ->modalDescription('Sla eerst de prijsgegevens op zodat je de PDF-preview kan controleren voor het versturen.')
+                    ->action(function (ContactRequest $record, array $data): void {
+                        $pricePerKm = 2.50;
+                        $estimatedKm = (float) $data['estimated_km'];
+                        $emptyKm = (float) ($data['empty_km'] ?? 0);
+                        $totalPrice = round(($pricePerKm * $estimatedKm) + ($emptyKm * 0.5), 2);
+
+                        $record->update([
+                            'price_per_km' => $pricePerKm,
+                            'estimated_km' => $estimatedKm,
+                            'empty_km' => $emptyKm,
+                            'total_price' => $totalPrice,
+                            'quote_notes' => $data['quote_notes'] ?? null,
+                            'status' => $record->status === 'nieuw' ? 'in_behandeling' : $record->status,
+                        ]);
+
+                        Notification::make()
+                            ->title('Offerte opgeslagen als concept')
+                            ->body('De offertegegevens zijn opgeslagen. Je kan nu eerst de PDF-preview bekijken.')
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\Action::make('preview_pdf')
                     ->label('PDF preview')
                     ->icon('heroicon-o-document-text')
@@ -142,40 +204,19 @@ class ContactRequestResource extends Resource
                         $record->request_type === 'offerte' &&
                         ! in_array($record->status, ['offerte_verstuurd', 'ondertekend', 'afgewerkt'])
                     )
-                    ->form([
-                        TextInput::make('price_per_km')
-                            ->label('Prijs per km (€)')
-                            ->numeric()
-                            ->minValue(0.01)
-                            ->step(0.01)
-                            ->required()
-                            ->default(fn (ContactRequest $record) => $record->price_per_km)
-                            ->prefix('€'),
-                        TextInput::make('estimated_km')
-                            ->label('Geschatte afstand (km)')
-                            ->numeric()
-                            ->minValue(0.1)
-                            ->step(0.1)
-                            ->required()
-                            ->default(fn (ContactRequest $record) => $record->estimated_km)
-                            ->suffix('km')
-                            ->helperText('De totaalprijs wordt berekend als prijs/km × afstand.'),
-                        Textarea::make('quote_notes')
-                            ->label('Opmerkingen voor de klant (optioneel)')
-                            ->rows(3)
-                            ->maxLength(1000)
-                            ->default(fn (ContactRequest $record) => $record->quote_notes),
-                    ])
+                    ->form(static::quoteFields())
                     ->modalHeading('Offerte opmaken & versturen')
-                    ->modalDescription('Vul de prijs in. Na het versturen ontvangt de klant een e-mail met een PDF-bijlage en kan de offerte digitaal ondertekenen.')
+                    ->modalDescription('Vul de volle en lege kilometers in. Het systeem rekent automatisch met € 2,50 voor volle kilometers en € 0,50 voor lege kilometers.')
                     ->action(function (ContactRequest $record, array $data): void {
-                        $pricePerKm  = (float) $data['price_per_km'];
+                        $pricePerKm  = 2.50;
                         $estimatedKm = (float) $data['estimated_km'];
-                        $totalPrice  = round($pricePerKm * $estimatedKm, 2);
+                        $emptyKm = (float) ($data['empty_km'] ?? 0);
+                        $totalPrice  = round(($pricePerKm * $estimatedKm) + ($emptyKm * 0.5), 2);
 
                         $record->update([
                             'price_per_km'  => $pricePerKm,
                             'estimated_km'  => $estimatedKm,
+                            'empty_km'      => $emptyKm,
                             'total_price'   => $totalPrice,
                             'quote_notes'   => $data['quote_notes'] ?? null,
                             'quote_sent_at' => now(),

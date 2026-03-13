@@ -129,31 +129,37 @@ export async function downloadQuotePdf(
  
   pdf.setFillColor(239, 246, 255);
   pdf.setDrawColor(0, 67, 168);
-  pdf.roundedRect(15, y - 2, 180, 28, 2, 2, "FD");
+  pdf.roundedRect(15, y - 2, 180, 35, 2, 2, "FD");
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10);
-  pdf.text(`Prijs per km:`, 20, y + 5);
-  pdf.text(fmtMoney(quote.price_per_km), 140, y + 5);
-  pdf.text(`Geschatte afstand:`, 20, y + 12);
+  pdf.text(`Volle kilometers:`, 20, y + 5);
   pdf.text(
     `${parseFloat(quote.estimated_km ?? "0")
       .toFixed(1)
-      .replace(".", ",")} km`,
+      .replace(".", ",")} km x ${fmtMoney(quote.price_per_km ?? "2.50")}`,
     140,
-    y + 12,
+    y + 5,
+  );
+  pdf.text(`Lege kilometers:`, 20, y + 19);
+  pdf.text(
+    `${parseFloat(quote.empty_km ?? "0")
+      .toFixed(1)
+      .replace(".", ",")} km x € 0,50`,
+    140,
+    y + 19,
   );
 
   pdf.setDrawColor(191, 219, 254);
-  pdf.line(20, y + 15, 192, y + 15);
+  pdf.line(20, y + 22, 192, y + 22);
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(12);
   pdf.setTextColor(0, 67, 168);
-  pdf.text("Totaalprijs (excl. BTW):", 20, y + 22);
-  pdf.text(fmtMoney(quote.total_price), 140, y + 22);
+  pdf.text("Totaalprijs (excl. BTW):", 20, y + 29);
+  pdf.text(fmtMoney(quote.total_price), 140, y + 29);
   pdf.setTextColor(30, 41, 59);
-  y += 34;
+  y += 41;
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);

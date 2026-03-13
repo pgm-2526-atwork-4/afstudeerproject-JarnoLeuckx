@@ -30,7 +30,7 @@ class CustomerQuoteController extends Controller
             ->get([
                 'id', 'status', 'service_type', 'pickup_address', 'dropoff_address',
                 'travel_date', 'return_trip', 'passengers',
-                'price_per_km', 'estimated_km', 'total_price', 'quote_notes',
+                'price_per_km', 'estimated_km', 'empty_km', 'total_price', 'quote_notes',
                 'quote_sent_at', 'quote_signed_at', 'quote_signer_name', 'quote_signature_method',
                 'created_at',
             ]);

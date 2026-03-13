@@ -11,6 +11,8 @@
         .page { padding: 32px 40px; }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 2px solid #0043A8; padding-bottom: 20px; }
+        .brand-block { display: table; }
+        .brand-logo { display: block; height: 52px; width: auto; margin-bottom: 10px; }
         .header-left h1 { font-size: 22px; font-weight: 700; color: #0043A8; margin-bottom: 4px; }
         .header-left p { font-size: 10px; color: #64748b; }
         .header-right { text-align: right; }
@@ -71,6 +73,9 @@
     {{-- Header --}}
     <div class="header">
         <div class="header-left">
+            <div class="brand-block">
+                <img src="{{ public_path('logo.png') }}" alt="Social Drive logo" class="brand-logo">
+            </div>
             <h1>Social Drive</h1>
             <p>Betrouwbaar en zorgzaam vervoer</p>
         </div>
@@ -150,12 +155,12 @@
         <div class="section-title">Prijsberekening</div>
         <div class="price-box">
             <div class="price-row">
-                <div class="price-row-cell">Prijs per km</div>
-                <div class="price-row-cell right">€&nbsp;{{ number_format((float) $quote->price_per_km, 2, ',', '.') }}</div>
+                <div class="price-row-cell">Volle kilometers</div>
+                <div class="price-row-cell right">{{ number_format((float) $quote->estimated_km, 1, ',', '.') }}&nbsp;km × €&nbsp;{{ number_format((float) ($quote->price_per_km ?? 2.5), 2, ',', '.') }}</div>
             </div>
             <div class="price-row">
-                <div class="price-row-cell">Geschatte afstand</div>
-                <div class="price-row-cell right">{{ number_format((float) $quote->estimated_km, 1, ',', '.') }}&nbsp;km</div>
+                <div class="price-row-cell">Lege kilometers</div>
+                <div class="price-row-cell right">{{ number_format((float) ($quote->empty_km ?? 0), 1, ',', '.') }}&nbsp;km × €&nbsp;0,50</div>
             </div>
             <hr class="price-divider">
             <div class="price-total-row">
