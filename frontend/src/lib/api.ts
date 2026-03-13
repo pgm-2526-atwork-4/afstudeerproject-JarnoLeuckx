@@ -21,8 +21,6 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     const text = await res.text();
     throw new Error(text || `Request failed: ${res.status}`);
   }
-
-  // 204 no content
   if (res.status === 204) return {} as T;
 
   return res.json() as Promise<T>;

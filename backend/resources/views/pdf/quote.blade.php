@@ -70,7 +70,7 @@
 <body>
 <div class="page">
 
-    {{-- Header --}}
+    
     <div class="header">
         <div class="header-left">
             <div class="brand-block">
@@ -86,7 +86,7 @@
         </div>
     </div>
 
-    {{-- Klantgegevens --}}
+    
     <div class="section">
         <div class="section-title">Klantgegevens</div>
         <div class="info-grid">
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    {{-- Ritdetails --}}
+    
     <div class="section">
         <div class="section-title">Ritdetails</div>
         <div style="margin-bottom: 10px;">
@@ -150,7 +150,7 @@
         @endif
     </div>
 
-    {{-- Prijsberekening --}}
+    
     <div class="section">
         <div class="section-title">Prijsberekening</div>
         <div class="price-box">
@@ -172,14 +172,14 @@
     </div>
 
     @if($quote->quote_notes)
-    {{-- Opmerkingen admin --}}
+    
     <div class="section">
         <div class="section-title">Opmerkingen</div>
         <div class="notes-box">{{ $quote->quote_notes }}</div>
     </div>
     @endif
 
-    {{-- Handtekening --}}
+    
     <div class="signature-section">
         @if($quote->quote_signed_at)
         <div class="signed-box">
@@ -205,7 +205,7 @@
         @endif
     </div>
 
-    {{-- Footer --}}
+    
     <div class="footer">
         <div class="footer-left">Social Drive · info@socialdrive.be · +32 (0) 470 12 34 56</div>
         <div class="footer-right">Offerte #{{ str_pad($quote->id, 5, '0', STR_PAD_LEFT) }}</div>

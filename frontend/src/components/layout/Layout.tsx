@@ -71,7 +71,7 @@ export default function Layout({ children }: Props) {
 
       <Header />
 
-      {/* Main groeit automatisch en vult scherm */}
+      
       <main id="main-content" className="flex-grow" tabIndex={-1}>
         {children}
       </main>

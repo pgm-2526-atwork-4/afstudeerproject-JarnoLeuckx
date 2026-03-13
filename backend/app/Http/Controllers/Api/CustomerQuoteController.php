@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class CustomerQuoteController extends Controller
 {
-    /**
-     * List all offerte requests linked to the authenticated customer.
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -38,14 +36,10 @@ class CustomerQuoteController extends Controller
         return response()->json(['quotes' => $quotes]);
     }
 
-    /**
-     * Digitally sign a quote.
-     */
+    
     public function sign(Request $request, ContactRequest $quote): JsonResponse
     {
         $user = $request->user();
-
-        // Verify ownership
         if ($quote->user_id !== $user->id && $quote->email !== $user->email) {
             return response()->json(['message' => 'Geen toegang tot deze offerte.'], 403);
         }
@@ -73,8 +67,6 @@ class CustomerQuoteController extends Controller
             'quote_signature_method'  => $validated['signature_method'],
             'status'                  => 'ondertekend',
         ]);
-
-        // Notify admins
         $admins = User::query()->where('role', 'admin')->get();
         if ($admins->isNotEmpty()) {
             Notification::make()

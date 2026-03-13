@@ -442,7 +442,7 @@ export default function Assistentie() {
                   aria-hidden={formData.assistentieVoorReis !== "ja"}
                 >
                   <div className="p-5 space-y-5">
-                    {/* Meerdere dagen */}
+                    
                     <div>
                       <p className="mb-3 text-sm font-semibold text-primary">
                         Meerdere dagen?
@@ -511,7 +511,7 @@ export default function Assistentie() {
                       </div>
                     </div>
 
-                    {/* Type assistentie */}
+                    
                     <label className="block">
                       <span className="mb-2 block text-xs font-semibold text-primary">
                         Type assistentie
@@ -537,7 +537,7 @@ export default function Assistentie() {
                       </select>
                     </label>
 
-                    {/* Details */}
+                    
                     <label className="block">
                       <span className="mb-2 block text-xs font-semibold text-primary">
                         Assistentie details
@@ -565,7 +565,7 @@ export default function Assistentie() {
                 </div>
               </ReservationFormSection>
 
-              {/* Actions */}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button variant="primary" className="w-full" type="submit">
                   Aanvraag indienen

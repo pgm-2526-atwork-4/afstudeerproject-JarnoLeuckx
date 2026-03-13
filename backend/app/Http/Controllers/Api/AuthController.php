@@ -144,8 +144,6 @@ class AuthController extends Controller
             'message' => 'Uw wachtwoord is opnieuw ingesteld. U kunt nu inloggen.',
         ]);
     }
-
-    // 🔐 LOGIN
     public function login(Request $request)
     {
         $request->validate([
@@ -172,11 +170,7 @@ class AuthController extends Controller
                 'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
             ], 403);
         }
-
-        // Oude tokens verwijderen (optioneel maar proper)
         $user->tokens()->delete();
-
-        // Nieuw token maken
         $token = $user->createToken('react-token')->plainTextToken;
 
         return response()->json([
@@ -184,8 +178,6 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
-
-    // 👤 ME (wie is ingelogd)
     public function me(Request $request)
     {
         return response()->json($request->user());
@@ -263,8 +255,6 @@ class AuthController extends Controller
             'message' => 'Je account is verwijderd.',
         ]);
     }
-
-    // 🚪 LOGOUT
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

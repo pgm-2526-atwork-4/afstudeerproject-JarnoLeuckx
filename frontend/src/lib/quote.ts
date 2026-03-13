@@ -44,16 +44,11 @@ export async function downloadQuotePdf(
   signature?: SignatureData,
 ) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
-
-  // Logo
   try {
     const logoDataUrl = await imageUrlToDataUrl("/image/logo.png");
     pdf.addImage(logoDataUrl, "PNG", 15, 12, 34, 20);
   } catch {
-    // ignore
   }
-
-  // Header
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
   pdf.text("Social Drive — Prijsofferte", 15, 42);
@@ -80,8 +75,6 @@ export async function downloadQuotePdf(
     pdf.text(value, 75, y);
     y += lh;
   };
-
-  // Klantgegevens sectie
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
@@ -96,8 +89,6 @@ export async function downloadQuotePdf(
   line("Naam", signature?.signerName ?? "-");
 
   y += 4;
-
-  // Ritdetails
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
@@ -116,7 +107,6 @@ export async function downloadQuotePdf(
 
   y += 4;
 
-
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
@@ -126,7 +116,6 @@ export async function downloadQuotePdf(
   pdf.line(15, y, 195, y);
   y += 5;
 
- 
   pdf.setFillColor(239, 246, 255);
   pdf.setDrawColor(0, 67, 168);
   pdf.roundedRect(15, y - 2, 180, 35, 2, 2, "FD");
@@ -171,8 +160,6 @@ export async function downloadQuotePdf(
   );
   pdf.setTextColor(30, 41, 59);
   y += 8;
-
-  // Opmerkingen
   if (quote.quote_notes) {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(11);
@@ -191,8 +178,6 @@ export async function downloadQuotePdf(
     }
     y += 4;
   }
-
-  // Handtekening
   if (signature) {
     pdf.setDrawColor(16, 185, 129);
     pdf.setFillColor(240, 253, 244);
@@ -228,7 +213,6 @@ export async function downloadQuotePdf(
           20,
         );
       } catch {
-        // ignore
       }
     }
 
@@ -252,8 +236,6 @@ export async function downloadQuotePdf(
     pdf.setTextColor(30, 41, 59);
     y += 36;
   }
-
-  // Footer
   pdf.setFontSize(9);
   pdf.setTextColor(148, 163, 184);
   pdf.text(

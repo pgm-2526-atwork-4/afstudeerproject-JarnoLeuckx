@@ -246,7 +246,6 @@ export async function logout() {
         },
       });
     } catch {
-      // noop
     }
   }
 

@@ -167,7 +167,6 @@ export default function CustomerAccountPage() {
       const quoteResult = await getMyQuotes();
       setQuotes(quoteResult.quotes);
     } catch {
-      // Quotes ophalen mislukt — negeer stille fout
     }
   }
 

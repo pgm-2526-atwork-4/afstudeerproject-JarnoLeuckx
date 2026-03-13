@@ -165,7 +165,7 @@ class ContactRequestResource extends Resource
                         $pricePerKm = 2.50;
                         $estimatedKm = (float) $data['estimated_km'];
                         $emptyKm = (float) ($data['empty_km'] ?? 0);
-                        $totalPrice = round(($pricePerKm * $estimatedKm) + ($emptyKm * 0.5), 2);
+                        $totalPrice = round(($pricePerKm * $estimatedKm) + ($emptyKm * 0.50), 2);
 
                         $record->update([
                             'price_per_km' => $pricePerKm,
