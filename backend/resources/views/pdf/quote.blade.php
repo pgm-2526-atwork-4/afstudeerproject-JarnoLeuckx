@@ -134,12 +134,11 @@
                 </div>
             </div>
         </div>
-        @if($quote->passengers)
         <div style="margin-top: 10px;">
             <div class="info-grid">
                 <div class="info-row">
                     <div class="info-label">Aantal passagiers</div>
-                    <div class="info-value">{{ $quote->passengers }}</div>
+                    <div class="info-value">{{ $quote->passengers ?: '-' }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Retourrit</div>
@@ -147,7 +146,6 @@
                 </div>
             </div>
         </div>
-        @endif
     </div>
 
     
@@ -164,7 +162,7 @@
             </div>
             <hr class="price-divider">
             <div class="price-total-row">
-                <div class="price-total-cell">Totaalprijs (excl. BTW)</div>
+                <div class="price-total-cell">Totaalprijs (excl. BTW){{ $quote->return_trip ? ' - heen en terug (2x enkele rit)' : '' }}</div>
                 <div class="price-total-cell right">€&nbsp;{{ number_format((float) $quote->total_price, 2, ',', '.') }}</div>
             </div>
         </div>
