@@ -187,6 +187,11 @@
                 Datum: {{ $quote->quote_signed_at->format('d/m/Y H:i') }}<br>
                 Methode: {{ $quote->quote_signature_method === 'draw' ? 'Handtekening' : 'Naam' }}
             </div>
+            @if($quote->quote_signature_method === 'draw' && $quote->quote_signature_image)
+                <div style="margin-top: 12px;">
+                    <img src="{{ $quote->quote_signature_image }}" alt="Handtekening klant" style="max-width: 320px; max-height: 80px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px;" />
+                </div>
+            @endif
         </div>
         @else
         <div class="signature-title">Handtekening voor akkoord</div>

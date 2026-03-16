@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import SignatureCanvas from "react-signature-canvas";
+import SignaturePadCanvas, {
+  SignaturePadRef,
+} from "../shared/SignaturePadCanvas";
 import CustomerRideList from "../components/customers/CustomerRideList";
 import {
   getCurrentUser,
@@ -129,8 +131,8 @@ export default function CustomerAccountPage() {
   const [notificationPromptError, setNotificationPromptError] = useState<
     string | null
   >(null);
-  const signatureCanvasRef = useRef<SignatureCanvas | null>(null);
-  const quoteSignatureCanvasRef = useRef<SignatureCanvas | null>(null);
+  const signatureCanvasRef = useRef<SignaturePadRef | null>(null);
+  const quoteSignatureCanvasRef = useRef<SignaturePadRef | null>(null);
   const notificationPromptTitleId = useId();
   const notificationPromptDescriptionId = useId();
   const contractModalTitleId = useId();
@@ -167,6 +169,7 @@ export default function CustomerAccountPage() {
       const quoteResult = await getMyQuotes();
       setQuotes(quoteResult.quotes);
     } catch {
+      setQuotes([]);
     }
   }
 
@@ -495,14 +498,12 @@ export default function CustomerAccountPage() {
 
     if (signatureMethod === "draw") {
       signerName = currentUser.name ?? cleanName;
-
       if (!signatureCanvasRef.current || !hasDrawnSignature) {
         setContractError("Plaats eerst je handtekening in het tekenvak.");
         return;
       }
-
-      const trimmedCanvas = signatureCanvasRef.current.getTrimmedCanvas();
-      drawnSignatureDataUrl = trimmedCanvas.toDataURL("image/png");
+      // Get the data URL from the signature pad
+      drawnSignatureDataUrl = signatureCanvasRef.current.toDataURL("image/png");
     }
 
     setContractError(null);
@@ -575,14 +576,12 @@ export default function CustomerAccountPage() {
 
     if (quoteSignatureMethod === "draw") {
       signerName = currentUser?.name ?? cleanName;
-
       if (!quoteSignatureCanvasRef.current || !quoteHasDrawnSignature) {
         setQuoteError("Plaats eerst je handtekening in het tekenvak.");
         return;
       }
-
-      const trimmedCanvas = quoteSignatureCanvasRef.current.getTrimmedCanvas();
-      drawnSignatureDataUrl = trimmedCanvas.toDataURL("image/png");
+      drawnSignatureDataUrl =
+        quoteSignatureCanvasRef.current.toDataURL("image/png");
     }
 
     setQuoteError(null);
@@ -1196,17 +1195,15 @@ export default function CustomerAccountPage() {
                   Teken hier je handtekening
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
-                  <SignatureCanvas
+                  <SignaturePadCanvas
                     ref={signatureCanvasRef}
                     penColor="black"
-                    onBegin={() => {
+                    width={700}
+                    height={180}
+                    className="h-40 w-full rounded-md bg-white"
+                    onDraw={() => {
                       setHasDrawnSignature(true);
                       setContractError(null);
-                    }}
-                    canvasProps={{
-                      width: 700,
-                      height: 180,
-                      className: "h-40 w-full rounded-md bg-white",
                     }}
                   />
                 </div>
@@ -1385,17 +1382,15 @@ export default function CustomerAccountPage() {
                   Teken hier je handtekening
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
-                  <SignatureCanvas
+                  <SignaturePadCanvas
                     ref={quoteSignatureCanvasRef}
                     penColor="black"
-                    onBegin={() => {
+                    width={700}
+                    height={180}
+                    className="h-40 w-full rounded-md bg-white"
+                    onDraw={() => {
                       setQuoteHasDrawnSignature(true);
                       setQuoteError(null);
-                    }}
-                    canvasProps={{
-                      width: 700,
-                      height: 180,
-                      className: "h-40 w-full rounded-md bg-white",
                     }}
                   />
                 </div>

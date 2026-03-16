@@ -36,6 +36,7 @@ export function signQuote(
   signer_date: string,
   signature_method: "name" | "draw",
   accepted_terms: boolean,
+  signature_image?: string,
 ) {
   return apiFetch<SignQuoteResponse>(`/customer/quotes/${quoteId}/sign`, {
     method: "POST",
@@ -44,6 +45,7 @@ export function signQuote(
       signer_date,
       signature_method,
       accepted_terms,
+      signature_image,
     }),
   });
 }
