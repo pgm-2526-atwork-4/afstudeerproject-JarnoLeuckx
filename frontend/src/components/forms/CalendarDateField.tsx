@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
 
 type CalendarDateFieldProps = {
   id: string;
@@ -49,8 +51,25 @@ function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function addMonths(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+function toDateList(startValue: string, endValue: string) {
+  const start = parseDate(startValue);
+  const end = parseDate(endValue);
+
+  if (!start || !end) {
+    return [];
+  }
+
+  const from = start <= end ? start : end;
+  const to = start <= end ? end : start;
+  const dates: Date[] = [];
+  const current = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+
+  while (current <= to) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
 }
 
 function formatDisplayDate(value: string) {
@@ -104,7 +123,6 @@ export default function CalendarDateField({
     ? effectiveEnd
     : (highlightEnd ?? displayStart);
 
-  const todayDateValue = formatDate(new Date());
   const minSelectableDate = minDate ?? "";
 
   const [visibleMonth, setVisibleMonth] = useState(() => {
@@ -127,84 +145,57 @@ export default function CalendarDateField({
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   }, [visibleMonth]);
 
-  const calendarCells = useMemo(() => {
-    const year = visibleMonth.getFullYear();
-    const month = visibleMonth.getMonth();
-    const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPreviousMonth = new Date(year, month, 0).getDate();
+  const selectedSingle = !isRangeMode
+    ? (parseDate(effectiveStart) ?? undefined)
+    : undefined;
 
-    const cells: Array<{
-      dateValue: string;
-      dayNumber: number;
-      isCurrentMonth: boolean;
-      isDisabled: boolean;
-      isSelected: boolean;
-      isToday: boolean;
-      dayHighlight:
-        | "available"
-        | "leave_pending"
-        | "leave_approved"
-        | "sick"
-        | null;
-    }> = [];
+  const selectedRange = isRangeMode
+    ? (() => {
+        const from = parseDate(effectiveStart);
+        const to = parseDate(effectiveEnd);
 
-    for (let index = firstWeekday - 1; index >= 0; index -= 1) {
-      const dayNumber = daysInPreviousMonth - index;
-      const date = new Date(year, month - 1, dayNumber);
-      const dateValue = formatDate(date);
+        if (!from) {
+          return undefined;
+        }
 
-      cells.push({
-        dateValue,
-        dayNumber,
-        isCurrentMonth: false,
-        isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
-        isSelected: displayStart === dateValue || displayEnd === dateValue,
-        isToday: dateValue === todayDateValue,
-        dayHighlight: dayHighlights?.[dateValue] ?? null,
-      });
+        return {
+          from,
+          to: to ?? from,
+        } as DateRange;
+      })()
+    : undefined;
+
+  const previewRangeDates = useMemo(
+    () => (!isRangeMode ? toDateList(displayStart, displayEnd) : []),
+    [displayEnd, displayStart, isRangeMode],
+  );
+
+  const dayHighlightDates = useMemo(() => {
+    const highlights: Record<
+      "available" | "leave_pending" | "leave_approved" | "sick",
+      Date[]
+    > = {
+      available: [],
+      leave_pending: [],
+      leave_approved: [],
+      sick: [],
+    };
+
+    if (!dayHighlights) {
+      return highlights;
     }
 
-    for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
-      const date = new Date(year, month, dayNumber);
-      const dateValue = formatDate(date);
+    Object.entries(dayHighlights).forEach(([dateValue, variant]) => {
+      const date = parseDate(dateValue);
+      if (!date) {
+        return;
+      }
 
-      cells.push({
-        dateValue,
-        dayNumber,
-        isCurrentMonth: true,
-        isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
-        isSelected: displayStart === dateValue || displayEnd === dateValue,
-        isToday: dateValue === todayDateValue,
-        dayHighlight: dayHighlights?.[dateValue] ?? null,
-      });
-    }
+      highlights[variant].push(date);
+    });
 
-    const remaining = 42 - cells.length;
-    for (let dayNumber = 1; dayNumber <= remaining; dayNumber += 1) {
-      const date = new Date(year, month + 1, dayNumber);
-      const dateValue = formatDate(date);
-
-      cells.push({
-        dateValue,
-        dayNumber,
-        isCurrentMonth: false,
-        isDisabled: Boolean(minSelectableDate && dateValue < minSelectableDate),
-        isSelected: displayStart === dateValue || displayEnd === dateValue,
-        isToday: dateValue === todayDateValue,
-        dayHighlight: dayHighlights?.[dateValue] ?? null,
-      });
-    }
-
-    return cells;
-  }, [
-    displayEnd,
-    displayStart,
-    dayHighlights,
-    minSelectableDate,
-    todayDateValue,
-    visibleMonth,
-  ]);
+    return highlights;
+  }, [dayHighlights]);
 
   const highlightClasses = {
     selected:
@@ -247,6 +238,51 @@ export default function CalendarDateField({
       : formattedStart
     : "Nog geen datum geselecteerd.";
 
+  const fromDate = parseDate(minSelectableDate) ?? undefined;
+
+  const classNames = {
+    root: "w-full",
+    month: "w-full",
+    month_grid: "w-full border-collapse",
+    caption:
+      "mb-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2",
+    caption_label: "text-sm font-bold text-slate-900",
+    nav: "flex items-center gap-2",
+    button_previous: "btn-outline px-3 py-1.5 text-xs",
+    button_next: "btn-outline px-3 py-1.5 text-xs",
+    weekdays: "grid grid-cols-7 gap-2",
+    weekday:
+      "py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500",
+    week: "mt-2 grid grid-cols-7 gap-2",
+    day: "h-12",
+    day_button:
+      "h-12 w-full rounded-xl border text-sm font-semibold shadow-sm transition",
+    outside: "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
+    disabled:
+      "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 hover:bg-slate-50",
+    today: "border-slate-300 bg-white text-slate-900",
+    selected: highlightClasses.selected,
+    range_start: highlightClasses.selected,
+    range_middle: highlightClasses.range,
+    range_end: highlightClasses.selected,
+  };
+
+  const modifiers = {
+    previewRange: previewRangeDates,
+    available: dayHighlightDates.available,
+    leave_pending: dayHighlightDates.leave_pending,
+    leave_approved: dayHighlightDates.leave_approved,
+    sick: dayHighlightDates.sick,
+  };
+
+  const modifiersClassNames = {
+    previewRange: highlightClasses.range,
+    available: dayHighlightClasses.available,
+    leave_pending: dayHighlightClasses.leave_pending,
+    leave_approved: dayHighlightClasses.leave_approved,
+    sick: dayHighlightClasses.sick,
+  };
+
   return (
     <div className={className}>
       <span className="form-label">
@@ -284,23 +320,7 @@ export default function CalendarDateField({
         </div>
 
         <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-          <button
-            type="button"
-            onClick={() => setVisibleMonth((current) => addMonths(current, -1))}
-            className="btn-outline px-3 py-1.5 text-xs"
-          >
-            Vorige
-          </button>
-
           <p className="text-sm font-bold text-slate-900">{monthLabel}</p>
-
-          <button
-            type="button"
-            onClick={() => setVisibleMonth((current) => addMonths(current, 1))}
-            className="btn-outline px-3 py-1.5 text-xs"
-          >
-            Volgende
-          </button>
         </div>
 
         {(effectiveStart || effectiveEnd) && (
@@ -323,85 +343,71 @@ export default function CalendarDateField({
           </div>
         )}
 
-        <div className="grid grid-cols-7 gap-2">
-          {weekdayLabels.map((weekdayLabel) => (
-            <div
-              key={weekdayLabel}
-              className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-            >
-              {weekdayLabel}
-            </div>
-          ))}
+        {isRangeMode ? (
+          <DayPicker
+            mode="range"
+            selected={selectedRange}
+            onSelect={(range: DateRange | undefined) => {
+              if (!onRangeChange || !range?.from) {
+                onRangeChange?.("", "");
+                return;
+              }
 
-          {calendarCells.map((cell) =>
-            (() => {
-              const inRange =
-                displayStart &&
-                displayEnd &&
-                cell.dateValue >= displayStart &&
-                cell.dateValue <= displayEnd;
+              const startDate = range.from;
+              const endDate = range.to ?? range.from;
+              onRangeChange(formatDate(startDate), formatDate(endDate));
+              setVisibleMonth(startOfMonth(startDate));
+            }}
+            weekStartsOn={1}
+            showOutsideDays
+            fromDate={fromDate}
+            month={visibleMonth}
+            onMonthChange={(month) => setVisibleMonth(startOfMonth(month))}
+            classNames={classNames}
+            modifiers={modifiers}
+            modifiersClassNames={modifiersClassNames}
+            labels={{
+              labelPrevious: () => "Vorige maand",
+              labelNext: () => "Volgende maand",
+            }}
+            formatters={{
+              formatCaption: () => monthLabel,
+              formatWeekdayName: (weekday) =>
+                weekdayLabels[(weekday.getDay() + 6) % 7],
+            }}
+          />
+        ) : (
+          <DayPicker
+            mode="single"
+            selected={selectedSingle}
+            onSelect={(date: Date | undefined) => {
+              if (!date) {
+                onChange("");
+                return;
+              }
 
-              return (
-                <button
-                  key={`${id}-${cell.dateValue}-${cell.dayNumber}`}
-                  type="button"
-                  disabled={cell.isDisabled}
-                  onClick={() => {
-                    if (isRangeMode && onRangeChange) {
-                      const currentStart = effectiveStart;
-                      const currentEnd = effectiveEnd;
-
-                      if (!currentStart) {
-                        onRangeChange(cell.dateValue, cell.dateValue);
-                      } else if (
-                        currentStart &&
-                        currentEnd &&
-                        currentStart !== currentEnd
-                      ) {
-                        if (cell.dateValue < currentStart) {
-                          onRangeChange(cell.dateValue, currentEnd);
-                        } else {
-                          onRangeChange(currentStart, cell.dateValue);
-                        }
-                      } else {
-                        if (cell.dateValue < currentStart) {
-                          onRangeChange(cell.dateValue, currentStart);
-                        } else {
-                          onRangeChange(currentStart, cell.dateValue);
-                        }
-                      }
-                    } else {
-                      onChange(cell.dateValue);
-                    }
-
-                    const selected = parseDate(cell.dateValue);
-                    if (selected) {
-                      setVisibleMonth(startOfMonth(selected));
-                    }
-                  }}
-                  className={[
-                    "h-12 rounded-xl border text-sm font-semibold shadow-sm transition",
-                    cell.isDisabled
-                      ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                      : cell.isSelected
-                        ? highlightClasses.selected
-                        : inRange
-                          ? highlightClasses.range
-                          : cell.dayHighlight
-                            ? dayHighlightClasses[cell.dayHighlight]
-                            : cell.isToday
-                              ? "border-slate-300 bg-white text-slate-900"
-                              : cell.isCurrentMonth
-                                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                                : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
-                  ].join(" ")}
-                >
-                  {cell.dayNumber}
-                </button>
-              );
-            })(),
-          )}
-        </div>
+              onChange(formatDate(date));
+              setVisibleMonth(startOfMonth(date));
+            }}
+            weekStartsOn={1}
+            showOutsideDays
+            fromDate={fromDate}
+            month={visibleMonth}
+            onMonthChange={(month) => setVisibleMonth(startOfMonth(month))}
+            classNames={classNames}
+            modifiers={modifiers}
+            modifiersClassNames={modifiersClassNames}
+            labels={{
+              labelPrevious: () => "Vorige maand",
+              labelNext: () => "Volgende maand",
+            }}
+            formatters={{
+              formatCaption: () => monthLabel,
+              formatWeekdayName: (weekday) =>
+                weekdayLabels[(weekday.getDay() + 6) % 7],
+            }}
+          />
+        )}
       </div>
 
       <p className="mt-2 text-xs text-slate-500">
