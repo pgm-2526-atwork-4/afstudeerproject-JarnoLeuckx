@@ -194,7 +194,7 @@ class ContactRequestResource extends Resource
                         $emptyKm = $emptyKmToPickup + $emptyKmAfterDropoff;
 
                         // Haal standaardwaarden uit PricingSetting indien leeg
-                        $pricing = \App\Models\PricingSetting::first();
+                        $pricing = \App\Models\PricingSetting::where('enabled', true)->first();
                         if ($baseFee === null || $baseFee === '') {
                             $baseFee = $pricing?->base_fee ?? 0;
                         }
@@ -202,6 +202,7 @@ class ContactRequestResource extends Resource
                             $pricePerKm = $pricing?->price_per_km ?? 0;
                         }
                         $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
+                        $vatPercentage = $pricing?->vat_percentage ?? 6;
 
                         $oneWayPrice = ($baseFee > 0 ? $baseFee : 0) + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
@@ -210,6 +211,8 @@ class ContactRequestResource extends Resource
                         $record->update([
                             'base_fee' => $baseFee,
                             'price_per_km' => $pricePerKm,
+                            'empty_km_price' => $emptyKmPrice,
+                            'vat_percentage' => $vatPercentage,
                             'estimated_km' => $estimatedKm,
                             'empty_km' => $emptyKm,
                             'total_price' => $totalPrice,
@@ -257,7 +260,7 @@ class ContactRequestResource extends Resource
                         $emptyKm = $emptyKmToPickup + $emptyKmAfterDropoff;
 
                         // Haal standaardwaarden uit PricingSetting indien leeg
-                        $pricing = \App\Models\PricingSetting::first();
+                        $pricing = \App\Models\PricingSetting::where('enabled', true)->first();
                         if ($baseFee === null || $baseFee === '') {
                             $baseFee = $pricing?->base_fee ?? 0;
                         }
@@ -265,6 +268,7 @@ class ContactRequestResource extends Resource
                             $pricePerKm = $pricing?->price_per_km ?? 0;
                         }
                         $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
+                        $vatPercentage = $pricing?->vat_percentage ?? 6;
 
                         $oneWayPrice = ($baseFee > 0 ? $baseFee : 0) + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
@@ -273,6 +277,8 @@ class ContactRequestResource extends Resource
                         $record->update([
                             'base_fee' => $baseFee,
                             'price_per_km'  => $pricePerKm,
+                            'empty_km_price' => $emptyKmPrice,
+                            'vat_percentage' => $vatPercentage,
                             'estimated_km'  => $estimatedKm,
                             'empty_km'      => $emptyKm,
                             'total_price'   => $totalPrice,
