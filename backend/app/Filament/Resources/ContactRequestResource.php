@@ -203,7 +203,7 @@ class ContactRequestResource extends Resource
                         }
                         $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
 
-                        $oneWayPrice = $baseFee + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
+                        $oneWayPrice = ($baseFee > 0 ? $baseFee : 0) + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
                         $totalPrice = max(0, round($oneWayPrice * $tripMultiplier, 2));
 
@@ -266,7 +266,7 @@ class ContactRequestResource extends Resource
                         }
                         $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
 
-                        $oneWayPrice = $baseFee + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
+                        $oneWayPrice = ($baseFee > 0 ? $baseFee : 0) + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
                         $totalPrice  = max(0, round($oneWayPrice * $tripMultiplier, 2));
 

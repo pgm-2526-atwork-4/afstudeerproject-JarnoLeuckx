@@ -37,10 +37,15 @@
         <p>Bedankt voor uw interesse in onze diensten. Hierbij ontvangt u onze prijsofferte op basis van de door u opgegeven gegevens. De offerte vindt u als bijlage in PDF-formaat.</p>
 
         <div class="price-card">
-            <div class="label">Totaalbedrag (excl. BTW)</div>
+            <div class="label">Totaalbedrag (excl. 6% btw)</div>
             <div class="amount">€ {{ number_format((float) $quote->total_price, 2, ',', '.') }}</div>
             <div class="sub">
-                {{ number_format((float) $quote->estimated_km, 1, ',', '.') }} km × €&nbsp;{{ number_format((float) $quote->price_per_km, 2, ',', '.') }}/km
+                {{ number_format((float) $quote->estimated_km, 1, ',', '.') }} km × €&nbsp;{{ number_format((float) $quote->price_per_km, 2, ',', '.') }}/km<br>
+                Lege km: {{ number_format((float) $quote->empty_km, 1, ',', '.') }} km × €&nbsp;{{ number_format((float) ($quote->empty_km_price ?? 0.50), 2, ',', '.') }}
+            </div>
+            <div class="sub">
+                {{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw: € {{ number_format((float) $quote->total_price * (($quote->vat_percentage ?? 6) / 100), 2, ',', '.') }}<br>
+                <strong>Totaal incl. {{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw: € {{ number_format((float) $quote->total_price * (1 + (($quote->vat_percentage ?? 6) / 100)), 2, ',', '.') }}</strong>
             </div>
         </div>
 
@@ -85,7 +90,7 @@
     </div>
 
     <div class="footer">
-        Social Drive · info@socialdrive.be · +32 (0) 470 12 34 56 · Deze offerte is geldig voor 30 dagen.
+        Social Drive · info@socialdrive.be · +32 (0) 470 12 34 56 · Deze offerte is geldig voor 30 dagen. Alle prijzen zijn inclusief {{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw.
     </div>
 </div>
 </body>

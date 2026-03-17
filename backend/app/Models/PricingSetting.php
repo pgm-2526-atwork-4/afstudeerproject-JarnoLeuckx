@@ -11,5 +11,6 @@ class PricingSetting extends Model
         'base_fee',
         'price_per_km',
         'empty_km_price',
+        'vat_percentage',
     ];
 }

@@ -38,8 +38,16 @@ class PricingSettingResource extends Resource
                         ->numeric()
                         ->minValue(0)
                         ->required(),
+
+                    Forms\Components\TextInput::make('vat_percentage')
+                        ->label('BTW-percentage (%)')
+                        ->numeric()
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->step(0.01)
+                        ->required(),
                 ])
-                ->columns(3),
+                ->columns(4),
         ]);
     }
 
@@ -50,6 +58,7 @@ class PricingSettingResource extends Resource
                 Tables\Columns\TextColumn::make('base_fee')->label('Startkost (€)')->money('EUR')->sortable(),
                 Tables\Columns\TextColumn::make('price_per_km')->label('€/km')->money('EUR')->sortable(),
                 Tables\Columns\TextColumn::make('empty_km_price')->label('Lege km (€)')->money('EUR')->sortable(),
+                Tables\Columns\TextColumn::make('vat_percentage')->label('BTW (%)')->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')->label('Laatst aangepast')->dateTime('d/m/Y H:i')->sortable(),
             ])
             ->actions([

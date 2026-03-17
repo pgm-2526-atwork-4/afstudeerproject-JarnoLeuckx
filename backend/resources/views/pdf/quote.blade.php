@@ -158,15 +158,24 @@
             </div>
             <div class="price-row">
                 <div class="price-row-cell">Lege kilometers</div>
-                <div class="price-row-cell right">{{ number_format((float) ($quote->empty_km ?? 0), 1, ',', '.') }}&nbsp;km × €&nbsp;0,50</div>
+                <div class="price-row-cell right">{{ number_format((float) ($quote->empty_km ?? 0), 1, ',', '.') }}&nbsp;km × €&nbsp;{{ number_format((float) ($quote->empty_km_price ?? 0.50), 2, ',', '.') }}</div>
             </div>
             <hr class="price-divider">
             <div class="price-total-row">
-                <div class="price-total-cell">Totaalprijs (excl. BTW){{ $quote->return_trip ? ' - heen en terug (2x enkele rit)' : '' }}</div>
+                <div class="price-total-cell">Totaalprijs (excl. 6% btw){{ $quote->return_trip ? ' - heen en terug (2x enkele rit)' : '' }}</div>
                 <div class="price-total-cell right">€&nbsp;{{ number_format((float) $quote->total_price, 2, ',', '.') }}</div>
             </div>
+            <div class="price-total-row">
+                <div class="price-total-cell">{{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw</div>
+                <div class="price-total-cell right">€&nbsp;{{ number_format((float) $quote->total_price * (($quote->vat_percentage ?? 6) / 100), 2, ',', '.') }}</div>
+            </div>
+            <div class="price-total-row">
+                <div class="price-total-cell">Totaalprijs (incl. {{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw)</div>
+                <div class="price-total-cell right">€&nbsp;{{ number_format((float) $quote->total_price * (1 + (($quote->vat_percentage ?? 6) / 100)), 2, ',', '.') }}</div>
+            </div>
         </div>
-        <p class="valid-notice">* Offerte geldig voor 30 dagen. Prijs is een raming op basis van de opgegeven gegevens.</p>
+        <p class="valid-notice">* Offerte geldig voor 30 dagen. Prijs is een raming op basis van de opgegeven gegevens. Alle prijzen zijn inclusief 6% btw.</p>
+        <p class="valid-notice">* Offerte geldig voor 30 dagen. Prijs is een raming op basis van de opgegeven gegevens. Alle prijzen zijn inclusief {{ isset($quote->vat_percentage) ? number_format($quote->vat_percentage, 2, ',', '.') : '6,00' }}% btw.</p>
     </div>
 
     @if($quote->quote_notes)
