@@ -32,6 +32,20 @@ class ContactRequestResource extends Resource
     protected static function quoteFields(): array
     {
         return [
+            TextInput::make('base_fee')
+                ->label('Startkost (€)')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01)
+                ->default(fn (ContactRequest $record) => $record->base_fee)
+                ->helperText('Startkost voor deze offerte. Indien leeg, wordt de standaard uit prijsinstellingen gebruikt.'),
+            TextInput::make('price_per_km')
+                ->label('Prijs per km (€)')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01)
+                ->default(fn (ContactRequest $record) => $record->price_per_km)
+                ->helperText('Prijs per volle kilometer. Indien leeg, wordt de standaard uit prijsinstellingen gebruikt.'),
             TextInput::make('estimated_km')
                 ->label('Volle kilometers')
                 ->numeric()
@@ -40,7 +54,7 @@ class ContactRequestResource extends Resource
                 ->required()
                 ->default(fn (ContactRequest $record) => $record->estimated_km)
                 ->suffix('km')
-                ->helperText('Volle kilometers worden automatisch aangerekend aan € 2,50 per km.'),
+                ->helperText('Volle kilometers worden aangerekend aan de opgegeven prijs per km.'),
             TextInput::make('empty_km')
                 ->label('Lege km: bedrijf -> klant')
                 ->numeric()
@@ -58,7 +72,7 @@ class ContactRequestResource extends Resource
                 ->required()
                 ->default(0)
                 ->suffix('km')
-                ->helperText('Na het uitstappen van de klant worden deze kilometers ook als leeg gerekend aan € 0,50 per km.'),
+                ->helperText('Na het uitstappen van de klant worden deze kilometers ook als leeg gerekend aan de opgegeven prijs per lege km.'),
             Textarea::make('quote_notes')
                 ->label('Opmerkingen voor de klant (optioneel)')
                 ->rows(3)
@@ -172,16 +186,29 @@ class ContactRequestResource extends Resource
                     ->modalHeading('Offerte voorbereiden')
                     ->modalDescription('Sla eerst de prijsgegevens op zodat je de PDF-preview kan controleren voor het versturen.')
                     ->action(function (ContactRequest $record, array $data): void {
-                        $pricePerKm = 2.50;
+                        $baseFee = $data['base_fee'] ?? null;
+                        $pricePerKm = $data['price_per_km'] ?? null;
                         $estimatedKm = (float) $data['estimated_km'];
                         $emptyKmToPickup = (float) ($data['empty_km'] ?? 0);
                         $emptyKmAfterDropoff = (float) ($data['empty_km_after_dropoff'] ?? 0);
                         $emptyKm = $emptyKmToPickup + $emptyKmAfterDropoff;
-                        $oneWayPrice = ($pricePerKm * $estimatedKm) + ($emptyKm * 0.50);
+
+                        // Haal standaardwaarden uit PricingSetting indien leeg
+                        $pricing = \App\Models\PricingSetting::first();
+                        if ($baseFee === null || $baseFee === '') {
+                            $baseFee = $pricing?->base_fee ?? 0;
+                        }
+                        if ($pricePerKm === null || $pricePerKm === '') {
+                            $pricePerKm = $pricing?->price_per_km ?? 0;
+                        }
+                        $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
+
+                        $oneWayPrice = $baseFee + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
-                        $totalPrice = round($oneWayPrice * $tripMultiplier, 2);
+                        $totalPrice = max(0, round($oneWayPrice * $tripMultiplier, 2));
 
                         $record->update([
+                            'base_fee' => $baseFee,
                             'price_per_km' => $pricePerKm,
                             'estimated_km' => $estimatedKm,
                             'empty_km' => $emptyKm,
@@ -222,16 +249,29 @@ class ContactRequestResource extends Resource
                     ->modalHeading('Offerte opmaken & versturen')
                     ->modalDescription('Vul de volle kilometers in, plus lege kilometers tot aan de klant en na drop-off. Het systeem rekent automatisch met € 2,50 voor volle kilometers en € 0,50 voor lege kilometers.')
                     ->action(function (ContactRequest $record, array $data): void {
-                        $pricePerKm  = 2.50;
+                        $baseFee = $data['base_fee'] ?? null;
+                        $pricePerKm = $data['price_per_km'] ?? null;
                         $estimatedKm = (float) $data['estimated_km'];
                         $emptyKmToPickup = (float) ($data['empty_km'] ?? 0);
                         $emptyKmAfterDropoff = (float) ($data['empty_km_after_dropoff'] ?? 0);
                         $emptyKm = $emptyKmToPickup + $emptyKmAfterDropoff;
-                        $oneWayPrice = ($pricePerKm * $estimatedKm) + ($emptyKm * 0.50);
+
+                        // Haal standaardwaarden uit PricingSetting indien leeg
+                        $pricing = \App\Models\PricingSetting::first();
+                        if ($baseFee === null || $baseFee === '') {
+                            $baseFee = $pricing?->base_fee ?? 0;
+                        }
+                        if ($pricePerKm === null || $pricePerKm === '') {
+                            $pricePerKm = $pricing?->price_per_km ?? 0;
+                        }
+                        $emptyKmPrice = $pricing?->empty_km_price ?? 0.50;
+
+                        $oneWayPrice = $baseFee + ($pricePerKm * $estimatedKm) + ($emptyKm * $emptyKmPrice);
                         $tripMultiplier = $record->return_trip ? 2 : 1;
-                        $totalPrice  = round($oneWayPrice * $tripMultiplier, 2);
+                        $totalPrice  = max(0, round($oneWayPrice * $tripMultiplier, 2));
 
                         $record->update([
+                            'base_fee' => $baseFee,
                             'price_per_km'  => $pricePerKm,
                             'estimated_km'  => $estimatedKm,
                             'empty_km'      => $emptyKm,

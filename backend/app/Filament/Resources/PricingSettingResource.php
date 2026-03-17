@@ -30,8 +30,13 @@ class PricingSettingResource extends Resource
                         ->label('Prijs per km (€)')
                         ->numeric()
                         ->required(),
+
+                    Forms\Components\TextInput::make('empty_km_price')
+                        ->label('Prijs per lege km (€)')
+                        ->numeric()
+                        ->required(),
                 ])
-                ->columns(2),
+                ->columns(3),
         ]);
     }
 
@@ -41,6 +46,7 @@ class PricingSettingResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('base_fee')->label('Startkost (€)')->money('EUR')->sortable(),
                 Tables\Columns\TextColumn::make('price_per_km')->label('€/km')->money('EUR')->sortable(),
+                Tables\Columns\TextColumn::make('empty_km_price')->label('Lege km (€)')->money('EUR')->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')->label('Laatst aangepast')->dateTime('d/m/Y H:i')->sortable(),
             ])
             ->actions([

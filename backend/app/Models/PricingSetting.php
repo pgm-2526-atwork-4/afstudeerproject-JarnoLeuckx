@@ -10,5 +10,6 @@ class PricingSetting extends Model
     protected $fillable = [
         'base_fee',
         'price_per_km',
+        'empty_km_price',
     ];
 }
