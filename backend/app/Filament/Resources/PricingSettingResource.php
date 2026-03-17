@@ -24,16 +24,19 @@ class PricingSettingResource extends Resource
                     Forms\Components\TextInput::make('base_fee')
                         ->label('Startkost (€)')
                         ->numeric()
+                        ->minValue(0)
                         ->required(),
 
                     Forms\Components\TextInput::make('price_per_km')
                         ->label('Prijs per km (€)')
                         ->numeric()
+                        ->minValue(0)
                         ->required(),
 
                     Forms\Components\TextInput::make('empty_km_price')
                         ->label('Prijs per lege km (€)')
                         ->numeric()
+                        ->minValue(0)
                         ->required(),
                 ])
                 ->columns(3),
