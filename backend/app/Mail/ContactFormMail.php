@@ -18,8 +18,12 @@ class ContactFormMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $isQuoteRequest = ($this->data['request_type'] ?? 'contact') === 'offerte';
+
         return new Envelope(
-            subject: 'Nieuw bericht via contactformulier',
+            subject: $isQuoteRequest
+                ? 'Nieuwe offerteaanvraag via website'
+                : 'Nieuw bericht via contactformulier',
         );
     }
 

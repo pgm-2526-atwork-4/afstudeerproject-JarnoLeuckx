@@ -11,6 +11,10 @@ class CreateRide extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        if (($data['status'] ?? 'pending') === 'accepted') {
+            $data['status'] = ! empty($data['driver_id']) ? 'assigned' : 'pending';
+        }
+
         if (! empty($data['driver_id']) && (($data['status'] ?? 'pending') === 'pending')) {
             $data['status'] = 'assigned';
         }

@@ -1,8 +1,6 @@
 import React, { createContext, useContext } from "react";
 
-/* -----------------------------
-   Context
------------------------------ */
+
 
 type CardContextType = {
   variant?: "default" | "highlight";
@@ -20,9 +18,7 @@ function useCardContext() {
   return context;
 }
 
-/* -----------------------------
-   Card Root
------------------------------ */
+
 
 type CardProps = {
   children: React.ReactNode;
@@ -60,9 +56,7 @@ export function Card({
   );
 }
 
-/* -----------------------------
-   Card Header
------------------------------ */
+
 
 type CardSectionProps = {
   children: React.ReactNode;
@@ -92,9 +86,7 @@ export function CardHeader({
   );
 }
 
-/* -----------------------------
-   Card Content
------------------------------ */
+
 
 export function CardContent({
   children,
@@ -107,9 +99,7 @@ export function CardContent({
   );
 }
 
-/* -----------------------------
-   Card Footer
------------------------------ */
+
 
 export function CardFooter({
   children,

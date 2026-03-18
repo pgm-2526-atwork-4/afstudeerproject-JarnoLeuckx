@@ -66,7 +66,7 @@ const HOW_IT_WORKS: HowItWorksStep[] = [
 export function Home() {
   return (
     <main className="page-modern w-full">
-      {/* HERO */}
+      
       <section className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
         <div className="max-w-6xl mx-auto rounded-3xl border border-[#1f335e] bg-[linear-gradient(130deg,#0A0A0E_0%,#0E1A39_52%,#0043A8_100%)] p-6 sm:p-10 md:p-14 shadow-[0_20px_50px_rgba(2,6,23,0.28)]">
           <div className="grid gap-8 md:grid-cols-2 md:gap-12 items-center">
@@ -133,7 +133,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* SERVICES */}
+      
       <section className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className="section-title text-center mb-10 sm:mb-16">
@@ -173,7 +173,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      
       <section className="w-full border-y border-[#dbe7ff] bg-[#f3f7ff] py-12 sm:py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="section-title text-center mb-10 md:text-5xl sm:mb-16">
@@ -184,7 +184,7 @@ export function Home() {
             {HOW_IT_WORKS.map((item) => (
               <div
                 key={item.step}
-                className="surface-card rounded-3xl p-6 text-center transition hover:shadow-lg sm:p-8 md:p-10"
+                className="surface-card rounded-3xl p-6 text-center sm:p-8 md:p-10"
               >
                 <div className="w-20 h-20 mx-auto mb-6 bg-slate-900 text-white border-2 border-slate-900 rounded-full flex items-center justify-center text-2xl font-bold">
                   {item.step}

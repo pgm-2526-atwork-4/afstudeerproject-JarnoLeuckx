@@ -12,20 +12,35 @@ class DriverAvailabilitySeeder extends Seeder
     {
         $driver = User::where('role', 'driver')->first();
 
-        DriverAvailability::create([
-            'driver_id' => $driver->id,
-            'date' => now()->addDay()->toDateString(),
-            'start_time' => '08:00',
-            'end_time' => '16:00',
-            'status' => 'available',
-        ]);
+        if (! $driver) {
+            return;
+        }
 
-        DriverAvailability::create([
-            'driver_id' => $driver->id,
-            'date' => now()->addDays(2)->toDateString(),
-            'start_time' => '10:00',
-            'end_time' => '18:00',
-            'status' => 'available',
-        ]);
+        $firstDate = now()->addDay()->toDateString();
+        $secondDate = now()->addDays(2)->toDateString();
+
+        DriverAvailability::updateOrCreate(
+            [
+                'driver_id' => $driver->id,
+                'date' => $firstDate,
+                'start_time' => '08:00',
+                'end_time' => '16:00',
+            ],
+            [
+                'status' => 'available',
+            ]
+        );
+
+        DriverAvailability::updateOrCreate(
+            [
+                'driver_id' => $driver->id,
+                'date' => $secondDate,
+                'start_time' => '10:00',
+                'end_time' => '18:00',
+            ],
+            [
+                'status' => 'available',
+            ]
+        );
     }
 }

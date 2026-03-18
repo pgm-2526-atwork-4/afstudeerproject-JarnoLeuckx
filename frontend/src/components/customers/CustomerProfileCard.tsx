@@ -25,7 +25,10 @@ function Info({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-      <div className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm shadow-sm">
+      <div
+        className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm shadow-sm"
+        aria-hidden="true"
+      >
         {icon}
       </div>
       <div>

@@ -28,6 +28,10 @@ export type RegisterResponse = {
   user: User;
 };
 
+export type MessageResponse = {
+  message: string;
+};
+
 type ProfileResponse = {
   message: string;
   user: User;
@@ -112,6 +116,67 @@ export async function checkEmailExists(
   return { exists: Boolean(data.exists) };
 }
 
+export async function requestPasswordReset(
+  email: string,
+): Promise<MessageResponse> {
+  const res = await fetch(`${API_URL}/forgot-password`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    if (data.errors) {
+      const firstError = Object.values<string[]>(data.errors)[0]?.[0];
+      throw new Error(
+        firstError || data.message || "Resetmail aanvragen mislukt.",
+      );
+    }
+
+    throw new Error(data.message || "Resetmail aanvragen mislukt.");
+  }
+
+  return data as MessageResponse;
+}
+
+export async function resetPassword(payload: {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<MessageResponse> {
+  const res = await fetch(`${API_URL}/reset-password`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    if (data.errors) {
+      const firstError = Object.values<string[]>(data.errors)[0]?.[0];
+      throw new Error(
+        firstError || data.message || "Wachtwoord resetten mislukt.",
+      );
+    }
+
+    throw new Error(data.message || "Wachtwoord resetten mislukt.");
+  }
+
+  return data as MessageResponse;
+}
+
 export function saveAuth(token: string, user: User) {
   localStorage.setItem("token", token);
   localStorage.setItem("user", JSON.stringify(user));
@@ -181,7 +246,6 @@ export async function logout() {
         },
       });
     } catch {
-      // noop
     }
   }
 

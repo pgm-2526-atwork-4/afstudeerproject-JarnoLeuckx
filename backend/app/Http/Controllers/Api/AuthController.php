@@ -7,8 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -31,7 +34,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255', 'required_if:role,customer'],
             'vaph_number' => ['nullable', 'string', 'max:50'],
@@ -52,7 +55,9 @@ class AuthController extends Controller
             'approval_status' => $approvalStatus,
         ]);
 
-        $user->sendEmailVerificationNotification();
+        if ($validated['role'] !== 'driver') {
+            $user->sendEmailVerificationNotification();
+        }
 
         if ($validated['role'] === 'driver') {
             $admins = User::query()
@@ -75,7 +80,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $validated['role'] === 'driver'
-                ? 'Registratie ontvangen. Controleer eerst je mailbox om je e-mailadres te bevestigen. Daarna wacht je account nog op goedkeuring door een admin.'
+                ? 'Registratie ontvangen. Je account wacht op goedkeuring door een beheerder. Na goedkeuring ontvang je een bevestigingsmail.'
                 : 'Registratie gelukt. Controleer je mailbox om je e-mailadres te bevestigen voor je inlogt.',
             'user' => $user,
         ], 201);
@@ -88,7 +93,57 @@ class AuthController extends Controller
         return $this->register($request);
     }
 
-    // 🔐 LOGIN
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email:rfc'],
+        ]);
+
+        $status = Password::sendResetLink([
+            'email' => $validated['email'],
+        ]);
+
+        if ($status === Password::RESET_LINK_SENT || $status === Password::INVALID_USER) {
+            return response()->json([
+                'message' => 'Als er een account bestaat met dit e-mailadres, ontvangt u een e-mail om uw wachtwoord opnieuw in te stellen.',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'De resetmail kon momenteel niet verstuurd worden. Probeer het later opnieuw.',
+        ], 429);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email:rfc'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $validated,
+            function (User $user, string $password): void {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'De resetlink is ongeldig of vervallen. Vraag een nieuwe resetmail aan.',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Uw wachtwoord is opnieuw ingesteld. U kunt nu inloggen.',
+        ]);
+    }
     public function login(Request $request)
     {
         $request->validate([
@@ -104,22 +159,18 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'Bevestig eerst je e-mailadres via de mail die we je hebben gestuurd.'
-            ], 403);
-        }
-
         if ($user->role === 'driver' && $user->approval_status !== 'approved') {
             return response()->json([
-                'message' => 'Je account is nog niet goedgekeurd door een admin.'
+                'message' => 'Je account is nog niet goedgekeurd door een beheerder.'
             ], 403);
         }
 
-        // Oude tokens verwijderen (optioneel maar proper)
+        if ($user->role !== 'driver' && ! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
+            ], 403);
+        }
         $user->tokens()->delete();
-
-        // Nieuw token maken
         $token = $user->createToken('react-token')->plainTextToken;
 
         return response()->json([
@@ -127,8 +178,6 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
-
-    // 👤 ME (wie is ingelogd)
     public function me(Request $request)
     {
         return response()->json($request->user());
@@ -141,7 +190,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', "unique:users,email,{$user->id}"],
+            'email' => ['required', 'email:rfc', 'max:255', "unique:users,email,{$user->id}"],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[+0-9()\-\s]{8,20}$/'],
             'address' => ['nullable', 'string', 'max:255'],
             'vaph_number' => ['nullable', 'string', 'max:50'],
@@ -157,7 +206,9 @@ class AuthController extends Controller
             'email_notifications_enabled' => $validated['email_notifications_enabled'] ?? $user->email_notifications_enabled,
         ]);
 
-        if ($validated['email'] !== $originalEmail) {
+        $emailChanged = $validated['email'] !== $originalEmail;
+
+        if ($emailChanged && $user->role !== 'driver') {
             $user->forceFill([
                 'email_verified_at' => null,
             ])->save();
@@ -166,8 +217,8 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => $validated['email'] !== $originalEmail
-                ? 'Profiel succesvol bijgewerkt. Bevestig je nieuwe e-mailadres via de mail die we net hebben gestuurd.'
+            'message' => $emailChanged && $user->role !== 'driver'
+                ? 'Profiel succesvol bijgewerkt. Controleer je mailbox om je nieuwe e-mailadres te bevestigen.'
                 : 'Profiel succesvol bijgewerkt.',
             'user' => $user->fresh(),
         ]);
@@ -204,8 +255,6 @@ class AuthController extends Controller
             'message' => 'Je account is verwijderd.',
         ]);
     }
-
-    // 🚪 LOGOUT
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

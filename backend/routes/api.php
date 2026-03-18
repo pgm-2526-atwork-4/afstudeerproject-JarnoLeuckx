@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\CustomerQuoteController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DriverAvailabilityController;
 use App\Http\Controllers\Api\DriverRideController;
@@ -16,6 +17,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register/driver', [AuthController::class, 'registerDriver']);
 Route::post('/email-exists', [AuthController::class, 'emailExists']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/contact', [ContactController::class, 'store']);
 
 
@@ -44,6 +47,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])
         Route::get('/schedule', [DriverRideController::class, 'schedule']);
         Route::patch('/rides/{ride}/accept', [DriverRideController::class, 'accept']);
         Route::patch('/rides/{ride}/reject', [DriverRideController::class, 'reject']);
+        Route::patch('/rides/{ride}/complete', [DriverRideController::class, 'complete']);
     });
 
 
@@ -56,4 +60,7 @@ Route::middleware(['auth:sanctum', 'role:customer'])
         Route::get('/available-drivers', [CustomerRideController::class, 'availableDrivers']);
 
         Route::post('/contract/sign', [CustomerContractController::class, 'sign']);
+
+        Route::get('/quotes', [CustomerQuoteController::class, 'index']);
+        Route::post('/quotes/{quote}/sign', [CustomerQuoteController::class, 'sign']);
     });

@@ -401,7 +401,7 @@ export default function ReserverenPage() {
               </div>
             </div>
 
-            {/* Assistentie */}
+            
             <div className="form-section">
               <p className="form-section-title">Assistentie</p>
               <p className="form-section-subtitle">
@@ -426,7 +426,7 @@ export default function ReserverenPage() {
                 </label>
               </div>
 
-              {/* Animated panel */}
+              
               <div
                 className={[
                   "mt-5 overflow-hidden rounded-xl border border-secondary/20 bg-secondary/5",

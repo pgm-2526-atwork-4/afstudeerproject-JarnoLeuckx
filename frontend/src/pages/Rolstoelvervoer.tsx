@@ -97,7 +97,7 @@ export default function Rolstoelvervoer() {
   return (
     <div className="page-modern">
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Accessibility className="h-9 w-9 text-[#0043A8]" />
@@ -134,9 +134,9 @@ export default function Rolstoelvervoer() {
           })}
         </div>
 
-        {/* Content */}
+        
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Info Section */}
+          
           <div>
             <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
@@ -189,7 +189,7 @@ export default function Rolstoelvervoer() {
             </div>
           </div>
 
-          {/* Booking Form (frontend-only) */}
+          
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
@@ -516,11 +516,6 @@ export default function Rolstoelvervoer() {
                   Offerte aanvragen
                 </Button>
               </div>
-
-              <p className="text-xs text-gray-500 text-center">
-                Dit is een design preview. Functionaliteit wordt later
-                toegevoegd.
-              </p>
             </form>
 
             {accountPrompt && (

@@ -13,8 +13,6 @@ class Vehicle extends Model
         'wheelchair_accessible',
         'active',
     ];
-
-    // Vehicle <-> Drivers (pivot: driver_vehicle_assignments)
     public function drivers()
     {
         return $this->belongsToMany(
@@ -25,8 +23,6 @@ class Vehicle extends Model
         )->withPivot(['starts_at', 'ends_at'])
          ->withTimestamps();
     }
-
-    // Vehicle -> Rides
     public function rides()
     {
         return $this->hasMany(Ride::class, 'vehicle_id', 'id');
