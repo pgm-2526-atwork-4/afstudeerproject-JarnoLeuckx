@@ -25,8 +25,14 @@ class CustomerRideController extends Controller
         $pickupAt = Carbon::parse("{$data['date']} {$data['start_time']}");
         $returnAt = Carbon::parse("{$data['date']} {$data['end_time']}");
 
+        $drivers = $assignmentService->getAvailableDrivers($pickupAt, $returnAt);
+        // Toon geen persoonsgegevens aan klant, enkel beschikbaarheid
+        $result = $drivers->map(fn ($driver) => [
+            'id' => $driver->id,
+            'available' => true,
+        ]);
         return response()->json([
-            'drivers' => $assignmentService->getAvailableDrivers($pickupAt, $returnAt)->values(),
+            'drivers' => $result->values(),
         ]);
     }
 

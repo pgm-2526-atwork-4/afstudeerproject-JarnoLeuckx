@@ -16,10 +16,10 @@ import {
 import { signCustomerContract } from "../lib/customerContract.api";
 import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
 import { downloadQuotePdf } from "../lib/quote";
-
 import {
   getAvailableDrivers,
   getMyCustomerRides,
+  createCustomerRide,
   type AvailableDriver,
   type CustomerRide,
 } from "../lib/customer.api";
@@ -81,6 +81,8 @@ function getTimeBasedGreeting(name: string) {
 export default function CustomerAccountPage() {
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Gebruiker";
+
+  const [showBookingForm, setShowBookingForm] = useState(false);
   const [welcomeGreeting, setWelcomeGreeting] = useState(
     `Welkom ${displayName}`,
   );
@@ -88,6 +90,7 @@ export default function CustomerAccountPage() {
   const [activeRideFilter, setActiveRideFilter] =
     useState<RideStatusFilter>("all");
   const [rides, setRides] = useState<CustomerRide[]>([]);
+
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [signatureName, setSignatureName] = useState(
     () => currentUser?.name ?? "",
@@ -102,9 +105,11 @@ export default function CustomerAccountPage() {
     Boolean(currentUser?.pvb_contract_signed_at),
   );
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+
   const [calendarDate, setCalendarDate] = useState(todayAsInputDate());
   const [calendarStartTime, setCalendarStartTime] = useState("09:00");
   const [calendarEndTime, setCalendarEndTime] = useState("10:00");
+
   const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>(
     [],
   );
@@ -115,10 +120,12 @@ export default function CustomerAccountPage() {
   const [availabilityStatus, setAvailabilityStatus] = useState<
     "idle" | "available" | "unavailable"
   >("idle");
+
   const [visibleCalendarMonth, setVisibleCalendarMonth] = useState(() => {
     const selectedDate = parseInputDate(todayAsInputDate()) ?? new Date();
     return startOfMonth(selectedDate);
   });
+
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(
     Boolean(
       currentUser &&
@@ -131,14 +138,17 @@ export default function CustomerAccountPage() {
   const [notificationPromptError, setNotificationPromptError] = useState<
     string | null
   >(null);
+
   const signatureCanvasRef = useRef<SignaturePadRef | null>(null);
   const quoteSignatureCanvasRef = useRef<SignaturePadRef | null>(null);
+
   const notificationPromptTitleId = useId();
   const notificationPromptDescriptionId = useId();
   const contractModalTitleId = useId();
   const contractModalDescriptionId = useId();
   const quoteModalTitleId = useId();
   const quoteModalDescriptionId = useId();
+
   const notificationDismissButtonRef = useRef<HTMLButtonElement | null>(null);
   const contractCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const quoteCloseButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -218,6 +228,29 @@ export default function CustomerAccountPage() {
       setAvailabilityStatus("idle");
     } finally {
       setAvailabilityLoading(false);
+    }
+  }
+
+  async function handleBookRide() {
+    try {
+      await createCustomerRide({
+        service_type: "medical",
+        pickup_street: "",
+        pickup_postcode: "",
+        pickup_city: "",
+        dropoff_street: "",
+        dropoff_postcode: "",
+        dropoff_city: "",
+        pickup_datetime: `${calendarDate}T${calendarStartTime}`,
+        has_return_trip: false,
+      });
+
+      setShowBookingForm(false);
+      await loadData();
+    } catch (err) {
+      setAvailabilityMessage(
+        err instanceof Error ? err.message : "Rit boeken mislukt.",
+      );
     }
   }
 
@@ -346,11 +379,14 @@ export default function CustomerAccountPage() {
     Record<string, { total: number; completed: number }>
   >((accumulator, ride) => {
     const date = new Date(ride.pickup_datetime);
+
     if (Number.isNaN(date.getTime())) {
       return accumulator;
     }
 
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const monthKey = `${date.getFullYear()}-${String(
+      date.getMonth() + 1,
+    ).padStart(2, "0")}`;
 
     if (!accumulator[monthKey]) {
       accumulator[monthKey] = { total: 0, completed: 0 };
@@ -381,7 +417,6 @@ export default function CustomerAccountPage() {
       };
     });
 
-  const selectedCalendarDate = parseInputDate(calendarDate);
   const todayInputDate = todayAsInputDate();
   const weekdayLabels = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
   const monthLabel = new Intl.DateTimeFormat("nl-BE", {
@@ -408,7 +443,9 @@ export default function CustomerAccountPage() {
     for (let index = firstWeekday - 1; index >= 0; index -= 1) {
       const dayNumber = daysInPreviousMonth - index;
       const date = new Date(year, month - 1, dayNumber);
-      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+      const formattedDate = `${date.getFullYear()}-${String(
+        date.getMonth() + 1,
+      ).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
 
       cells.push({
         dateValue: formattedDate,
@@ -421,7 +458,10 @@ export default function CustomerAccountPage() {
     }
 
     for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
-      const formattedDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+      const formattedDate = `${year}-${String(month + 1).padStart(
+        2,
+        "0",
+      )}-${String(dayNumber).padStart(2, "0")}`;
 
       cells.push({
         dateValue: formattedDate,
@@ -434,9 +474,12 @@ export default function CustomerAccountPage() {
     }
 
     const remaining = 42 - cells.length;
+
     for (let dayNumber = 1; dayNumber <= remaining; dayNumber += 1) {
       const date = new Date(year, month + 1, dayNumber);
-      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+      const formattedDate = `${date.getFullYear()}-${String(
+        date.getMonth() + 1,
+      ).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
 
       cells.push({
         dateValue: formattedDate,
@@ -498,11 +541,12 @@ export default function CustomerAccountPage() {
 
     if (signatureMethod === "draw") {
       signerName = currentUser.name ?? cleanName;
+
       if (!signatureCanvasRef.current || !hasDrawnSignature) {
         setContractError("Plaats eerst je handtekening in het tekenvak.");
         return;
       }
-      // Get the data URL from the signature pad
+
       drawnSignatureDataUrl = signatureCanvasRef.current.toDataURL("image/png");
     }
 
@@ -515,12 +559,14 @@ export default function CustomerAccountPage() {
         signatureMethod,
         acceptedTerms,
       );
+
       await downloadSignedCustomerContract(currentUser, {
         method: signatureMethod,
         signerName,
         signerDate: signatureDate,
         drawnSignatureDataUrl,
       });
+
       setHasSignedContract(true);
       setIsContractModalOpen(false);
     } catch (err) {
@@ -576,10 +622,12 @@ export default function CustomerAccountPage() {
 
     if (quoteSignatureMethod === "draw") {
       signerName = currentUser?.name ?? cleanName;
+
       if (!quoteSignatureCanvasRef.current || !quoteHasDrawnSignature) {
         setQuoteError("Plaats eerst je handtekening in het tekenvak.");
         return;
       }
+
       drawnSignatureDataUrl =
         quoteSignatureCanvasRef.current.toDataURL("image/png");
     }
@@ -649,18 +697,25 @@ export default function CustomerAccountPage() {
   return (
     <div className="page-modern">
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <div className="mb-5 surface-card-strong p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
+              <p className="text-sm font-semibold text-[#0043A8]">
+                Klantenportaal
+              </p>
               <h1 className="text-3xl font-black text-slate-900">
                 {welcomeGreeting}
               </h1>
+              <p className="mt-2 text-sm text-slate-600">
+                Beheer hier je ritten, offertes en contracten.
+              </p>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap">
-              <Link to="/reserveren" className="btn-primary">
-                Rit aanvragen
+            <div className="flex flex-wrap gap-2">
+              <Link to="/" className="btn-outline">
+                Naar home
               </Link>
+
               <button
                 type="button"
                 onClick={() => {
@@ -670,214 +725,181 @@ export default function CustomerAccountPage() {
               >
                 Contract downloaden
               </button>
+
               <button
                 type="button"
-                disabled={hasSignedContract}
-                onClick={() => {
-                  setSignatureName(currentUser?.name ?? "");
-                  setSignatureMethod("draw");
-                  setSignatureDate(todayAsInputDate());
-                  setAcceptedTerms(false);
-                  setContractError(null);
-                  setHasDrawnSignature(false);
-                  signatureCanvasRef.current?.clear();
-                  setIsContractModalOpen(true);
-                }}
-                className={[
-                  "btn-outline",
-                  hasSignedContract
-                    ? "cursor-not-allowed border-slate-200 bg-slate-200 text-slate-500"
-                    : "",
-                ].join(" ")}
+                onClick={() => setIsContractModalOpen(true)}
+                className="btn-primary"
               >
                 {hasSignedContract
-                  ? "PVB-contact ondertekend"
-                  : "PVB-contact ondertekenen"}
+                  ? "Contract opnieuw bekijken"
+                  : "Contract ondertekenen"}
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="mb-5 surface-card p-5">
-          <h2 className="text-xl font-extrabold text-slate-900">
-            Chauffeurskalender
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Kies een datum en tijdslot om te zien welke chauffeurs vrij zijn. De
-            chauffeur moet een toegewezen rit nog zelf bevestigen voordat die
-            definitief vastligt.
-          </p>
+        <section className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-extrabold text-slate-900">
+                Beschikbaarheid controleren
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  void loadAvailableDrivers();
+                }}
+                className="btn-primary"
+              >
+                {availabilityLoading ? "Laden..." : "Controleer"}
+              </button>
+            </div>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-            <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-2 max-lg:mx-auto">
-              <div className="mb-2 flex items-center justify-between">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label className="block">
+                <span className="mb-2 block text-xs font-semibold text-primary">
+                  Datum
+                </span>
+                <input
+                  type="date"
+                  value={calendarDate}
+                  min={todayAsInputDate()}
+                  onChange={(e) => setCalendarDate(e.target.value)}
+                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-xs font-semibold text-primary">
+                  Starttijd
+                </span>
+                <input
+                  type="time"
+                  value={calendarStartTime}
+                  onChange={(e) => setCalendarStartTime(e.target.value)}
+                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-xs font-semibold text-primary">
+                  Eindtijd
+                </span>
+                <input
+                  type="time"
+                  value={calendarEndTime}
+                  onChange={(e) => setCalendarEndTime(e.target.value)}
+                  className="h-11 w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </label>
+            </div>
+
+            {availabilityMessage && (
+              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {availabilityMessage}
+              </div>
+            )}
+
+            <div className="mt-4">
+              {availabilityStatus === "available" && (
+                <>
+                  <p className="mb-3 text-sm font-semibold text-emerald-700">
+                    Beschikbare chauffeurs: {availableDrivers.length}
+                  </p>
+                  <ul className="space-y-2">
+                    {availableDrivers.map((driver) => (
+                      <li
+                        key={driver.id}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                      >
+                        Chauffeur #{driver.id}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowBookingForm(true)}
+                    className="btn-primary mt-4"
+                  >
+                    Boek deze rit
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-extrabold text-slate-900">
+                Kalender
+              </h2>
+
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() =>
-                    setVisibleCalendarMonth((current) => addMonths(current, -1))
+                    setVisibleCalendarMonth((prev) => addMonths(prev, -1))
                   }
-                  className="btn-outline px-2.5 py-1 text-xs"
+                  className="btn-outline px-3 py-1.5 text-xs"
                 >
                   Vorige
                 </button>
-
-                <p className="text-sm font-bold text-slate-900">
-                  {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
-                </p>
-
                 <button
                   type="button"
                   onClick={() =>
-                    setVisibleCalendarMonth((current) => addMonths(current, 1))
+                    setVisibleCalendarMonth((prev) => addMonths(prev, 1))
                   }
-                  className="btn-outline px-2.5 py-1 text-xs"
+                  className="btn-outline px-3 py-1.5 text-xs"
                 >
                   Volgende
                 </button>
               </div>
-
-              <div className="overflow-x-auto">
-                <div className="grid min-w-[300px] grid-cols-7 gap-0.5 sm:min-w-0">
-                  {weekdayLabels.map((label) => (
-                    <div
-                      key={label}
-                      className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500"
-                    >
-                      {label}
-                    </div>
-                  ))}
-
-                  {calendarCells.map((cell) => (
-                    <button
-                      key={`${cell.dateValue}-${cell.dayNumber}`}
-                      type="button"
-                      disabled={cell.isDisabled}
-                      onClick={() => {
-                        setCalendarDate(cell.dateValue);
-                        const selectedDate = parseInputDate(cell.dateValue);
-                        if (selectedDate) {
-                          setVisibleCalendarMonth(startOfMonth(selectedDate));
-                        }
-                      }}
-                      className={[
-                        "h-8 rounded-md border text-xs font-semibold transition",
-                        cell.isDisabled
-                          ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                          : cell.isSelected
-                            ? availabilityStatus === "available"
-                              ? "border-emerald-500 bg-emerald-100 text-emerald-800"
-                              : availabilityStatus === "unavailable"
-                                ? "border-red-500 bg-red-100 text-red-800"
-                                : "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
-                            : cell.isToday
-                              ? "border-slate-300 bg-white text-slate-900"
-                              : cell.isCurrentMonth
-                                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                                : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100",
-                      ].join(" ")}
-                    >
-                      {cell.dayNumber}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
-            <div className="grid gap-4">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                Geselecteerde datum:{" "}
-                <span className="font-semibold text-slate-900">
-                  {selectedCalendarDate
-                    ? new Intl.DateTimeFormat("nl-BE", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      }).format(selectedCalendarDate)
-                    : "-"}
-                </span>
-              </div>
+            <p className="mb-4 text-sm font-semibold capitalize text-slate-700">
+              {monthLabel}
+            </p>
 
-              <label className="grid gap-1.5">
-                <span className="form-label">Starttijd</span>
-                <input
-                  type="time"
-                  value={calendarStartTime}
-                  onChange={(event) => setCalendarStartTime(event.target.value)}
-                  className="form-input"
-                />
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="form-label">Eindtijd</span>
-                <input
-                  type="time"
-                  value={calendarEndTime}
-                  onChange={(event) => setCalendarEndTime(event.target.value)}
-                  className="form-input"
-                />
-              </label>
-
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    void loadAvailableDrivers();
-                  }}
-                  className="btn-accent w-full"
+            <div className="grid grid-cols-7 gap-2">
+              {weekdayLabels.map((label) => (
+                <div
+                  key={label}
+                  className="text-center text-xs font-bold text-slate-500"
                 >
-                  {availabilityLoading ? "Laden..." : "Controleer chauffeurs"}
-                </button>
-              </div>
+                  {label}
+                </div>
+              ))}
 
-              <p className="text-xs text-slate-500">
-                Enkel vandaag en toekomstige dagen zijn selecteerbaar.
-              </p>
+              {calendarCells.map((cell) => (
+                <button
+                  key={cell.dateValue}
+                  type="button"
+                  disabled={cell.isDisabled}
+                  onClick={() => setCalendarDate(cell.dateValue)}
+                  className={`rounded-lg px-2 py-3 text-sm transition ${
+                    cell.isSelected
+                      ? "bg-[#0043A8] font-bold text-white"
+                      : cell.isToday
+                        ? "border border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                        : cell.isCurrentMonth
+                          ? "bg-slate-50 text-slate-800 hover:bg-slate-100"
+                          : "bg-slate-50 text-slate-400"
+                  } ${cell.isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  {cell.dayNumber}
+                </button>
+              ))}
             </div>
           </div>
-
-          {availabilityMessage && (
-            <div
-              className={[
-                "mt-3 rounded-lg px-3 py-2 text-sm",
-                availabilityStatus === "unavailable"
-                  ? "border border-red-200 bg-red-50 text-red-700"
-                  : "border border-slate-200 bg-slate-50 text-slate-700",
-              ].join(" ")}
-            >
-              {availabilityMessage}
-            </div>
-          )}
-
-          {availableDrivers.length > 0 && (
-            <>
-              <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-                Er is minstens één vrije chauffeur gevonden. Een beheerder kan
-                toewijzen, maar de chauffeur moet de rit daarna nog zelf
-                bevestigen.
-              </div>
-              <ul className="mt-4 divide-y divide-emerald-100 rounded-lg border border-emerald-200 bg-white">
-                {availableDrivers.map((driver) => (
-                  <li
-                    key={driver.id}
-                    className="flex flex-col items-start gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <p className="text-sm font-bold text-slate-900">
-                      {driver.name}
-                    </p>
-                    <p className="text-xs text-slate-600">
-                      {driver.phone || driver.email || "Geen contactinfo"}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
+        </section>
 
         <section className="mb-5 rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="text-xl font-extrabold text-slate-900">
             Ritten per maand
           </h2>
+
           <p className="mt-1 text-sm text-slate-600">
             Totaal: {ridesTotalCount} ritten · Bevestigd: {ridesAcceptedCount} ·
             In behandeling: {ridesPendingCount} · Geannuleerd:{" "}
@@ -910,28 +932,48 @@ export default function CustomerAccountPage() {
             <button
               type="button"
               onClick={() => setActiveRideFilter("all")}
-              className={`btn-outline ${activeRideFilter === "all" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+              className={`btn-outline ${
+                activeRideFilter === "all"
+                  ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                  : ""
+              }`}
             >
               Alle ritten
             </button>
+
             <button
               type="button"
               onClick={() => setActiveRideFilter("accepted")}
-              className={`btn-outline ${activeRideFilter === "accepted" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+              className={`btn-outline ${
+                activeRideFilter === "accepted"
+                  ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                  : ""
+              }`}
             >
               Bevestigd
             </button>
+
             <button
               type="button"
               onClick={() => setActiveRideFilter("pending")}
-              className={`btn-outline ${activeRideFilter === "pending" || activeRideFilter === "assigned" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+              className={`btn-outline ${
+                activeRideFilter === "pending" ||
+                activeRideFilter === "assigned"
+                  ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                  : ""
+              }`}
             >
               In behandeling
             </button>
+
             <button
               type="button"
               onClick={() => setActiveRideFilter("cancelled")}
-              className={`btn-outline ${activeRideFilter === "cancelled" ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]" : ""}`}
+              className={`btn-outline ${
+                activeRideFilter === "cancelled"
+                  ? "border-[#0043A8] bg-[#EAF3FF] text-[#0043A8]"
+                  : ""
+              }`}
             >
               Geannuleerd
             </button>
@@ -947,6 +989,7 @@ export default function CustomerAccountPage() {
             <h2 className="text-xl font-extrabold text-slate-900">
               Mijn offertes
             </h2>
+
             <p className="mt-1 text-sm text-slate-600">
               Overzicht van de prijsoffertes die Social Drive heeft opgemaakt
               voor jou.
@@ -959,6 +1002,7 @@ export default function CustomerAccountPage() {
                   ondertekend: "Ondertekend",
                   afgewerkt: "Afgewerkt",
                 };
+
                 const statusColor: Record<string, string> = {
                   offerte_verstuurd: "bg-blue-100 text-blue-800",
                   ondertekend: "bg-emerald-100 text-emerald-800",
@@ -975,18 +1019,24 @@ export default function CustomerAccountPage() {
                         <span className="text-sm font-bold text-slate-900">
                           Offerte #{String(quote.id).padStart(5, "0")}
                         </span>
+
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusColor[quote.status] ?? "bg-slate-100 text-slate-700"}`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            statusColor[quote.status] ??
+                            "bg-slate-100 text-slate-700"
+                          }`}
                         >
                           {statusLabel[quote.status] ?? quote.status}
                         </span>
                       </div>
+
                       {(quote.pickup_address || quote.dropoff_address) && (
                         <p className="text-xs text-slate-600">
                           {quote.pickup_address ?? "?"} →{" "}
                           {quote.dropoff_address ?? "?"}
                         </p>
                       )}
+
                       {quote.travel_date && (
                         <p className="text-xs text-slate-500">
                           Reisdatum:{" "}
@@ -995,6 +1045,7 @@ export default function CustomerAccountPage() {
                           ).toLocaleDateString("nl-BE")}
                         </p>
                       )}
+
                       {quote.total_price && (
                         <p className="text-sm font-semibold text-[#0043A8]">
                           Totaalprijs (excl. BTW): €{" "}
@@ -1015,6 +1066,7 @@ export default function CustomerAccountPage() {
                       >
                         PDF downloaden
                       </button>
+
                       {quote.status === "offerte_verstuurd" && (
                         <button
                           type="button"
@@ -1058,6 +1110,7 @@ export default function CustomerAccountPage() {
             >
               Meldingen via e-mail
             </h2>
+
             <p
               id={notificationPromptDescriptionId}
               className="mt-2 text-sm text-slate-600"
@@ -1084,6 +1137,7 @@ export default function CustomerAccountPage() {
               >
                 Nee, liever niet
               </button>
+
               <button
                 type="button"
                 disabled={notificationPromptLoading}
@@ -1114,6 +1168,7 @@ export default function CustomerAccountPage() {
             >
               PVB-contact nakijken & ondertekenen
             </h2>
+
             <p
               id={contractModalDescriptionId}
               className="mt-1 text-sm text-slate-600"
@@ -1159,6 +1214,7 @@ export default function CustomerAccountPage() {
               <span className="mb-2 block text-xs font-semibold text-primary">
                 Kies ondertekenmethode
               </span>
+
               <div className="flex flex-col gap-3 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -1173,6 +1229,7 @@ export default function CustomerAccountPage() {
                   />
                   Handtekening tekenen
                 </label>
+
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -1194,6 +1251,7 @@ export default function CustomerAccountPage() {
                 <div className="mb-2 text-xs font-semibold text-primary">
                   Teken hier je handtekening
                 </div>
+
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
                   <SignaturePadCanvas
                     ref={signatureCanvasRef}
@@ -1207,6 +1265,7 @@ export default function CustomerAccountPage() {
                     }}
                   />
                 </div>
+
                 <div className="mt-2 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
                   <button
                     type="button"
@@ -1260,6 +1319,7 @@ export default function CustomerAccountPage() {
               >
                 Sluiten
               </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -1273,6 +1333,7 @@ export default function CustomerAccountPage() {
           </div>
         </div>
       )}
+
       {isQuoteModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 px-4">
           <div
@@ -1288,6 +1349,7 @@ export default function CustomerAccountPage() {
             >
               Offerte ondertekenen
             </h2>
+
             <p
               id={quoteModalDescriptionId}
               className="mt-1 text-sm text-slate-600"
@@ -1303,6 +1365,7 @@ export default function CustomerAccountPage() {
                   Traject: {selectedQuote.pickup_address ?? "-"} →{" "}
                   {selectedQuote.dropoff_address ?? "-"}
                 </li>
+
                 {selectedQuote.travel_date && (
                   <li>
                     Reisdatum:{" "}
@@ -1311,6 +1374,7 @@ export default function CustomerAccountPage() {
                     ).toLocaleDateString("nl-BE")}
                   </li>
                 )}
+
                 {selectedQuote.total_price && (
                   <li className="font-semibold text-[#0043A8]">
                     Totaalprijs (excl. BTW): €{" "}
@@ -1346,6 +1410,7 @@ export default function CustomerAccountPage() {
               <span className="mb-2 block text-xs font-semibold text-primary">
                 Kies ondertekenmethode
               </span>
+
               <div className="flex flex-col gap-3 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -1360,6 +1425,7 @@ export default function CustomerAccountPage() {
                   />
                   Handtekening tekenen
                 </label>
+
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -1381,6 +1447,7 @@ export default function CustomerAccountPage() {
                 <div className="mb-2 text-xs font-semibold text-primary">
                   Teken hier je handtekening
                 </div>
+
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
                   <SignaturePadCanvas
                     ref={quoteSignatureCanvasRef}
@@ -1394,6 +1461,7 @@ export default function CustomerAccountPage() {
                     }}
                   />
                 </div>
+
                 <div className="mt-2 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
                   <button
                     type="button"
@@ -1449,6 +1517,7 @@ export default function CustomerAccountPage() {
               >
                 Sluiten
               </button>
+
               <button
                 type="button"
                 disabled={quoteLoading}
@@ -1460,6 +1529,45 @@ export default function CustomerAccountPage() {
                 {quoteLoading ? "Bezig..." : "Digitaal ondertekenen"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showBookingForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-bold">Rit boeken</h3>
+            <p className="mb-2 text-sm">
+              Je staat op het punt een rit te boeken voor:
+            </p>
+
+            <ul className="mb-4 text-sm">
+              <li>
+                Datum: <b>{calendarDate}</b>
+              </li>
+              <li>
+                Starttijd: <b>{calendarStartTime}</b>
+              </li>
+              <li>
+                Eindtijd: <b>{calendarEndTime}</b>
+              </li>
+            </ul>
+
+            <button
+              className="btn-accent mb-2 w-full"
+              onClick={() => {
+                void handleBookRide();
+              }}
+            >
+              Bevestig rit
+            </button>
+
+            <button
+              className="btn w-full"
+              onClick={() => setShowBookingForm(false)}
+            >
+              Annuleren
+            </button>
           </div>
         </div>
       )}
