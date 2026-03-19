@@ -32,6 +32,8 @@ class ContactRequest extends Model
         'quote_signer_name',
         'quote_signature_method',
         'quote_signature_image',
+        'hulpbehoeften',
+        'hulpbehoeften'         => 'array',
     ];
 
     protected $casts = [

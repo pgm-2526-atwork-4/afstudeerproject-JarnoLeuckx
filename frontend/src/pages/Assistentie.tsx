@@ -1,21 +1,38 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Users, UserCircle, Heart, Calendar } from "lucide-react";
+
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import CalendarDateField from "../components/forms/CalendarDateField";
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import ReservationFormSection from "../components/reservation/ReservationFormSection";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
-import { Users, UserCircle, Heart, Calendar } from "lucide-react";
 
 type Feature = {
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 };
 
 type AssistentieType = "" | "luchthaven" | "adl" | "vrijetijd" | "reis";
 type YesNo = "ja" | "nee";
+
+type AssistentieFormData = {
+  naam: string;
+  email: string;
+  telefoon: string;
+  adres: string;
+  startDatum: string;
+  eindDatum: string;
+  aantalUren: string;
+  taken: string;
+  hulpbehoeften: string[];
+  assistentieType: AssistentieType;
+  heeftPvb: YesNo;
+  pvbNummer: string;
+  toelichting: string;
+};
 
 const FEATURES: Feature[] = [
   {
@@ -42,14 +59,14 @@ const HULPBEHOEFTEN: string[] = [
   "Deur-tot-deur service",
   "Bagage assistentie",
   "Medische begeleiding",
-
   "Ondersteuning bij dagelijkse activiteiten",
 ];
 
 export default function Assistentie() {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<AssistentieFormData>({
     naam: "",
     email: "",
     telefoon: "",
@@ -58,11 +75,13 @@ export default function Assistentie() {
     eindDatum: "",
     aantalUren: "",
     taken: "",
+    hulpbehoeften: [],
     assistentieType: "",
     heeftPvb: "nee",
     pvbNummer: "",
     toelichting: "",
   });
+
   const [accountPrompt, setAccountPrompt] = useState<
     null | "login" | "register"
   >(null);
@@ -122,14 +141,14 @@ export default function Assistentie() {
   function buildReservationPath() {
     const params = new URLSearchParams({ service: "assistance" });
 
-    if (formData.assistentieType === "luchthaven") {
-      params.set("assistanceType", "luchthaven");
+    if (formData.assistentieType) {
+      params.set("assistanceType", formData.assistentieType);
     }
 
     return `/reserveren?${params.toString()}`;
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
     setAccountPrompt(null);
@@ -161,58 +180,56 @@ export default function Assistentie() {
 
   return (
     <div className="page-modern">
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
-        <div className="text-center mb-12">
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="mb-12 text-center">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Users className="h-9 w-9 text-[#0043A8]" />
           </div>
 
           <h1 className="section-title mb-4">Assistentie</h1>
 
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-lg text-slate-600">
             Extra ondersteuning en begeleiding tijdens uw reis. We zorgen dat u
             zich veilig en comfortabel voelt onderweg.
           </p>
         </div>
 
         <div className="mb-12 grid gap-6 md:grid-cols-3 md:gap-8">
-          {FEATURES.map((feature) => {
-            return (
-              <div
-                key={feature.title}
-                className="surface-card-strong p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg md:p-8"
-              >
-                <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
-                  <feature.icon className="h-7 w-7 text-[#0043A8]" />
-                </div>
-
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
-                  {feature.title}
-                </h3>
-
-                <p className="text-slate-600 leading-relaxed">
-                  {feature.description}
-                </p>
+          {FEATURES.map((feature) => (
+            <div
+              key={feature.title}
+              className="surface-card-strong p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg md:p-8"
+            >
+              <div className="brand-badge mx-auto mb-5 h-14 w-14 shadow-sm">
+                <feature.icon className="h-7 w-7 text-[#0043A8]" />
               </div>
-            );
-          })}
+
+              <h3 className="mb-3 text-xl font-bold text-slate-900">
+                {feature.title}
+              </h3>
+
+              <p className="leading-relaxed text-slate-600">
+                {feature.description}
+              </p>
+            </div>
+          ))}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <div>
             <div className="surface-card-strong mb-8 p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">
+              <h2 className="mb-6 text-2xl font-bold text-slate-900">
                 Wanneer assistentie?
               </h2>
 
-              <div className="space-y-4 text-slate-700 leading-relaxed">
+              <div className="space-y-4 leading-relaxed text-slate-700">
                 <p>
                   Onze assistentieservice is er voor mensen die extra
                   ondersteuning nodig hebben tijdens het reizen, bijvoorbeeld
                   door:
                 </p>
 
-                <ul className="space-y-2 list-disc list-inside">
+                <ul className="list-inside list-disc space-y-2">
                   <li>Lichamelijke beperkingen</li>
                   <li>Cognitieve uitdagingen</li>
                   <li>Visuele of auditieve beperkingen</li>
@@ -224,13 +241,14 @@ export default function Assistentie() {
             </div>
 
             <div className="rounded-2xl border border-[#1d4fb6] bg-[linear-gradient(135deg,#0b0b0f_0%,#0f1c3d_55%,#0043A8_100%)] p-6 text-white shadow-md md:p-8">
-              <h3 className="text-xl font-semibold mb-4">
+              <h3 className="mb-4 text-xl font-semibold">
                 Wat mag u verwachten?
               </h3>
+
               <ul className="space-y-3 text-white/95">
                 <li className="flex gap-3">
                   <span className="text-2xl leading-none">✓</span>
-                  <span> Persoonlijke aanpak </span>
+                  <span>Persoonlijke aanpak</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-2xl leading-none">✓</span>
@@ -249,7 +267,7 @@ export default function Assistentie() {
           </div>
 
           <div className="surface-card-strong p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">
+            <h2 className="mb-6 text-2xl font-bold text-slate-900">
               Vraag assistentie aan
             </h2>
 
@@ -273,6 +291,7 @@ export default function Assistentie() {
                   }
                   required
                 />
+
                 <Input
                   id="email"
                   name="email"
@@ -285,6 +304,7 @@ export default function Assistentie() {
                   }
                   required
                 />
+
                 <Input
                   id="telefoon"
                   label="Telefoonnummer"
@@ -296,6 +316,7 @@ export default function Assistentie() {
                   }
                   required
                 />
+
                 <Input
                   id="adres"
                   label="Adres (optioneel)"
@@ -306,7 +327,8 @@ export default function Assistentie() {
                     setFormData((p) => ({ ...p, adres: e.target.value }))
                   }
                 />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <CalendarDateField
                     id="startDatum"
                     label="Startdatum"
@@ -317,6 +339,7 @@ export default function Assistentie() {
                     minDate={minDate}
                     required
                   />
+
                   <CalendarDateField
                     id="eindDatum"
                     label="Einddatum"
@@ -328,6 +351,7 @@ export default function Assistentie() {
                     required
                   />
                 </div>
+
                 <Input
                   id="aantalUren"
                   label="Aantal uren assistentie (per dag of totaal)"
@@ -346,26 +370,34 @@ export default function Assistentie() {
                 title="Voornaamste taken en type assistentie"
                 description="Omschrijf de belangrijkste taken en kies het type assistentie."
               >
-                <label className="block mb-4">
+                <label className="mb-4 block">
                   <span className="form-label">Voornaamste taken</span>
                   <textarea
                     value={formData.taken}
                     onChange={(e) =>
                       setFormData((p) => ({ ...p, taken: e.target.value }))
                     }
-                    placeholder="Bijv. hulp bij ADL, begeleiding, vervoer, boodschappen, ..."
-                    className="min-h-[80px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    placeholder={assistentieHint.placeholder}
+                    className="min-h-[80px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-accent"
                     required
                   />
                 </label>
-                <label className="block mb-4">
+
+                <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                  <p className="font-semibold text-slate-900">
+                    {assistentieHint.title}
+                  </p>
+                  <p className="mt-1">{assistentieHint.text}</p>
+                </div>
+
+                <label className="mb-4 block">
                   <span className="form-label">Type assistentie</span>
                   <select
                     value={formData.assistentieType}
                     onChange={(e) =>
                       setFormData((p) => ({
                         ...p,
-                        assistentieType: e.target.value,
+                        assistentieType: e.target.value as AssistentieType,
                       }))
                     }
                     className="h-11 w-full rounded-lg border border-secondary/20 bg-white/70 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -380,6 +412,27 @@ export default function Assistentie() {
                     <option value="reis">Reis assistentie</option>
                   </select>
                 </label>
+
+                <div className="mb-4">
+                  <span className="form-label">Hulpbehoeften</span>
+                  <div className="mt-2 grid gap-2">
+                    {HULPBEHOEFTEN.map((optie) => (
+                      <label
+                        key={optie}
+                        className="flex items-center gap-2 text-sm text-slate-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.hulpbehoeften.includes(optie)}
+                          onChange={() => toggleHulpbehoefte(optie)}
+                          className="accent-[color:var(--accent)]"
+                        />
+                        {optie}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <label className="block">
                   <span className="form-label">Toelichting (optioneel)</span>
                   <textarea
@@ -391,7 +444,7 @@ export default function Assistentie() {
                       }))
                     }
                     placeholder="Extra info, bijzonderheden, ..."
-                    className="min-h-[60px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    className="min-h-[60px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </label>
               </ReservationFormSection>
@@ -401,8 +454,8 @@ export default function Assistentie() {
                 title="Persoonsvolgend budget (PVB)"
                 description="Geef aan of u beschikt over een PVB en vul eventueel uw nummer in."
               >
-                <div className="flex flex-wrap gap-6 mb-4">
-                  <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
+                <div className="mb-4 flex flex-wrap gap-6">
+                  <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-primary">
                     <input
                       type="radio"
                       name="heeftPvb"
@@ -419,7 +472,8 @@ export default function Assistentie() {
                     />
                     Nee
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
+
+                  <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-primary">
                     <input
                       type="radio"
                       name="heeftPvb"
@@ -433,6 +487,7 @@ export default function Assistentie() {
                     Ja
                   </label>
                 </div>
+
                 {formData.heeftPvb === "ja" && (
                   <Input
                     id="pvbNummer"
@@ -446,7 +501,7 @@ export default function Assistentie() {
                 )}
               </ReservationFormSection>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Button variant="primary" className="w-full" type="submit">
                   Aanvraag indienen
                 </Button>
