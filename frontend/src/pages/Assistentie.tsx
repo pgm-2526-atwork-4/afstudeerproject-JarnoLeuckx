@@ -54,15 +54,14 @@ export default function Assistentie() {
     email: "",
     telefoon: "",
     adres: "",
-    datum: "",
-    tijd: "",
-    hulpbehoeften: [] as string[],
-    toelichting: "",
-    assistentieVoorReis: "ja" as YesNo,
-    meerdereDagen: "nee" as YesNo,
+    startDatum: "",
     eindDatum: "",
-    assistentieType: "" as AssistentieType,
-    assistentieDetails: "",
+    aantalUren: "",
+    taken: "",
+    assistentieType: "",
+    heeftPvb: "nee",
+    pvbNummer: "",
+    toelichting: "",
   });
   const [accountPrompt, setAccountPrompt] = useState<
     null | "login" | "register"
@@ -163,7 +162,6 @@ export default function Assistentie() {
   return (
     <div className="page-modern">
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
-       
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Users className="h-9 w-9 text-[#0043A8]" />
@@ -176,7 +174,6 @@ export default function Assistentie() {
             zich veilig en comfortabel voelt onderweg.
           </p>
         </div>
-
 
         <div className="mb-12 grid gap-6 md:grid-cols-3 md:gap-8">
           {FEATURES.map((feature) => {
@@ -202,7 +199,6 @@ export default function Assistentie() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-      
           <div>
             <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
@@ -252,7 +248,6 @@ export default function Assistentie() {
             </div>
           </div>
 
-         
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Vraag assistentie aan
@@ -264,7 +259,7 @@ export default function Assistentie() {
               <ReservationFormSection
                 step={1}
                 title="Contact en aanvraag"
-                description="Vul je contactgegevens en het gewenste moment voor de assistentie in."
+                description="Vul je contactgegevens en de gewenste periode voor assistentie in."
                 defaultOpen
               >
                 <Input
@@ -276,8 +271,8 @@ export default function Assistentie() {
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, naam: e.target.value }))
                   }
+                  required
                 />
-
                 <Input
                   id="email"
                   name="email"
@@ -290,7 +285,6 @@ export default function Assistentie() {
                   }
                   required
                 />
-
                 <Input
                   id="telefoon"
                   label="Telefoonnummer"
@@ -300,11 +294,11 @@ export default function Assistentie() {
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, telefoon: e.target.value }))
                   }
+                  required
                 />
-
                 <Input
                   id="adres"
-                  label="Adres"
+                  label="Adres (optioneel)"
                   type="text"
                   placeholder="Straat, huisnummer, postcode, stad"
                   value={formData.adres}
@@ -312,62 +306,82 @@ export default function Assistentie() {
                     setFormData((p) => ({ ...p, adres: e.target.value }))
                   }
                 />
-
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CalendarDateField
-                    id="datum"
-                    label="Gewenste datum"
-                    value={formData.datum}
+                    id="startDatum"
+                    label="Startdatum"
+                    value={formData.startDatum}
                     onChange={(value) =>
-                      setFormData((p) => ({ ...p, datum: value }))
+                      setFormData((p) => ({ ...p, startDatum: value }))
                     }
                     minDate={minDate}
+                    required
                   />
-                  <Input
-                    id="tijd"
-                    label="Gewenste tijd"
-                    type="time"
-                    value={formData.tijd}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, tijd: e.target.value }))
+                  <CalendarDateField
+                    id="eindDatum"
+                    label="Einddatum"
+                    value={formData.eindDatum}
+                    onChange={(value) =>
+                      setFormData((p) => ({ ...p, eindDatum: value }))
                     }
+                    minDate={formData.startDatum || minDate}
+                    required
                   />
                 </div>
+                <Input
+                  id="aantalUren"
+                  label="Aantal uren assistentie (per dag of totaal)"
+                  type="number"
+                  min={1}
+                  value={formData.aantalUren}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, aantalUren: e.target.value }))
+                  }
+                  required
+                />
               </ReservationFormSection>
 
               <ReservationFormSection
                 step={2}
-                title="Ondersteuningsnoden"
-                description="Laat weten waarmee we concreet kunnen helpen tijdens de begeleiding."
+                title="Voornaamste taken en type assistentie"
+                description="Omschrijf de belangrijkste taken en kies het type assistentie."
               >
-                <p className="mb-4 text-xs font-semibold text-primary">
-                  Waarmee kunnen we helpen?
-                </p>
-
-                <div className="space-y-3">
-                  {HULPBEHOEFTEN.map((optie) => {
-                    const checked = formData.hulpbehoeften.includes(optie);
-                    return (
-                      <label
-                        key={optie}
-                        className="flex items-center gap-3 cursor-pointer select-none"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleHulpbehoefte(optie)}
-                          className="h-4 w-4 rounded border-secondary/40 accent-[color:var(--accent)]"
-                        />
-                        <span className="text-sm text-gray-900">{optie}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-
+                <label className="block mb-4">
+                  <span className="form-label">Voornaamste taken</span>
+                  <textarea
+                    value={formData.taken}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, taken: e.target.value }))
+                    }
+                    placeholder="Bijv. hulp bij ADL, begeleiding, vervoer, boodschappen, ..."
+                    className="min-h-[80px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    required
+                  />
+                </label>
+                <label className="block mb-4">
+                  <span className="form-label">Type assistentie</span>
+                  <select
+                    value={formData.assistentieType}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        assistentieType: e.target.value,
+                      }))
+                    }
+                    className="h-11 w-full rounded-lg border border-secondary/20 bg-white/70 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    required
+                  >
+                    <option value="">Selecteer type assistentie</option>
+                    <option value="luchthaven">
+                      Assistentie op luchthaven
+                    </option>
+                    <option value="adl">ADL assistentie</option>
+                    <option value="vrijetijd">Vrijetijd assistentie</option>
+                    <option value="reis">Reis assistentie</option>
+                  </select>
+                </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-semibold text-primary">
-                    Aanvullende informatie (optioneel)
-                  </span>
+                  <span className="form-label">Toelichting (optioneel)</span>
                   <textarea
                     value={formData.toelichting}
                     onChange={(e) =>
@@ -376,196 +390,62 @@ export default function Assistentie() {
                         toelichting: e.target.value,
                       }))
                     }
-                    placeholder="Vertel ons meer over uw specifieke behoeften..."
-                    className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
+                    placeholder="Extra info, bijzonderheden, ..."
+                    className="min-h-[60px] w-full rounded-lg border border-secondary/20 bg-secondary/5 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
                   />
                 </label>
               </ReservationFormSection>
 
               <ReservationFormSection
                 step={3}
-                title="Extra assistentie op locatie"
-                description="Geef aan of de ondersteuning deel uitmaakt van een traject of meerdere dagen omvat."
+                title="Persoonsvolgend budget (PVB)"
+                description="Geef aan of u beschikt over een PVB en vul eventueel uw nummer in."
               >
-                <p className="mb-4 text-xs font-semibold text-primary">
-                  Assistentie voor reis?
-                </p>
-
-                <div className="flex flex-wrap gap-6">
+                <div className="flex flex-wrap gap-6 mb-4">
                   <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
                     <input
                       type="radio"
-                      name="assistentieVoorReis"
+                      name="heeftPvb"
                       value="nee"
-                      checked={formData.assistentieVoorReis === "nee"}
+                      checked={formData.heeftPvb === "nee"}
                       onChange={() =>
                         setFormData((p) => ({
                           ...p,
-                          assistentieVoorReis: "nee",
-                          meerdereDagen: "nee",
-                          eindDatum: "",
-                          assistentieType: "",
-                          assistentieDetails: "",
+                          heeftPvb: "nee",
+                          pvbNummer: "",
                         }))
                       }
                       className="accent-[color:var(--accent)]"
                     />
                     Nee
                   </label>
-
                   <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
                     <input
                       type="radio"
-                      name="assistentieVoorReis"
+                      name="heeftPvb"
                       value="ja"
-                      checked={formData.assistentieVoorReis === "ja"}
+                      checked={formData.heeftPvb === "ja"}
                       onChange={() =>
-                        setFormData((p) => ({
-                          ...p,
-                          assistentieVoorReis: "ja",
-                        }))
+                        setFormData((p) => ({ ...p, heeftPvb: "ja" }))
                       }
                       className="accent-[color:var(--accent)]"
                     />
                     Ja
                   </label>
                 </div>
-
-                <div
-                  className={[
-                    "mt-5 overflow-hidden rounded-xl border border-secondary/20 bg-secondary/5",
-                    "transition-all duration-300 ease-out",
-                    formData.assistentieVoorReis === "ja"
-                      ? "max-h-[800px] opacity-100"
-                      : "max-h-0 opacity-0 border-transparent",
-                  ].join(" ")}
-                  aria-hidden={formData.assistentieVoorReis !== "ja"}
-                >
-                  <div className="p-5 space-y-5">
-                    
-                    <div>
-                      <p className="mb-3 text-sm font-semibold text-primary">
-                        Meerdere dagen?
-                      </p>
-
-                      <div className="flex flex-wrap gap-6">
-                        <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
-                          <input
-                            type="radio"
-                            name="meerdereDagen"
-                            value="nee"
-                            checked={formData.meerdereDagen === "nee"}
-                            onChange={() =>
-                              setFormData((p) => ({
-                                ...p,
-                                meerdereDagen: "nee",
-                                eindDatum: "",
-                              }))
-                            }
-                            className="accent-[color:var(--accent)]"
-                          />
-                          Nee
-                        </label>
-
-                        <label className="flex items-center gap-2 text-sm text-primary cursor-pointer select-none">
-                          <input
-                            type="radio"
-                            name="meerdereDagen"
-                            value="ja"
-                            checked={formData.meerdereDagen === "ja"}
-                            onChange={() =>
-                              setFormData((p) => ({
-                                ...p,
-                                meerdereDagen: "ja",
-                              }))
-                            }
-                            className="accent-[color:var(--accent)]"
-                          />
-                          Ja
-                        </label>
-                      </div>
-
-                      <div
-                        className={[
-                          "mt-4 overflow-hidden transition-all duration-300 ease-out",
-                          formData.meerdereDagen === "ja"
-                            ? "max-h-40 opacity-100"
-                            : "max-h-0 opacity-0",
-                        ].join(" ")}
-                        aria-hidden={formData.meerdereDagen !== "ja"}
-                      >
-                        <div className="pt-2">
-                          <CalendarDateField
-                            id="eindDatum"
-                            label="Einddatum"
-                            value={formData.eindDatum}
-                            onChange={(value) =>
-                              setFormData((p) => ({
-                                ...p,
-                                eindDatum: value,
-                              }))
-                            }
-                            minDate={formData.datum || minDate}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-primary">
-                        Type assistentie
-                      </span>
-
-                      <select
-                        value={formData.assistentieType}
-                        onChange={(e) =>
-                          setFormData((p) => ({
-                            ...p,
-                            assistentieType: e.target.value as AssistentieType,
-                          }))
-                        }
-                        className="h-11 w-full rounded-lg border border-secondary/20 bg-white/70 px-3 outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                      >
-                        <option value="">Selecteer type assistentie</option>
-                        <option value="luchthaven">
-                          Assistentie op luchthaven
-                        </option>
-                        <option value="adl">ADL assistentie</option>
-                        <option value="vrijetijd">Vrijetijd assistentie</option>
-                        <option value="reis">Reis assistentie</option>
-                      </select>
-                    </label>
-
-                    
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-primary">
-                        Assistentie details
-                      </span>
-                      <textarea
-                        value={formData.assistentieDetails}
-                        onChange={(e) =>
-                          setFormData((p) => ({
-                            ...p,
-                            assistentieDetails: e.target.value,
-                          }))
-                        }
-                        placeholder={assistentieHint.placeholder}
-                        className="min-h-[110px] w-full rounded-lg border border-secondary/20 bg-white/70 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-accent placeholder:text-gray-400"
-                      />
-                    </label>
-
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                      <span className="font-semibold text-slate-900">
-                        {assistentieHint.title}:
-                      </span>{" "}
-                      {assistentieHint.text}
-                    </div>
-                  </div>
-                </div>
+                {formData.heeftPvb === "ja" && (
+                  <Input
+                    id="pvbNummer"
+                    label="PVB-nummer (optioneel)"
+                    type="text"
+                    value={formData.pvbNummer}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, pvbNummer: e.target.value }))
+                    }
+                  />
+                )}
               </ReservationFormSection>
 
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button variant="primary" className="w-full" type="submit">
                   Aanvraag indienen

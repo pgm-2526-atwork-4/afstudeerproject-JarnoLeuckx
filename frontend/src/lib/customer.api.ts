@@ -50,9 +50,7 @@ export function createCustomerRide(payload: CreateCustomerRidePayload) {
 
 export type AvailableDriver = {
   id: number;
-  name: string;
-  email?: string;
-  phone?: string;
+  available: boolean;
 };
 
 export function getAvailableDrivers(params: {
