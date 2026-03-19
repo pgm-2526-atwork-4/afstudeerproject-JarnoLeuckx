@@ -313,6 +313,21 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   Registreer hier
                 </Link>
               </p>
+              <div className="mt-6 text-center">
+                <a
+                  href="https://jarnoleuckx.be/admin/login"
+                  className="inline-block rounded bg-[#0043A8] px-4 py-2 text-xs font-semibold text-white shadow hover:bg-[#003080] transition"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Admin login (Filament)
+                </a>
+              </div>
+              <div className="mt-6 text-center text-xs text-slate-500">
+                Inloggen als klant of chauffeur? Gebruik je gewone account.
+                <br />
+                Inloggen als admin? Gebruik het admin e-mailadres.
+              </div>
             </form>
           </section>
         ) : (
