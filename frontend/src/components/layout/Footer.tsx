@@ -97,9 +97,7 @@ export default function Footer() {
                 <a
                   href="tel:+32470123456"
                   className="font-semibold text-white transition hover:text-blue-200"
-                >
-                  
-                </a>
+                ></a>
                 <p className="mt-1 text-slate-400"></p>+32 492 32 42 88
               </div>
             </div>
@@ -113,7 +111,6 @@ export default function Footer() {
                 >
                   info.socialdrive@gmail.com
                 </a>
-            
               </div>
             </div>
 
@@ -141,6 +138,14 @@ export default function Footer() {
             <Link to="/reserveren" className="transition hover:text-white">
               Ritaanvraag
             </Link>
+            <a
+              href="/sitemap.xml"
+              className="transition hover:text-white"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sitemap
+            </a>
           </div>
         </div>
       </div>
