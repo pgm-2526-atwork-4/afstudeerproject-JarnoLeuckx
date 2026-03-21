@@ -16,25 +16,27 @@ class RideObserver
     {
         $ride->loadMissing(['customer', 'driver']);
 
-        if (! empty($ride->customer?->email)) {
-            Mail::to($ride->customer->email)->send(
-                new RideConfirmationMail($ride, $this->customerAccountUrl())
-            );
-        }
 
-        $adminEmails = User::query()
-            ->where('role', 'admin')
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->filter()
-            ->unique()
-            ->values();
+        // Mails tijdelijk uitgeschakeld
+        // if (! empty($ride->customer?->email)) {
+        //     Mail::to($ride->customer->email)->send(
+        //         new RideConfirmationMail($ride, $this->customerAccountUrl())
+        //     );
+        // }
 
-        if ($adminEmails->isNotEmpty()) {
-            Mail::to($adminEmails->all())->send(
-                new RideReservationMail($ride, RideResource::getUrl('edit', ['record' => $ride->id]))
-            );
-        }
+        // $adminEmails = User::query()
+        //     ->where('role', 'admin')
+        //     ->whereNotNull('email')
+        //     ->pluck('email')
+        //     ->filter()
+        //     ->unique()
+        //     ->values();
+
+        // if ($adminEmails->isNotEmpty()) {
+        //     Mail::to($adminEmails->all())->send(
+        //         new RideReservationMail($ride, RideResource::getUrl('edit', ['record' => $ride->id]))
+        //     );
+        // }
     }
 
     public function updated(Ride $ride): void
@@ -49,7 +51,7 @@ class RideObserver
             return;
         }
 
-        $ride->customer->notify(new RideStatusUpdatedNotification($ride));
+        // $ride->customer->notify(new RideStatusUpdatedNotification($ride)); // Mails tijdelijk uitgeschakeld
     }
 
     private function customerAccountUrl(): string
