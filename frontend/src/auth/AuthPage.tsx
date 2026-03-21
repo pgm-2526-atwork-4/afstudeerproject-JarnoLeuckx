@@ -2,7 +2,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, register, saveAuth } from "./auth.api";
-import TwoFactorRegisterNotice from "../components/TwoFactor/TwoFactorRegisterNotice";
+
+import TwoFactorRegisterPopup from "../components/TwoFactor/TwoFactorRegisterPopup";
 
 type AuthPageProps = {
   mode: "login" | "register";
@@ -38,9 +39,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerPasswordConfirmation, setRegisterPasswordConfirmation] =
     useState("");
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [
+    showRegisterPasswordConfirmation,
+    setShowRegisterPasswordConfirmation,
+  ] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
+  const [show2FAPopup, setShow2FAPopup] = useState(false);
 
   const getPasswordStrength = (
     password: string,
@@ -181,6 +188,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
       });
 
       setRegisterSuccess(data.message);
+      setShow2FAPopup(true);
       setRegisterName("");
       setRegisterEmail("");
       setRegisterPhone("");
@@ -214,6 +222,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
           </p>
         </div>
 
+        {show2FAPopup && (
+          <TwoFactorRegisterPopup onClose={() => setShow2FAPopup(false)} />
+        )}
         {mode === "login" ? (
           <section className="surface-card-strong p-6">
             <h2 className="mb-4 text-xl font-extrabold text-slate-900">
@@ -242,8 +253,26 @@ export default function AuthPage({ mode }: AuthPageProps) {
             )}
 
             {verificationStatus === "already" && (
-              <div className="form-alert-success mb-4">
-                Je e-mailadres was al bevestigd. Je kan inloggen.
+              <div className="form-alert-info mb-4 flex items-center gap-2 p-3 rounded border border-blue-200 bg-blue-50 text-blue-900">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-blue-500 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
+                  />
+                </svg>
+                <span>
+                  Dit e-mailadres is al bevestigd.
+                  <br />
+                  Je kan nu gewoon inloggen.
+                </span>
               </div>
             )}
 
@@ -368,7 +397,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
           </section>
         ) : (
           <section className="surface-card-strong p-6">
-            <TwoFactorRegisterNotice />
             <h2 className="mb-4 text-xl font-extrabold text-slate-900">
               Registreren
             </h2>
@@ -589,24 +617,43 @@ export default function AuthPage({ mode }: AuthPageProps) {
                     <span className="form-label">
                       Wachtwoord<span className="form-required">*</span>
                     </span>
-                    <input
-                      id="register-password"
-                      type="password"
-                      minLength={8}
-                      required
-                      value={registerPassword}
-                      onChange={(event) =>
-                        setRegisterPassword(event.target.value)
-                      }
-                      autoComplete="new-password"
-                      aria-invalid={Boolean(registerError)}
-                      aria-describedby={
-                        registerError
-                          ? "register-error"
-                          : "register-password-help"
-                      }
-                      className="form-input"
-                    />
+                    <div className="relative">
+                      <input
+                        id="register-password"
+                        type={showRegisterPassword ? "text" : "password"}
+                        minLength={8}
+                        required
+                        value={registerPassword}
+                        onChange={(event) =>
+                          setRegisterPassword(event.target.value)
+                        }
+                        autoComplete="new-password"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError
+                            ? "register-error"
+                            : "register-password-help"
+                        }
+                        className="form-input pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword((v) => !v)}
+                        className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                        aria-label={
+                          showRegisterPassword
+                            ? "Verberg wachtwoord"
+                            : "Toon wachtwoord"
+                        }
+                        tabIndex={0}
+                      >
+                        {showRegisterPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                     <span
                       id="register-password-help"
                       className="text-xs text-slate-500"
@@ -637,22 +684,45 @@ export default function AuthPage({ mode }: AuthPageProps) {
                     <span className="form-label">
                       Herhaal wachtwoord<span className="form-required">*</span>
                     </span>
-                    <input
-                      id="register-password-confirmation"
-                      type="password"
-                      minLength={8}
-                      required
-                      value={registerPasswordConfirmation}
-                      onChange={(event) =>
-                        setRegisterPasswordConfirmation(event.target.value)
-                      }
-                      autoComplete="new-password"
-                      aria-invalid={Boolean(registerError)}
-                      aria-describedby={
-                        registerError ? "register-error" : undefined
-                      }
-                      className="form-input"
-                    />
+                    <div className="relative">
+                      <input
+                        id="register-password-confirmation"
+                        type={
+                          showRegisterPasswordConfirmation ? "text" : "password"
+                        }
+                        minLength={8}
+                        required
+                        value={registerPasswordConfirmation}
+                        onChange={(event) =>
+                          setRegisterPasswordConfirmation(event.target.value)
+                        }
+                        autoComplete="new-password"
+                        aria-invalid={Boolean(registerError)}
+                        aria-describedby={
+                          registerError ? "register-error" : undefined
+                        }
+                        className="form-input pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowRegisterPasswordConfirmation((v) => !v)
+                        }
+                        className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                        aria-label={
+                          showRegisterPasswordConfirmation
+                            ? "Verberg wachtwoord"
+                            : "Toon wachtwoord"
+                        }
+                        tabIndex={0}
+                      >
+                        {showRegisterPasswordConfirmation ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                   </label>
                 </div>
               </div>
