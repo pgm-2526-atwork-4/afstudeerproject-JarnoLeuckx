@@ -336,7 +336,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   </button>
                 </div>
                 <span className="form-help">
-                  Gebruik je account wachtwoord.
+                
                 </span>
               </label>
 
@@ -348,7 +348,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   className="form-checkbox"
                 />
                 <span className="text-sm">
-                  Ingelogd blijven (onthoud mij 1 maand)
+                  Ingelogd blijven 
                 </span>
               </label>
 
@@ -388,11 +388,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   Admin login (Filament)
                 </a>
               </div>
-              <div className="mt-6 text-center text-xs text-slate-500">
-                Inloggen als klant of chauffeur? Gebruik je gewone account.
-                <br />
-                Inloggen als admin? Gebruik het admin e-mailadres.
-              </div>
+              <div className="mt-6 text-center text-xs text-slate-500"></div>
             </form>
           </section>
         ) : (
