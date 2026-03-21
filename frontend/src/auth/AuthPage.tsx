@@ -285,72 +285,82 @@ export default function AuthPage({ mode }: AuthPageProps) {
             )}
 
             <form onSubmit={handleLogin} className="form-layout">
-              <label className="grid gap-1.5">
-                <span className="form-label">
-                  E-mail<span className="form-required">*</span>
-                </span>
-                <input
-                  id="login-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
-                  aria-invalid={Boolean(loginError)}
-                  aria-describedby={loginError ? "login-error" : undefined}
-                  className="form-input"
-                />
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="form-label">
-                  Wachtwoord<span className="form-required">*</span>
-                </span>
-                <div className="relative">
-                  <input
-                    id="login-password"
-                    type={showLoginPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="current-password"
-                    aria-invalid={Boolean(loginError)}
-                    aria-describedby={loginError ? "login-error" : undefined}
-                    className="form-input pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowLoginPassword((current) => !current)}
-                    className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
-                    aria-label={
-                      showLoginPassword
-                        ? "Verberg wachtwoord"
-                        : "Toon wachtwoord"
-                    }
+              <div className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
+                  <label
+                    htmlFor="login-email"
+                    className="form-label md:text-right md:pr-4"
                   >
-                    {showLoginPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
+                    E-mail<span className="form-required">*</span>
+                  </label>
+                  <div className="md:col-span-2">
+                    <input
+                      id="login-email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      autoComplete="email"
+                      aria-invalid={Boolean(loginError)}
+                      aria-describedby={loginError ? "login-error" : undefined}
+                      className="form-input w-full"
+                    />
+                  </div>
                 </div>
-                <span className="form-help">
-                
-                </span>
-              </label>
 
-              <label className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="form-checkbox"
-                />
-                <span className="text-sm">
-                  Ingelogd blijven 
-                </span>
-              </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
+                  <label
+                    htmlFor="login-password"
+                    className="form-label md:text-right md:pr-4"
+                  >
+                    Wachtwoord<span className="form-required">*</span>
+                  </label>
+                  <div className="md:col-span-2 relative">
+                    <input
+                      id="login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      autoComplete="current-password"
+                      aria-invalid={Boolean(loginError)}
+                      aria-describedby={loginError ? "login-error" : undefined}
+                      className="form-input pr-12 w-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowLoginPassword((current) => !current)
+                      }
+                      className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                      aria-label={
+                        showLoginPassword
+                          ? "Verberg wachtwoord"
+                          : "Toon wachtwoord"
+                      }
+                    >
+                      {showLoginPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
+                  <div></div>
+                  <label className="flex items-center gap-2 md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="form-checkbox"
+                    />
+                    <span className="text-sm">Ingelogd blijven</span>
+                  </label>
+                </div>
+              </div>
 
               <button
                 type="submit"
@@ -449,87 +459,20 @@ export default function AuthPage({ mode }: AuthPageProps) {
                     />
                   </label>
 
-                  <label className="grid gap-1.5">
-                    <span className="form-label">
-                      E-mail<span className="form-required">*</span>
-                    </span>
-                    <input
-                      id="register-email"
-                      type="email"
-                      required
-                      value={registerEmail}
-                      onChange={(event) => setRegisterEmail(event.target.value)}
-                      autoComplete="email"
-                      aria-invalid={Boolean(registerError)}
-                      aria-describedby={
-                        registerError ? "register-error" : undefined
-                      }
-                      className="form-input"
-                    />
-                  </label>
-
-                  <label className="grid gap-1.5">
-                    <span className="form-label">Telefoon</span>
-                    <input
-                      id="register-phone"
-                      type="tel"
-                      value={registerPhone}
-                      onChange={(event) => setRegisterPhone(event.target.value)}
-                      autoComplete="tel"
-                      aria-invalid={Boolean(registerError)}
-                      aria-describedby={
-                        registerError ? "register-error" : undefined
-                      }
-                      className="form-input"
-                    />
-                    <span className="form-help">
-                      Optioneel, maar handig voor snelle opvolging.
-                    </span>
-                  </label>
-
-                  <label className="grid gap-1.5 md:col-span-2">
-                    <span className="form-label">Rol</span>
-                    <select
-                      id="register-role"
-                      value={registerRole}
-                      onChange={(event) =>
-                        setRegisterRole(
-                          event.target.value as "customer" | "driver",
-                        )
-                      }
-                      aria-invalid={Boolean(registerError)}
-                      aria-describedby={
-                        registerError ? "register-error" : undefined
-                      }
-                      className="form-select"
-                    >
-                      <option value="customer">Klant</option>
-                      <option value="driver">Chauffeur</option>
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-              {registerRole === "customer" && (
-                <div className="form-section">
-                  <h3 className="form-section-title">Adresgegevens</h3>
-                  <p className="form-section-subtitle">
-                    Dit adres gebruiken we als basis voor je ritaanvragen.
-                  </p>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <label className="grid gap-1.5 md:col-span-3">
+                  <div className="grid gap-4 md:grid-cols-2 w-full">
+                    <label className="grid gap-1.5 w-full">
                       <span className="form-label">
-                        Straat<span className="form-required">*</span>
+                        E-mail<span className="form-required">*</span>
                       </span>
                       <input
-                        id="register-street"
-                        type="text"
+                        id="register-email"
+                        type="email"
                         required
-                        value={registerStreet}
+                        value={registerEmail}
                         onChange={(event) =>
-                          setRegisterStreet(event.target.value)
+                          setRegisterEmail(event.target.value)
                         }
-                        autoComplete="street-address"
+                        autoComplete="email"
                         aria-invalid={Boolean(registerError)}
                         aria-describedby={
                           registerError ? "register-error" : undefined
@@ -539,56 +482,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
                     </label>
 
                     <label className="grid gap-1.5">
-                      <span className="form-label">
-                        Postcode<span className="form-required">*</span>
-                      </span>
+                      <span className="form-label">Telefoon</span>
                       <input
-                        id="register-postcode"
-                        type="text"
-                        required
-                        value={registerPostalCode}
+                        id="register-phone"
+                        type="tel"
+                        value={registerPhone}
                         onChange={(event) =>
-                          setRegisterPostalCode(event.target.value)
+                          setRegisterPhone(event.target.value)
                         }
-                        autoComplete="postal-code"
-                        aria-invalid={Boolean(registerError)}
-                        aria-describedby={
-                          registerError ? "register-error" : undefined
-                        }
-                        className="form-input"
-                      />
-                    </label>
-
-                    <label className="grid gap-1.5 md:col-span-2">
-                      <span className="form-label">
-                        Gemeente<span className="form-required">*</span>
-                      </span>
-                      <input
-                        id="register-city"
-                        type="text"
-                        required
-                        value={registerCity}
-                        onChange={(event) =>
-                          setRegisterCity(event.target.value)
-                        }
-                        autoComplete="address-level2"
-                        aria-invalid={Boolean(registerError)}
-                        aria-describedby={
-                          registerError ? "register-error" : undefined
-                        }
-                        className="form-input"
-                      />
-                    </label>
-
-                    <label className="grid gap-1.5 md:col-span-3">
-                      <span className="form-label">VAPH-nummer</span>
-                      <input
-                        id="register-vaph"
-                        type="text"
-                        value={registerVaphNumber}
-                        onChange={(event) =>
-                          setRegisterVaphNumber(event.target.value)
-                        }
+                        autoComplete="tel"
                         aria-invalid={Boolean(registerError)}
                         aria-describedby={
                           registerError ? "register-error" : undefined
@@ -596,130 +498,246 @@ export default function AuthPage({ mode }: AuthPageProps) {
                         className="form-input"
                       />
                       <span className="form-help">
-                        Alleen invullen indien van toepassing.
+                        Optioneel, maar handig voor snelle opvolging.
                       </span>
                     </label>
-                  </div>
-                </div>
-              )}
 
-              <div className="form-section">
-                <h3 className="form-section-title">Account beveiliging</h3>
-                <p className="form-section-subtitle">
-                  Kies een sterk wachtwoord van minstens 8 tekens.
-                </p>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-1.5">
-                    <span className="form-label">
-                      Wachtwoord<span className="form-required">*</span>
-                    </span>
-                    <div className="relative">
-                      <input
-                        id="register-password"
-                        type={showRegisterPassword ? "text" : "password"}
-                        minLength={8}
-                        required
-                        value={registerPassword}
+                    <label className="grid gap-1.5 md:col-span-2">
+                      <span className="form-label">Rol</span>
+                      <select
+                        id="register-role"
+                        value={registerRole}
                         onChange={(event) =>
-                          setRegisterPassword(event.target.value)
+                          setRegisterRole(
+                            event.target.value as "customer" | "driver",
+                          )
                         }
-                        autoComplete="new-password"
-                        aria-invalid={Boolean(registerError)}
-                        aria-describedby={
-                          registerError
-                            ? "register-error"
-                            : "register-password-help"
-                        }
-                        className="form-input pr-12"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegisterPassword((v) => !v)}
-                        className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
-                        aria-label={
-                          showRegisterPassword
-                            ? "Verberg wachtwoord"
-                            : "Toon wachtwoord"
-                        }
-                        tabIndex={0}
-                      >
-                        {showRegisterPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
-                    </div>
-                    <span
-                      id="register-password-help"
-                      className="text-xs text-slate-500"
-                    >
-                      Minstens 8 tekens, waarvan minstens 1 cijfer of speciaal
-                      teken
-                    </span>
-                    {registerPassword && (
-                      <span
-                        className="text-xs mt-1"
-                        style={{
-                          color:
-                            getPasswordStrength(registerPassword) === "Sterk"
-                              ? "#16a34a"
-                              : getPasswordStrength(registerPassword) ===
-                                  "Matig"
-                                ? "#eab308"
-                                : "#dc2626",
-                        }}
-                      >
-                        Wachtwoordsterkte:{" "}
-                        {getPasswordStrength(registerPassword)}
-                      </span>
-                    )}
-                  </label>
-
-                  <label className="grid gap-1.5">
-                    <span className="form-label">
-                      Herhaal wachtwoord<span className="form-required">*</span>
-                    </span>
-                    <div className="relative">
-                      <input
-                        id="register-password-confirmation"
-                        type={
-                          showRegisterPasswordConfirmation ? "text" : "password"
-                        }
-                        minLength={8}
-                        required
-                        value={registerPasswordConfirmation}
-                        onChange={(event) =>
-                          setRegisterPasswordConfirmation(event.target.value)
-                        }
-                        autoComplete="new-password"
                         aria-invalid={Boolean(registerError)}
                         aria-describedby={
                           registerError ? "register-error" : undefined
                         }
-                        className="form-input pr-12"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowRegisterPasswordConfirmation((v) => !v)
-                        }
-                        className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
-                        aria-label={
-                          showRegisterPasswordConfirmation
-                            ? "Verberg wachtwoord"
-                            : "Toon wachtwoord"
-                        }
-                        tabIndex={0}
+                        className="form-select"
                       >
-                        {showRegisterPasswordConfirmation ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
+                        <option value="customer">Klant</option>
+                        <option value="driver">Chauffeur</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                {registerRole === "customer" && (
+                  <div className="form-section">
+                    <h3 className="form-section-title">Adresgegevens</h3>
+                    <p className="form-section-subtitle">
+                      Dit adres gebruiken we als basis voor je ritaanvragen.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <label className="grid gap-1.5 md:col-span-3">
+                        <span className="form-label">
+                          Straat<span className="form-required">*</span>
+                        </span>
+                        <input
+                          id="register-street"
+                          type="text"
+                          required
+                          value={registerStreet}
+                          onChange={(event) =>
+                            setRegisterStreet(event.target.value)
+                          }
+                          autoComplete="street-address"
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError ? "register-error" : undefined
+                          }
+                          className="form-input"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5">
+                        <span className="form-label">
+                          Postcode<span className="form-required">*</span>
+                        </span>
+                        <input
+                          id="register-postcode"
+                          type="text"
+                          required
+                          value={registerPostalCode}
+                          onChange={(event) =>
+                            setRegisterPostalCode(event.target.value)
+                          }
+                          autoComplete="postal-code"
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError ? "register-error" : undefined
+                          }
+                          className="form-input"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5 md:col-span-2">
+                        <span className="form-label">
+                          Gemeente<span className="form-required">*</span>
+                        </span>
+                        <input
+                          id="register-city"
+                          type="text"
+                          required
+                          value={registerCity}
+                          onChange={(event) =>
+                            setRegisterCity(event.target.value)
+                          }
+                          autoComplete="address-level2"
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError ? "register-error" : undefined
+                          }
+                          className="form-input"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5 md:col-span-3">
+                        <span className="form-label">VAPH-nummer</span>
+                        <input
+                          id="register-vaph"
+                          type="text"
+                          value={registerVaphNumber}
+                          onChange={(event) =>
+                            setRegisterVaphNumber(event.target.value)
+                          }
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError ? "register-error" : undefined
+                          }
+                          className="form-input"
+                        />
+                        <span className="form-help">
+                          Alleen invullen indien van toepassing.
+                        </span>
+                      </label>
                     </div>
-                  </label>
+                  </div>
+                )}
+
+                <div className="form-section">
+                  <h3 className="form-section-title">Account beveiliging</h3>
+                  <p className="form-section-subtitle">
+                    Kies een sterk wachtwoord van minstens 8 tekens.
+                  </p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="grid gap-1.5">
+                      <span className="form-label">
+                        Wachtwoord<span className="form-required">*</span>
+                      </span>
+                      <div className="relative">
+                        <input
+                          id="register-password"
+                          type={showRegisterPassword ? "text" : "password"}
+                          minLength={8}
+                          required
+                          value={registerPassword}
+                          onChange={(event) =>
+                            setRegisterPassword(event.target.value)
+                          }
+                          autoComplete="new-password"
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError
+                              ? "register-error"
+                              : "register-password-help"
+                          }
+                          className="form-input pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegisterPassword((v) => !v)}
+                          className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                          aria-label={
+                            showRegisterPassword
+                              ? "Verberg wachtwoord"
+                              : "Toon wachtwoord"
+                          }
+                          tabIndex={0}
+                        >
+                          {showRegisterPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                      <span
+                        id="register-password-help"
+                        className="text-xs text-slate-500"
+                      >
+                        Minstens 8 tekens, waarvan minstens 1 cijfer of speciaal
+                        teken
+                      </span>
+                      {registerPassword && (
+                        <span
+                          className="text-xs mt-1"
+                          style={{
+                            color:
+                              getPasswordStrength(registerPassword) === "Sterk"
+                                ? "#16a34a"
+                                : getPasswordStrength(registerPassword) ===
+                                    "Matig"
+                                  ? "#eab308"
+                                  : "#dc2626",
+                          }}
+                        >
+                          Wachtwoordsterkte:{" "}
+                          {getPasswordStrength(registerPassword)}
+                        </span>
+                      )}
+                    </label>
+                    <label className="grid gap-1.5 w-full">
+                      <span className="form-label">
+                        Herhaal wachtwoord
+                        <span className="form-required">*</span>
+                      </span>
+                      <div className="relative">
+                        <input
+                          id="register-password-confirmation"
+                          type={
+                            showRegisterPasswordConfirmation
+                              ? "text"
+                              : "password"
+                          }
+                          minLength={8}
+                          required
+                          value={registerPasswordConfirmation}
+                          onChange={(event) =>
+                            setRegisterPasswordConfirmation(event.target.value)
+                          }
+                          autoComplete="new-password"
+                          aria-invalid={Boolean(registerError)}
+                          aria-describedby={
+                            registerError ? "register-error" : undefined
+                          }
+                          className="form-input pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowRegisterPasswordConfirmation((v) => !v)
+                          }
+                          className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 hover:text-slate-700"
+                          aria-label={
+                            showRegisterPasswordConfirmation
+                              ? "Verberg wachtwoord"
+                              : "Toon wachtwoord"
+                          }
+                          tabIndex={0}
+                        >
+                          {showRegisterPasswordConfirmation ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
 
