@@ -2,6 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, register, saveAuth } from "./auth.api";
+import TwoFactorRegisterNotice from "../components/TwoFactor/TwoFactorRegisterNotice";
 
 type AuthPageProps = {
   mode: "login" | "register";
@@ -22,6 +23,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
@@ -74,7 +76,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
     setLoginLoading(true);
 
     try {
-      const data = await login(cleanEmail, cleanPassword);
+      const data = await login(cleanEmail, cleanPassword, rememberMe);
       saveAuth(data.token, data.user);
 
       if (redirectTo && data.user.role === "customer") {
@@ -309,6 +311,18 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 </span>
               </label>
 
+              <label className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="form-checkbox"
+                />
+                <span className="text-sm">
+                  Ingelogd blijven (onthoud mij 1 maand)
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={loginLoading}
@@ -354,6 +368,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
           </section>
         ) : (
           <section className="surface-card-strong p-6">
+            <TwoFactorRegisterNotice />
             <h2 className="mb-4 text-xl font-extrabold text-slate-900">
               Registreren
             </h2>

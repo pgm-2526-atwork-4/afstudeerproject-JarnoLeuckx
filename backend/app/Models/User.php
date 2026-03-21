@@ -55,6 +55,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'pvb_contract_signed_pricing_updated_at',
         'role',
         'approval_status',
+        'google2fa_secret',
+        'two_factor_enabled',
     ];
 
    
@@ -72,6 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'pvb_contract_signed_at' => 'datetime',
             'pvb_contract_signed_pricing_updated_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_enabled' => 'boolean',
         ];
     }
 

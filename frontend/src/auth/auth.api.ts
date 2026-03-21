@@ -40,6 +40,7 @@ type ProfileResponse = {
 export async function login(
   email: string,
   password: string,
+  remember?: boolean,
 ): Promise<LoginResponse> {
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -47,7 +48,7 @@ export async function login(
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, remember }),
   });
 
   const text = await res.text();
@@ -245,8 +246,7 @@ export async function logout() {
           Authorization: `Bearer ${token}`,
         },
       });
-    } catch {
-    }
+    } catch {}
   }
 
   clearAuth();
