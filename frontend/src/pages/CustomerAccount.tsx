@@ -15,7 +15,7 @@ import {
 } from "../lib/customerContract";
 import { signCustomerContract } from "../lib/customerContract.api";
 import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
-import { downloadQuotePdf } from "../lib/quote";
+import { generateOfferPdf } from "../lib/generateOfferPdf";
 import {
   getAvailableDrivers,
   getMyCustomerRides,
@@ -644,7 +644,7 @@ export default function CustomerAccountPage() {
         quoteAcceptedTerms,
       );
 
-      await downloadQuotePdf(result.quote, {
+      await generateOfferPdf(result.quote, {
         method: quoteSignatureMethod,
         signerName,
         signerDate: quoteSignatureDate,
@@ -1060,7 +1060,7 @@ export default function CustomerAccountPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          void downloadQuotePdf(quote);
+                          void generateOfferPdf(quote);
                         }}
                         className="btn-outline px-3 py-1.5 text-xs"
                       >

@@ -97,6 +97,11 @@ class Ride extends Model
         return $this->belongsTo(Vehicle::class, 'vehicle_id');
     }
 
+        public function review()
+        {
+            return $this->hasOne(Review::class);
+        }
+
     public function getEffectiveEndAtAttribute(): Carbon
     {
         return ($this->return_datetime ?? $this->pickup_datetime)->copy();

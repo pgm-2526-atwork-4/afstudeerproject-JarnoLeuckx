@@ -275,78 +275,97 @@ export default function Header() {
                     void loadNotifications();
                   }
                 }}
-                className="btn-outline rounded-full px-3 py-2 sm:px-4 sm:py-2.5"
+                className="btn-outline rounded-full px-3 py-2 sm:px-4 sm:py-2.5 flex items-center gap-1 relative"
                 aria-expanded={isAccountMenuOpen}
                 aria-controls="account-menu"
                 aria-label="Open accountpaneel"
               >
                 <span className="hidden sm:inline">Mijn account</span>
                 <span className="sm:hidden">Account</span>
+                <svg
+                  className={`ml-1 h-4 w-4 transition-transform duration-200 ${isAccountMenuOpen ? "rotate-180" : ""}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.085l3.71-3.855a.75.75 0 111.08 1.04l-4.24 4.4a.75.75 0 01-1.08 0l-4.24-4.4a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </button>
 
               {isAccountMenuOpen && (
                 <div
                   id="account-menu"
                   aria-label="Accountpaneel"
-                  className="absolute right-0 z-[90] mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
+                  className={`absolute right-2 md:right-2 left-auto md:left-auto mx-0 md:mx-0 top-full md:mt-2 z-[90] w-[min(18rem,calc(100vw-1rem))] max-h-[80vh] overflow-y-auto rounded-xl border border-slate-200 bg-white pt-5 p-3 shadow-xl transition-all duration-200 ease-out
+                    before:absolute before:-top-2 before:right-6 before:h-3 before:w-3 before:rotate-45 before:bg-white before:border-l before:border-t before:border-slate-200 before:shadow before:z-[-1]
+                    ${isAccountMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}
+                    sm:left-auto sm:right-2 left-1/2 -translate-x-1/2 sm:translate-x-0`}
+                  style={{
+                    visibility: isAccountMenuOpen ? "visible" : "hidden",
+                  }}
                 >
-                  <NavLink
-                    to={accountPath}
-                    onClick={() => {
-                      closeMenus();
-                    }}
-                    className="btn-outline w-full justify-start"
-                  >
-                    Mijn account
-                  </NavLink>
-
-                  {user?.role === "customer" && (
+                  <div className="flex flex-col gap-2">
                     <NavLink
-                      to="/customer/settings"
+                      to={accountPath}
                       onClick={() => {
                         closeMenus();
                       }}
-                      className="btn-outline mt-2 w-full justify-start"
+                      className="btn-outline w-full justify-start"
                     >
-                      Instellingen
+                      Mijn account
                     </NavLink>
-                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNotificationsOpen((prev) => !prev);
-                      if (!isNotificationsOpen) {
-                        void loadNotifications();
-                      }
-                    }}
-                    className="btn-outline mt-2 flex w-full items-center justify-between"
-                    aria-expanded={isNotificationsOpen}
-                    aria-controls="notification-menu"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Bell className="h-4 w-4" aria-hidden="true" />
-                      Meldingen
-                    </span>
-                    {unreadCount > 0 && (
-                      <span
-                        className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
-                        aria-label={`${unreadCount > 9 ? "Meer dan 9" : unreadCount} ongelezen meldingen`}
+                    {user?.role === "customer" && (
+                      <NavLink
+                        to="/customer/settings"
+                        onClick={() => {
+                          closeMenus();
+                        }}
+                        className="btn-outline w-full justify-start"
                       >
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
+                        Instellingen
+                      </NavLink>
                     )}
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void handleLogout();
-                    }}
-                    className="btn-danger mt-2 w-full"
-                  >
-                    Logout
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsNotificationsOpen((prev) => !prev);
+                        if (!isNotificationsOpen) {
+                          void loadNotifications();
+                        }
+                      }}
+                      className="btn-outline flex w-full items-center justify-between"
+                      aria-expanded={isNotificationsOpen}
+                      aria-controls="notification-menu"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Bell className="h-4 w-4" aria-hidden="true" />
+                        Meldingen
+                      </span>
+                      {unreadCount > 0 && (
+                        <span
+                          className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
+                          aria-label={`${unreadCount > 9 ? "Meer dan 9" : unreadCount} ongelezen meldingen`}
+                        >
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleLogout();
+                      }}
+                      className="btn-danger w-full"
+                    >
+                      Logout
+                    </button>
+                  </div>
 
                   {isNotificationsOpen && (
                     <div

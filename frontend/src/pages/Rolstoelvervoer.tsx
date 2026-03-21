@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import CalendarDateField from "../components/forms/CalendarDateField";
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import ReservationFormSection from "../components/reservation/ReservationFormSection";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
@@ -97,7 +96,6 @@ export default function Rolstoelvervoer() {
   return (
     <div className="page-modern">
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6">
-        
         <div className="text-center mb-12">
           <div className="brand-badge mx-auto mb-4 h-16 w-16 shadow-sm">
             <Accessibility className="h-9 w-9 text-[#0043A8]" />
@@ -134,9 +132,7 @@ export default function Rolstoelvervoer() {
           })}
         </div>
 
-        
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          
           <div>
             <div className="surface-card-strong mb-8 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">
@@ -189,7 +185,6 @@ export default function Rolstoelvervoer() {
             </div>
           </div>
 
-          
           <div className="surface-card-strong p-6 md:p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
               Boek uw rit
@@ -282,12 +277,20 @@ export default function Rolstoelvervoer() {
                 description="Kies wanneer je wil vertrekken en voeg indien nodig een terugrit toe."
               >
                 <div className="space-y-4">
-                  <CalendarDateField
-                    id="vertrekdatum"
-                    label="Datum"
+                  <label
+                    className="form-label block mb-1"
+                    htmlFor="vertrekdatum-picker"
+                  >
+                    Datum <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="vertrekdatum-picker"
+                    type="date"
+                    className="form-input"
+                    min={minDate}
                     value={departureDate}
-                    onChange={setDepartureDate}
-                    minDate={minDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    required
                   />
                   <Input id="vertrektijd" label="Tijd" type="time" />
                 </div>
@@ -318,15 +321,21 @@ export default function Rolstoelvervoer() {
                     <p className="text-sm font-semibold text-primary mb-4">
                       Terugreis details
                     </p>
-
-                    <CalendarDateField
-                      id="terugreis_datum"
-                      label="Terugreis datum"
+                    <label
+                      className="form-label block mb-1"
+                      htmlFor="terugreisdatum-picker"
+                    >
+                      Terugreis datum <span className="form-required">*</span>
+                    </label>
+                    <input
+                      id="terugreisdatum-picker"
+                      type="date"
+                      className="form-input"
+                      min={departureDate || minDate}
                       value={returnTripDate}
-                      onChange={setReturnTripDate}
-                      minDate={departureDate || minDate}
+                      onChange={(e) => setReturnTripDate(e.target.value)}
+                      required={isRoundTrip}
                     />
-
                     <div className="mt-4 space-y-4">
                       <Input
                         id="terugstraat"
@@ -341,7 +350,6 @@ export default function Rolstoelvervoer() {
                         placeholder="1234 AB"
                       />
                     </div>
-
                     <Input
                       id="terugstad"
                       label="Stad (terug)"

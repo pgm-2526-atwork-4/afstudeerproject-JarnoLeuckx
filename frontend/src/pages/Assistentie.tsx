@@ -329,27 +329,50 @@ export default function Assistentie() {
                 />
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <CalendarDateField
-                    id="startDatum"
-                    label="Startdatum"
-                    value={formData.startDatum}
-                    onChange={(value) =>
-                      setFormData((p) => ({ ...p, startDatum: value }))
-                    }
-                    minDate={minDate}
-                    required
-                  />
-
-                  <CalendarDateField
-                    id="eindDatum"
-                    label="Einddatum"
-                    value={formData.eindDatum}
-                    onChange={(value) =>
-                      setFormData((p) => ({ ...p, eindDatum: value }))
-                    }
-                    minDate={formData.startDatum || minDate}
-                    required
-                  />
+                  <div>
+                    <label
+                      className="form-label block mb-1"
+                      htmlFor="startDatum-picker"
+                    >
+                      Startdatum <span className="form-required">*</span>
+                    </label>
+                    <input
+                      id="startDatum-picker"
+                      type="date"
+                      className="form-input"
+                      min={minDate}
+                      value={formData.startDatum}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          startDatum: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="form-label block mb-1"
+                      htmlFor="eindDatum-picker"
+                    >
+                      Einddatum <span className="form-required">*</span>
+                    </label>
+                    <input
+                      id="eindDatum-picker"
+                      type="date"
+                      className="form-input"
+                      min={formData.startDatum || minDate}
+                      value={formData.eindDatum}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          eindDatum: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
                 </div>
 
                 <Input

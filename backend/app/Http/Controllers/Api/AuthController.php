@@ -151,6 +151,8 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $remember = $request->boolean('remember', false);
+
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
@@ -170,8 +172,11 @@ class AuthController extends Controller
                 'message' => 'Bevestig eerst je e-mailadres voor je inlogt.'
             ], 403);
         }
+
         $user->tokens()->delete();
-        $token = $user->createToken('react-token')->plainTextToken;
+        // Token lifetime: 1 maand als remember, anders standaard (bijv. 1 dag)
+        $expiresAt = $remember ? now()->addMonth() : now()->addDay();
+        $token = $user->createToken('react-token', ['*'], $expiresAt)->plainTextToken;
 
         return response()->json([
             'token' => $token,

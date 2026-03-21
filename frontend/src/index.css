@@ -1,3 +1,89 @@
+/* --- PREMIUM DESIGN UPGRADES --- */
+.section-title {
+  @apply text-4xl font-extrabold tracking-tight text-slate-900 mb-2 mt-8;
+  letter-spacing: -0.01em;
+}
+
+.section-subtitle {
+  @apply text-base text-slate-500 mb-6;
+  font-weight: 500;
+}
+
+.section-space {
+  @apply my-10;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow:
+    0 4px 24px 0 rgba(0, 67, 168, 0.07),
+    0 1.5px 0 rgba(0, 0, 0, 0.03);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.97) _0%,
+    rgba(234, 243, 255, 0.97) _50%,
+    rgba(255, 255, 255, 0.97) _100%
+  );
+  backdrop-filter: blur(8px);
+  border-bottom: 1.5px solid #d7e3f7;
+}
+
+.dropdown-menu {
+  @apply rounded-xl border border-slate-200 bg-white shadow-xl;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  min-width: 16rem;
+  max-width: 95vw;
+  padding: 1.25rem 1rem;
+}
+
+.btn-accent {
+  @apply transition-transform duration-100;
+}
+.btn-accent:active {
+  transform: scale(0.97);
+}
+
+.btn-outline {
+  @apply transition-transform duration-100;
+}
+.btn-outline:active {
+  transform: scale(0.97);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  @apply py-3 px-4 rounded-xl border-2 border-slate-300 focus:border-[#0043A8] focus:ring-2 focus:ring-[#0043A8]/20;
+}
+
+/* Micro-animatie shimmer effect */
+.shimmer {
+  background: linear-gradient(90deg, #f3f3f3 25%, #eaf3ff 50%, #f3f3f3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Scroll to top knop */
+.scroll-to-top {
+  @apply fixed bottom-6 right-6 z-50 rounded-full bg-[#0043A8] text-white shadow-lg p-3 transition hover:bg-[#003688];
+  opacity: 0.85;
+}
+
+/* Gradient backgrounds voor premium feel */
+.premium-gradient {
+  background: linear-gradient(120deg, #eaf3ff 0%, #ffffff 100%);
+}
 @import "tailwindcss";
 
 :root {
@@ -207,7 +293,6 @@
     transform: translateX(120%);
   }
 }
-
 
 * {
   box-sizing: border-box;

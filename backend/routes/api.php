@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\DriverAvailabilityController;
 use App\Http\Controllers\Api\DriverRideController;
 use App\Http\Controllers\Api\CustomerRideController;
 use App\Http\Controllers\Api\CustomerContractController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\TwoFactorController;
 
 
 
@@ -32,6 +34,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+
+    // Review API
+    Route::post('/rides/{ride}/review', [ReviewController::class, 'store']);
+    Route::get('/drivers/{driver}/reviews', [ReviewController::class, 'forDriver']);
+
+    // 2FA API
+    Route::post('/2fa/setup', [TwoFactorController::class, 'setup']);
+    Route::post('/2fa/enable', [TwoFactorController::class, 'enable']);
+    Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable']);
 });
 
 

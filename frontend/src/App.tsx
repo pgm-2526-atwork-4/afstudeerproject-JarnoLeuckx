@@ -5,7 +5,7 @@ import { getCurrentUser, onAuthChanged, type User } from "./auth/auth.api";
 
 import { Home } from "./pages/Home";
 import Rolstoelvervoer from "./pages/Rolstoelvervoer";
-import { LuchthavenVervoer } from "./pages/Luchthavenvervoer";
+import { Luchthavenvervoer } from "./pages/Luchthavenvervoer";
 import Assistentie from "./pages/Assistentie";
 import Contact from "./pages/Contact";
 import Reserveren from "./pages/Reserveren";
@@ -87,7 +87,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rolstoelvervoer" element={<Rolstoelvervoer />} />
-        <Route path="/luchthavenvervoer" element={<LuchthavenVervoer />} />
+        <Route path="/luchthavenvervoer" element={<Luchthavenvervoer />} />
         <Route path="/assistentie" element={<Assistentie />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/reserveren" element={<Reserveren />} />
@@ -143,7 +143,21 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        {/* 404 fallback route */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
+  );
+}
+// Simpele 404 pagina component
+function NotFoundPage() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <h1 className="text-5xl font-black text-blue-800 mb-4">404</h1>
+      <p className="text-lg text-slate-700 mb-6">Deze pagina bestaat niet.</p>
+      <a href="/" className="btn-primary">
+        Ga naar de startpagina
+      </a>
+    </div>
   );
 }

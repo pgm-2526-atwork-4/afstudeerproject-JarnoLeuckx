@@ -1,19 +1,32 @@
-SOCIAL DRIVE - VOORBEELD CONTRACT
+SOCIAL DRIVE – PERSOONSVOLGEND BUDGET (PVB) CONTRACT
 
-Dit document is een voorbeeldcontract voor vervoersdiensten.
+1. PARTIJEN
+	- Klant: [Volledige naam, adres, geboortedatum]
+	- Dienstverlener: Social Drive, [adres, ondernemingsnummer]
 
-Partijen:
-- Klant: ........................................
-- Dienstverlener: Social Drive
+2. VOORWERP VAN HET CONTRACT
+	- Levering van personenvervoer op aanvraag, volgens afgesproken ritgegevens.
 
-Voorwerp:
-- Levering van personenvervoer volgens afgesproken ritgegevens.
+3. DUUR EN BEËINDIGING
+	- Dit contract geldt vanaf ondertekening en kan door beide partijen schriftelijk worden opgezegd met een opzegtermijn van 1 maand.
 
-Belangrijk:
-- Ritdetails en prijs worden bevestigd bij aanvraag.
-- Annulatievoorwaarden worden per rit gecommuniceerd.
-- Dit voorbeeld dient als downloadbare template en kan later juridisch worden uitgebreid.
+4. PRIJS EN BETALING
+	- De prijs per rit wordt vooraf bevestigd. Betaling gebeurt na elke rit of volgens maandelijkse facturatie.
 
-Datum: ........................................
-Handtekening klant: ...........................
-Handtekening Social Drive: ....................
+5. ANNULATIE EN WIJZIGING
+	- Annulatievoorwaarden worden per rit gecommuniceerd. Wijzigingen aan ritten dienen tijdig te worden doorgegeven.
+
+6. AANSPRAKELIJKHEID
+	- Social Drive is aansprakelijk voor schade veroorzaakt door opzet of grove fout. Overmacht sluit aansprakelijkheid uit.
+
+7. PRIVACY EN GEGEVENSVERWERKING
+	- Persoonsgegevens worden verwerkt volgens de geldende privacywetgeving (GDPR). Zie privacyverklaring op www.socialdrive.be.
+
+8. GESCHILLENREGELING
+	- Op dit contract is Belgisch recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechtbank van het arrondissement van de klant.
+
+9. ONDERTEKENING
+	- Plaats: ........................................
+	- Datum: ........................................
+	- Handtekening klant: ...........................
+	- Handtekening Social Drive: ....................

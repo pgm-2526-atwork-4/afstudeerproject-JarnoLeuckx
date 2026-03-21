@@ -1,4 +1,5 @@
 import type { CustomerRide } from "../../lib/customer.api";
+import ReviewForm from "./ReviewForm";
 
 type RideStatusFilter =
   | "all"
@@ -44,6 +45,9 @@ function RideCard({ ride }: { ride: CustomerRide }) {
     ride.total_price !== null && ride.total_price !== undefined
       ? Number(ride.total_price).toFixed(2)
       : null;
+
+  // Toon reviewformulier als rit is afgerond
+  const showReview = ride.status === "completed";
 
   return (
     <div className="rounded-xl border border-slate-200 p-4">
@@ -125,6 +129,13 @@ function RideCard({ ride }: { ride: CustomerRide }) {
           🗑️ Annuleren
         </button>
       </div>
+
+      {showReview && (
+        <div className="mt-6">
+          <h4 className="font-bold mb-2">Geef een review aan de chauffeur</h4>
+          <ReviewForm rideId={ride.id} />
+        </div>
+      )}
     </div>
   );
 }

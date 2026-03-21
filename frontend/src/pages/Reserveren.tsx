@@ -401,7 +401,6 @@ export default function ReserverenPage() {
               </div>
             </div>
 
-            
             <div className="form-section">
               <p className="form-section-title">Assistentie</p>
               <p className="form-section-subtitle">
@@ -426,7 +425,6 @@ export default function ReserverenPage() {
                 </label>
               </div>
 
-              
               <div
                 className={[
                   "mt-5 overflow-hidden rounded-xl border border-secondary/20 bg-secondary/5",
@@ -565,30 +563,43 @@ export default function ReserverenPage() {
             </div>
 
             <div className="space-y-6">
-              <CalendarDateField
-                id="pickup-date"
-                label="Heenrit datum"
-                value={pickupDate}
-                onChange={setPickupDate}
-                required
-                minDate={todayAsInputDate()}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    className="form-label block mb-1"
+                    htmlFor="heenrit-datum-picker"
+                  >
+                    Heenrit datum <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="heenrit-datum-picker"
+                    type="date"
+                    className="form-input"
+                    min={todayAsInputDate()}
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    className="form-label block mb-1"
+                    htmlFor="heenrit-tijd-picker"
+                  >
+                    Heenrit uur <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="heenrit-tijd-picker"
+                    type="time"
+                    className="form-input"
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-              <label className="block">
-                <span className="form-label">
-                  Heenrit uur
-                  <span className="form-required">*</span>
-                </span>
-                <input
-                  type="time"
-                  value={pickupTime}
-                  onChange={(e) => setPickupTime(e.target.value)}
-                  required
-                  className="form-input"
-                />
-              </label>
-
-              <label className="block">
+              <label className="block mt-6">
                 <span className="mb-2 block text-xs font-semibold text-primary">
                   Terugrit gewenst?
                 </span>
@@ -614,26 +625,40 @@ export default function ReserverenPage() {
             </div>
 
             {hasReturnTrip && (
-              <div className="space-y-6">
-                <CalendarDateField
-                  id="return-date"
-                  label="Terugrit datum"
-                  value={returnDate}
-                  onChange={setReturnDate}
-                  required={hasReturnTrip}
-                  minDate={pickupDate || todayAsInputDate()}
-                />
-
-                <label className="block">
-                  <span className="form-label">Terugrit uur</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                  <label
+                    className="form-label block mb-1"
+                    htmlFor="terugrit-datum-picker"
+                  >
+                    Terugrit datum <span className="form-required">*</span>
+                  </label>
                   <input
+                    id="terugrit-datum-picker"
+                    type="date"
+                    className="form-input"
+                    min={pickupDate || todayAsInputDate()}
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    required={hasReturnTrip}
+                  />
+                </div>
+                <div>
+                  <label
+                    className="form-label block mb-1"
+                    htmlFor="terugrit-tijd-picker"
+                  >
+                    Terugrit uur <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="terugrit-tijd-picker"
                     type="time"
+                    className="form-input"
                     value={returnTime}
                     onChange={(e) => setReturnTime(e.target.value)}
                     required={hasReturnTrip}
-                    className="form-input"
                   />
-                </label>
+                </div>
               </div>
             )}
 
