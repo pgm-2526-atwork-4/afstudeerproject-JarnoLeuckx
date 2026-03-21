@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import CalendarDateField from "../components/forms/CalendarDateField";
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import ReservationFormSection from "../components/reservation/ReservationFormSection";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
