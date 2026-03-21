@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Button from "../components/ui/Button";
-import CalendarDateField from "../components/forms/CalendarDateField";
+
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import { createCustomerRide } from "../lib/customer.api";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
