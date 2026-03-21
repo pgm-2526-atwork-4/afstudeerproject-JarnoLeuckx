@@ -4,7 +4,7 @@ import { Users, UserCircle, Heart, Calendar } from "lucide-react";
 
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import CalendarDateField from "../components/forms/CalendarDateField";
+
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
 import ReservationFormSection from "../components/reservation/ReservationFormSection";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
