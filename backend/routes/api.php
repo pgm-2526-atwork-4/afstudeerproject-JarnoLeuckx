@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\DriverRideController;
 use App\Http\Controllers\Api\CustomerRideController;
 use App\Http\Controllers\Api\CustomerContractController;
 
+use App\Http\Controllers\Api\ReviewController;
+
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,6 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+
+    // Review API
+    Route::post('/rides/{ride}/review', [ReviewController::class, 'store']);
+    Route::get('/drivers/{driver}/reviews', [ReviewController::class, 'forDriver']);
 });
 
 
