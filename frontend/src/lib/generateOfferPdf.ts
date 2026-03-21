@@ -53,9 +53,10 @@ export async function generateOfferPdf(
   } catch {
     // Logo kon niet geladen worden, verder gaan zonder logo
   }
+  // Titel en samenvatting
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
-  pdf.text("Social Drive — Prijsofferte", 15, 42);
+  pdf.text("SOCIAL DRIVE – OFFERTE", 15, 42);
   const createdAtDate =
     quote.quote_sent_at?.substring(0, 10) ??
     quote.created_at?.substring(0, 10) ??
@@ -64,7 +65,7 @@ export async function generateOfferPdf(
   pdf.setFontSize(10);
   pdf.setTextColor(100);
   pdf.text(
-    `Offerte #${String(quote.id).padStart(5, "0")} · Opgemaakt op ${fmtDate(createdAtDate)}`,
+    `Offerte nr. ${String(quote.id).padStart(5, "0")} | Opgemaakt op: ${fmtDate(createdAtDate)}`,
     15,
     49,
   );
@@ -80,10 +81,11 @@ export async function generateOfferPdf(
     pdf.text(value, 75, y);
     y += lh;
   };
+  // 1. Klantgegevens
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
-  pdf.text("KLANTGEGEVENS", 15, y);
+  pdf.text("1. KLANTGEGEVENS", 15, y);
   pdf.setTextColor(30, 41, 59);
   y += 2;
   pdf.setDrawColor(0, 67, 168);
@@ -92,10 +94,11 @@ export async function generateOfferPdf(
   y += 5;
   line("Naam", signature?.signerName ?? "-");
   y += 4;
+  // 2. Ritdetails
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
-  pdf.text("RITDETAILS", 15, y);
+  pdf.text("2. RITDETAILS", 15, y);
   pdf.setTextColor(30, 41, 59);
   y += 2;
   pdf.line(15, y, 195, y);
@@ -109,10 +112,11 @@ export async function generateOfferPdf(
   }
   line("Retourrit", quote.return_trip ? "Ja" : "Nee");
   y += 4;
+  // 3. Prijsberekening
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
   pdf.setTextColor(0, 67, 168);
-  pdf.text("PRIJSBEREKENING", 15, y);
+  pdf.text("3. PRIJSBEREKENING", 15, y);
   pdf.setTextColor(30, 41, 59);
   y += 2;
   pdf.line(15, y, 195, y);
@@ -147,11 +151,39 @@ export async function generateOfferPdf(
   pdf.text(fmtMoney(quote.total_price), 140, y + 29);
   pdf.setTextColor(30, 41, 59);
   y += 41;
+  // 4. Opmerkingen
+  if (quote.quote_notes) {
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(11);
+    pdf.setTextColor(0, 67, 168);
+    pdf.text("4. OPMERKINGEN", 15, y);
+    pdf.setTextColor(30, 41, 59);
+    y += 2;
+    pdf.line(15, y, 195, y);
+    y += 5;
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    const wrapped = pdf.splitTextToSize(quote.quote_notes, 180) as string[];
+    for (const wLine of wrapped) {
+      pdf.text(wLine, 15, y);
+      y += lh;
+    }
+    y += 4;
+  }
+  // 5. Voorwaarden
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.setTextColor(0, 67, 168);
+  pdf.text("5. VOORWAARDEN EN INFORMATIE", 15, y);
+  pdf.setTextColor(30, 41, 59);
+  y += 2;
+  pdf.line(15, y, 195, y);
+  y += 5;
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   pdf.setTextColor(100);
   pdf.text(
-    "* Offerte geldig voor 30 dagen. Prijs is een raming op basis van de opgegeven gegevens.",
+    "Deze offerte is 30 dagen geldig. De prijs is een raming op basis van de opgegeven gegevens. Annulatievoorwaarden worden bij reservatie bevestigd. Voor vragen: info@socialdrive.be.",
     15,
     y,
   );
@@ -207,7 +239,6 @@ export async function generateOfferPdf(
           20,
         );
       } catch (err) {
-
         console.warn("Kon getekende handtekening niet toevoegen aan PDF:", err);
       }
     }
