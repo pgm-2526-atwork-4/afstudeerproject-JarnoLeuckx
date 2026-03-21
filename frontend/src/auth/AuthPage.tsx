@@ -40,6 +40,20 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
 
+  const getPasswordStrength = (
+    password: string,
+  ): "Zwak" | "Matig" | "Sterk" | null => {
+    if (!password) return null;
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (score <= 1) return "Zwak";
+    if (score === 2) return "Matig";
+    return "Sterk";
+  };
+
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -126,6 +140,14 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
     if (registerPassword.length < 8) {
       setRegisterError("Wachtwoord moet minstens 8 tekens bevatten.");
+      return;
+    }
+
+    // Vereist minstens 1 cijfer of speciaal teken
+    if (!/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(registerPassword)) {
+      setRegisterError(
+        "Wachtwoord moet minstens 1 cijfer of speciaal teken bevatten.",
+      );
       return;
     }
 
@@ -564,10 +586,36 @@ export default function AuthPage({ mode }: AuthPageProps) {
                       autoComplete="new-password"
                       aria-invalid={Boolean(registerError)}
                       aria-describedby={
-                        registerError ? "register-error" : undefined
+                        registerError
+                          ? "register-error"
+                          : "register-password-help"
                       }
                       className="form-input"
                     />
+                    <span
+                      id="register-password-help"
+                      className="text-xs text-slate-500"
+                    >
+                      Minstens 8 tekens, waarvan minstens 1 cijfer of speciaal
+                      teken
+                    </span>
+                    {registerPassword && (
+                      <span
+                        className="text-xs mt-1"
+                        style={{
+                          color:
+                            getPasswordStrength(registerPassword) === "Sterk"
+                              ? "#16a34a"
+                              : getPasswordStrength(registerPassword) ===
+                                  "Matig"
+                                ? "#eab308"
+                                : "#dc2626",
+                        }}
+                      >
+                        Wachtwoordsterkte:{" "}
+                        {getPasswordStrength(registerPassword)}
+                      </span>
+                    )}
                   </label>
 
                   <label className="grid gap-1.5">
