@@ -284,7 +284,7 @@ export default function CalendarDateField({
   };
 
   return (
-    <div className={className}>
+    <div className={className ? `${className} w-full` : "w-full"}>
       <span className="form-label">
         {label}
         {required && <span className="form-required">*</span>}
@@ -306,8 +306,8 @@ export default function CalendarDateField({
         />
       )}
 
-      <div className="rounded-2xl border border-[#dbe7ff] bg-white p-3 shadow-sm">
-        <div className="mb-4 rounded-2xl border border-[#dbe7ff] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4">
+      <div className="w-full rounded-2xl border border-[#dbe7ff] bg-white p-3 shadow-sm">
+        <div className="mb-4 w-full rounded-2xl border border-[#dbe7ff] bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#0043A8]">
             Geselecteerde datum
           </p>
@@ -319,7 +319,7 @@ export default function CalendarDateField({
           </p>
         </div>
 
-        <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+        <div className="mb-3 flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
           <p className="text-sm font-bold text-slate-900">{monthLabel}</p>
         </div>
 
@@ -345,6 +345,7 @@ export default function CalendarDateField({
 
         {isRangeMode ? (
           <DayPicker
+            style={{ width: "100%" }}
             mode="range"
             selected={selectedRange}
             onSelect={(range: DateRange | undefined) => {
@@ -378,6 +379,7 @@ export default function CalendarDateField({
           />
         ) : (
           <DayPicker
+            style={{ width: "100%" }}
             mode="single"
             selected={selectedSingle}
             onSelect={(date: Date | undefined) => {

@@ -1,3 +1,21 @@
+use App\Notifications\RideArrivalNotification;
+    public function arrived(Request $request, Ride $ride)
+    {
+        if ((int) $ride->driver_id !== (int) $request->user()->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        // Google Maps link genereren
+        $address = $ride->pickup_address ?? trim($ride->pickup_street . ' ' . $ride->pickup_number . ', ' . $ride->pickup_postcode . ' ' . $ride->pickup_city);
+        $mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($address);
+
+        // Notificatie + mail sturen
+        if ($ride->customer) {
+            $ride->customer->notify(new RideArrivalNotification($ride, $mapsUrl));
+        }
+
+        return response()->json(['message' => 'Klant is verwittigd van aankomst.']);
+    }
 <?php
 
 namespace App\Http\Controllers\Api;

@@ -10,6 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+
         User::updateOrCreate(
             ['email' => 'admin@socialdrive.test'],
             [
@@ -18,8 +19,10 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                'avatar' => 'image/default-avatar.svg',
             ]
         );
+
 
         User::updateOrCreate(
             ['email' => 'driver@socialdrive.test'],
@@ -29,6 +32,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role' => 'driver',
                 'email_verified_at' => now(),
+                'avatar' => 'image/default-avatar.svg',
             ]
         );
 
@@ -40,6 +44,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role' => 'customer',
                 'email_verified_at' => now(),
+                'avatar' => 'image/default-avatar.svg',
             ]
         );
     }

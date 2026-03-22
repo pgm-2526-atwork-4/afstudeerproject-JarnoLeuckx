@@ -1,5 +1,7 @@
-import type { CustomerRide } from "../../lib/customer.api";
+import { useNavigate } from "react-router-dom";
+import { deleteRide, type Ride } from "../../lib/customer.api";
 import ReviewForm from "./ReviewForm";
+import { useState } from "react";
 
 type RideStatusFilter =
   | "all"
@@ -10,7 +12,7 @@ type RideStatusFilter =
   | "cancelled";
 
 type Props = {
-  rides: CustomerRide[];
+  rides: Ride[];
   statusFilter: RideStatusFilter;
 };
 
@@ -39,7 +41,10 @@ export default function CustomerRideList({ rides, statusFilter }: Props) {
   );
 }
 
-function RideCard({ ride }: { ride: CustomerRide }) {
+function RideCard({ ride }: { ride: Ride }) {
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const rideNotes = ride.notes;
   const price =
     ride.total_price !== null && ride.total_price !== undefined
@@ -49,13 +54,26 @@ function RideCard({ ride }: { ride: CustomerRide }) {
   // Toon reviewformulier als rit is afgerond
   const showReview = ride.status === "completed";
 
+  async function handleDelete() {
+    if (!window.confirm("Weet je zeker dat je deze rit wilt annuleren?"))
+      return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await deleteRide(ride.id);
+      window.location.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Annuleren mislukt.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="rounded-xl border border-slate-200 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-lg font-black text-slate-900">
-            {ride.title ?? "Rit"}
-          </div>
+          <div className="text-lg font-black text-slate-900">Rit</div>
           <div className="text-xs text-slate-500">
             Rit ID: R-{String(ride.id).padStart(4, "0")}
           </div>
@@ -69,7 +87,8 @@ function RideCard({ ride }: { ride: CustomerRide }) {
             Van
           </div>
           <div className="font-bold text-slate-900">
-            {ride.pickup_address ?? ride.pickup_city}
+            {ride.pickup_street} {ride.pickup_number}, {ride.pickup_postcode}{" "}
+            {ride.pickup_city}
           </div>
         </div>
         <div>
@@ -86,7 +105,8 @@ function RideCard({ ride }: { ride: CustomerRide }) {
             Naar
           </div>
           <div className="font-bold text-slate-900">
-            {ride.dropoff_address ?? ride.dropoff_city}
+            {ride.dropoff_street} {ride.dropoff_number}, {ride.dropoff_postcode}{" "}
+            {ride.dropoff_city}
           </div>
         </div>
         <div>
@@ -115,18 +135,22 @@ function RideCard({ ride }: { ride: CustomerRide }) {
         </div>
       )}
 
+      {error && <div className="form-alert-error mt-2">{error}</div>}
+
       <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
         <button
           className="btn-outline w-full px-3 py-2 sm:w-auto"
-          onClick={() => alert("Bewerken later")}
+          onClick={() => navigate(`/customer/rides/${ride.id}/edit`)}
+          disabled={deleting}
         >
           ✏️ Bewerken
         </button>
         <button
           className="btn-danger w-full px-3 py-2 sm:w-auto"
-          onClick={() => alert("Annuleren later")}
+          onClick={handleDelete}
+          disabled={deleting}
         >
-          🗑️ Annuleren
+          {deleting ? "Bezig..." : "🗑️ Annuleren"}
         </button>
       </div>
 

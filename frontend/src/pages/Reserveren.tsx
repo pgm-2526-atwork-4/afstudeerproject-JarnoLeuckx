@@ -3,7 +3,12 @@ import { useSearchParams } from "react-router-dom";
 import Button from "../components/ui/Button";
 
 import ReservationAccountPrompt from "../components/reservation/ReservationAccountPrompt";
-import { createCustomerRide } from "../lib/customer.api";
+import {
+  createCustomerRide,
+  updateRide,
+  deleteRide,
+  type Ride,
+} from "../lib/customer.api";
 import { checkEmailExists, getCurrentUser } from "../auth/auth.api";
 
 type FieldProps = {
@@ -75,7 +80,19 @@ function todayAsInputDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-export default function ReserverenPage() {
+type ReserverenPageProps = {
+  mode?: "edit" | "create";
+  ride?: Ride | null;
+  onSave?: () => void;
+  onDelete?: () => void;
+};
+
+export default function ReserverenPage({
+  mode = "create",
+  ride,
+  onSave,
+  onDelete,
+}: ReserverenPageProps) {
   const [searchParams] = useSearchParams();
   const currentUser = getCurrentUser();
   const fullName = currentUser?.name?.trim() ?? "";
@@ -85,47 +102,74 @@ export default function ReserverenPage() {
   const defaultPhone = currentUser?.phone ?? "";
   const [contactEmail, setContactEmail] = useState(defaultEmail);
 
-  const initialServiceType = searchParams.get("service");
-  const initialAssistanceType = searchParams.get("assistanceType");
+  const initialServiceType = ride?.service_type ?? searchParams.get("service");
+  const initialAssistanceType =
+    ride?.assistance_type ?? searchParams.get("assistanceType");
   const [hasAssistance, setHasAssistance] = useState(
-    initialAssistanceType === "luchthaven" ||
+    ride?.assistance_type === "luchthaven" ||
+      ride?.assistance_type === "ziekenhuis" ||
+      initialAssistanceType === "luchthaven" ||
       initialAssistanceType === "ziekenhuis",
   );
   const [assistentieType, setAssistentieType] = useState<
     "" | "luchthaven" | "ziekenhuis"
   >(
-    initialAssistanceType === "luchthaven" ||
+    ride?.assistance_type ??
+      (initialAssistanceType === "luchthaven" ||
       initialAssistanceType === "ziekenhuis"
-      ? initialAssistanceType
-      : "",
+        ? initialAssistanceType
+        : ""),
   );
   const [serviceType, setServiceType] = useState<
     "airport" | "wheelchair" | "medical" | "assistance"
   >(
-    initialServiceType === "airport" ||
+    ride?.service_type ??
+      (initialServiceType === "airport" ||
       initialServiceType === "wheelchair" ||
       initialServiceType === "medical" ||
       initialServiceType === "assistance"
-      ? initialServiceType
-      : "airport",
+        ? initialServiceType
+        : "airport"),
   );
 
-  const [pickupStreet, setPickupStreet] = useState("");
-  const [pickupNumber, setPickupNumber] = useState("");
-  const [pickupPostcode, setPickupPostcode] = useState("");
-  const [pickupCity, setPickupCity] = useState("");
+  const [pickupStreet, setPickupStreet] = useState(ride?.pickup_street ?? "");
+  const [pickupNumber, setPickupNumber] = useState(ride?.pickup_number ?? "");
+  const [pickupPostcode, setPickupPostcode] = useState(
+    ride?.pickup_postcode ?? "",
+  );
+  const [pickupCity, setPickupCity] = useState(ride?.pickup_city ?? "");
 
-  const [dropoffStreet, setDropoffStreet] = useState("");
-  const [dropoffNumber, setDropoffNumber] = useState("");
-  const [dropoffPostcode, setDropoffPostcode] = useState("");
-  const [dropoffCity, setDropoffCity] = useState("");
+  const [dropoffStreet, setDropoffStreet] = useState(
+    ride?.dropoff_street ?? "",
+  );
+  const [dropoffNumber, setDropoffNumber] = useState(
+    ride?.dropoff_number ?? "",
+  );
+  const [dropoffPostcode, setDropoffPostcode] = useState(
+    ride?.dropoff_postcode ?? "",
+  );
+  const [dropoffCity, setDropoffCity] = useState(ride?.dropoff_city ?? "");
 
-  const [pickupDate, setPickupDate] = useState("");
-  const [pickupTime, setPickupTime] = useState("");
-  const [hasReturnTrip, setHasReturnTrip] = useState(false);
-  const [returnDate, setReturnDate] = useState("");
-  const [returnTime, setReturnTime] = useState("");
-  const [notes, setNotes] = useState("");
+  const [pickupDate, setPickupDate] = useState(
+    ride?.pickup_datetime ? ride.pickup_datetime.split("T")[0] : "",
+  );
+  const [pickupTime, setPickupTime] = useState(
+    ride?.pickup_datetime
+      ? ride.pickup_datetime.split("T")[1]?.slice(0, 5)
+      : "",
+  );
+  const [hasReturnTrip, setHasReturnTrip] = useState(
+    ride?.has_return_trip ?? false,
+  );
+  const [returnDate, setReturnDate] = useState(
+    ride?.return_datetime ? ride.return_datetime.split("T")[0] : "",
+  );
+  const [returnTime, setReturnTime] = useState(
+    ride?.return_datetime
+      ? ride.return_datetime.split("T")[1]?.slice(0, 5)
+      : "",
+  );
+  const [notes, setNotes] = useState(ride?.notes ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -195,6 +239,38 @@ export default function ReserverenPage() {
       }
     }
 
+    if (mode === "edit" && ride) {
+      setLoading(true);
+      try {
+        await updateRide(ride.id, {
+          service_type: serviceType,
+          pickup_street: pickupStreet,
+          pickup_number: pickupNumber || undefined,
+          pickup_postcode: pickupPostcode,
+          pickup_city: pickupCity,
+          dropoff_street: dropoffStreet,
+          dropoff_number: dropoffNumber || undefined,
+          dropoff_postcode: dropoffPostcode,
+          dropoff_city: dropoffCity,
+          pickup_datetime: pickupDatetime,
+          has_return_trip: hasReturnTrip,
+          return_datetime: hasReturnTrip ? returnDatetime : undefined,
+          notes: notes || undefined,
+          assistance_type:
+            hasAssistance && assistentieType !== ""
+              ? assistentieType
+              : undefined,
+        });
+        setSuccess("Rit succesvol bijgewerkt.");
+        if (onSave) onSave();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Rit bijwerken mislukt.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!currentUser) {
       try {
         const result = await checkEmailExists(cleanEmail);
@@ -258,6 +334,20 @@ export default function ReserverenPage() {
       } else {
         setError(message);
       }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteRide() {
+    if (!ride) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteRide(ride.id);
+      if (onDelete) onDelete();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Rit annuleren mislukt.");
     } finally {
       setLoading(false);
     }
@@ -662,21 +752,27 @@ export default function ReserverenPage() {
               </div>
             )}
 
-            <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] px-4 py-3">
-              <p className="text-sm text-slate-900 font-semibold">
-                Geschatte prijs
-              </p>
-              <p className="text-2xl font-black text-slate-900">
-                €{price.toFixed(2)}
-              </p>
-              <p className="text-xs text-slate-600">
-                Hardcoded prijs (tijdelijk).
-              </p>
-            </div>
+            {/* Prijsindicatie verwijderd op verzoek */}
 
-            <Button className="w-64" disabled={loading}>
-              {loading ? "Bezig..." : "Rit aanvragen"}
-            </Button>
+            <div className="flex gap-4">
+              <Button className="w-64" disabled={loading}>
+                {loading
+                  ? "Bezig..."
+                  : mode === "edit"
+                    ? "Rit bijwerken"
+                    : "Rit aanvragen"}
+              </Button>
+              {mode === "edit" && ride && (
+                <Button
+                  type="button"
+                  className="w-64 btn-danger"
+                  disabled={loading}
+                  onClick={handleDeleteRide}
+                >
+                  Rit annuleren
+                </Button>
+              )}
+            </div>
           </form>
         </div>
       </div>

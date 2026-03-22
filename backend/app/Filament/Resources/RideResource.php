@@ -26,6 +26,18 @@ class RideResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            Forms\Components\Section::make('Review')
+                ->schema([
+                    Forms\Components\Placeholder::make('review_stars')
+                        ->label('Beoordeling (sterren)')
+                        ->content(fn ($record) => $record?->review?->stars ? str_repeat('★', $record->review->stars) : 'Nog geen beoordeling'),
+                    Forms\Components\Textarea::make('review_comment')
+                        ->label('Review commentaar')
+                        ->disabled()
+                        ->rows(3)
+                        ->default(fn ($record) => $record?->review?->comment ?? 'Geen commentaar'),
+                ])
+                ->columns(1),
             
             Forms\Components\Section::make('Rit')
                 ->schema([
@@ -120,6 +132,13 @@ class RideResource extends Resource
                     Forms\Components\TextInput::make('dropoff_city')->label('Stad')->required(),
                 ])
                 ->columns(4),
+                Forms\Components\Section::make('Vertrekadres terugrit')
+                    ->schema([
+                        Forms\Components\TextInput::make('return_pickup_street')->label('Straat')->nullable(),
+                        Forms\Components\TextInput::make('return_pickup_postcode')->label('Postcode')->nullable(),
+                        Forms\Components\TextInput::make('return_pickup_city')->label('Stad')->nullable(),
+                    ])
+                    ->columns(3),
             Forms\Components\Section::make('Prijs & extra')
                 ->schema([
                     Forms\Components\TextInput::make('distance_km')->label('Afstand (km)')->numeric()->nullable(),

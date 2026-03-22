@@ -14,8 +14,22 @@ import {
   acceptRide,
   completeRide,
   rejectRide,
+  notifyArrival,
   type Ride,
 } from "../../lib/driver.api";
+import type { Review } from "../../lib/review.types";
+async function handleArrival(id: number) {
+  setError(null);
+  setLoadingId(id);
+  try {
+    await notifyArrival(id);
+    onAccepted();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Kon aankomst niet melden.");
+  } finally {
+    setLoadingId(null);
+  }
+}
 
 type Props = {
   rides: Ride[];
@@ -267,6 +281,14 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                 ride.status === "in_progress") && (
                 <div className="mt-4 flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                   <button
+                    onClick={() => handleArrival(ride.id)}
+                    disabled={loadingId === ride.id}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-amber-600 bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-amber-700 hover:bg-amber-700 disabled:cursor-not-allowed disabled:border-amber-300 disabled:bg-amber-300 sm:w-auto"
+                  >
+                    <MapPinned size={16} />
+                    {loadingId === ride.id ? "..." : "Ik ben er"}
+                  </button>
+                  <button
                     onClick={() => handleComplete(ride.id)}
                     disabled={loadingId === ride.id}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0043A8] bg-[#0043A8] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-[#00337f] hover:bg-[#00337f] disabled:cursor-not-allowed disabled:border-[#8ab1e8] disabled:bg-[#8ab1e8] sm:w-auto"
@@ -274,6 +296,21 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
                     <CheckCircle2 size={16} />
                     {loadingId === ride.id ? "..." : "Rit afronden"}
                   </button>
+                </div>
+              )}
+
+              {/* Review tonen indien aanwezig en rit afgerond */}
+              {ride.status === "completed" && ride.review && (
+                <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="mb-1 text-sm font-bold text-emerald-900">
+                    Review van klant
+                  </div>
+                  <div className="mb-1 text-lg text-emerald-700">
+                    {"★".repeat(ride.review.stars)}
+                  </div>
+                  <div className="text-sm text-emerald-900">
+                    {ride.review.comment || "Geen commentaar"}
+                  </div>
                 </div>
               )}
             </div>

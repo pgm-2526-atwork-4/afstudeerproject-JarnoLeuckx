@@ -11,6 +11,9 @@ class RideSeeder extends Seeder
 {
     public function run(): void
     {
+        
+        $airportPickupAt = now()->addDays(2)->startOfDay()->setHour(9);
+        $wheelchairPickupAt = now()->addDays(5)->startOfDay()->setHour(10);
         $customer = User::where('role', 'customer')->first();
         $driver = User::where('role', 'driver')->first();
         $vehicle = Vehicle::first();
@@ -19,8 +22,30 @@ class RideSeeder extends Seeder
             return;
         }
 
-        $airportPickupAt = now()->addDays(2)->startOfDay()->setHour(9);
-        $wheelchairPickupAt = now()->addDays(5)->startOfDay()->setHour(10);
+
+        // Rit op vandaag
+        $todayPickupAt = now()->startOfDay()->setHour(14); // 14u vandaag
+        // Rit op vandaag toevoegen
+        Ride::updateOrCreate(
+            [
+                'customer_id' => $customer->id,
+                'service_type' => 'regular',
+                'pickup_street' => 'Teststraat',
+                'pickup_postcode' => '1000',
+                'pickup_city' => 'Brussel',
+                'dropoff_street' => 'Centrumlaan',
+                'dropoff_postcode' => '1000',
+                'dropoff_city' => 'Brussel',
+                'pickup_datetime' => $todayPickupAt,
+            ],
+            [
+                'driver_id' => $driver?->id,
+                'vehicle_id' => $vehicle?->id,
+                'distance_km' => 5,
+                'total_price' => 12.50,
+                'status' => 'confirmed',
+            ]
+        );
 
         Ride::updateOrCreate(
             [
