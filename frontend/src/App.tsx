@@ -16,6 +16,7 @@ import ResetPasswordPage from "./auth/ResetPasswordPage";
 import DriverAccountPage from "./pages/DriverAccount";
 import CustomerAccountPage from "./pages/CustomerAccount";
 import CustomerSettingsPage from "./pages/CustomerSettings";
+import EditRidePage from "./pages/EditRide";
 import AccessDeniedPage from "./pages/AccessDenied";
 
 type ProtectedRouteProps = {
@@ -124,6 +125,14 @@ export default function App() {
           element={
             <ProtectedRoute user={user} requiredRole="customer">
               <CustomerAccountPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/rides/:rideId/edit"
+          element={
+            <ProtectedRoute user={user} requiredRole="customer">
+              <EditRidePage />
             </ProtectedRoute>
           }
         />

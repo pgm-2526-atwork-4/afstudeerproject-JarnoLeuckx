@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])
         Route::patch('/rides/{ride}/accept', [DriverRideController::class, 'accept']);
         Route::patch('/rides/{ride}/reject', [DriverRideController::class, 'reject']);
         Route::patch('/rides/{ride}/complete', [DriverRideController::class, 'complete']);
+        Route::post('/rides/{ride}/arrived', [DriverRideController::class, 'arrived']);
     });
 
 
@@ -69,6 +70,8 @@ Route::middleware(['auth:sanctum', 'role:customer'])
     ->group(function () {
         Route::get('/rides', [CustomerRideController::class, 'index']);
         Route::post('/rides', [CustomerRideController::class, 'store']);
+        Route::patch('/rides/{ride}', [CustomerRideController::class, 'update']);
+        Route::delete('/rides/{ride}', [CustomerRideController::class, 'destroy']);
         Route::get('/available-drivers', [CustomerRideController::class, 'availableDrivers']);
 
         Route::post('/contract/sign', [CustomerContractController::class, 'sign']);

@@ -1,3 +1,9 @@
+// Notify customer that driver has arrived
+export function notifyArrival(id: number) {
+  return apiFetch(`/driver/rides/${id}/arrived`, {
+    method: "POST",
+  });
+}
 import { apiFetch } from "./api";
 
 export type AvailabilityStatus = "available" | "unavailable";
