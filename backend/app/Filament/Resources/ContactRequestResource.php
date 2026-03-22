@@ -169,9 +169,18 @@ class ContactRequestResource extends Resource
                     ->modalWidth('4xl')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Sluiten')
-                    ->modalContent(fn (ContactRequest $record) => view('filament.resources.contact-request-resource.view-request', [
-                        'record' => $record,
-                    ])),
+                    ->modalContent(function (ContactRequest $record) {
+                        try {
+                            return view('filament.resources.contact-request-resource.view-request', [
+                                'record' => $record,
+                            ]);
+                        } catch (\Illuminate\Database\Eloquent\RelationNotFoundException $e) {
+                            return view('filament.resources.contact-request-resource.view-request', [
+                                'record' => null,
+                                'error_message' => 'Er is een fout opgetreden bij het ophalen van de aanvraaggegevens.'
+                            ]);
+                        }
+                    }),
 
                 Tables\Actions\Action::make('voorbereid_offerte')
                     ->label('Offerte voorbereiden')
