@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import SignaturePadCanvas, {
   type SignaturePadRef,
 } from "../shared/SignaturePadCanvas";
-import CustomerRideList from "../components/customers/CustomerRideList";
 import {
   getCurrentUser,
   setCurrentUser,

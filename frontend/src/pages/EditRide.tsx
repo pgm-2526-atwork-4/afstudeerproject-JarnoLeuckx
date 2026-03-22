@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  getMyRides,
-  updateRide,
-  deleteRide,
-  type Ride,
-} from "../lib/customer.api";
+import { getMyRides, type Ride } from "../lib/customer.api";
 import ReserverenPage from "./Reserveren";
 
 export default function EditRidePage() {

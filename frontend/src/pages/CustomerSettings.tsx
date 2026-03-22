@@ -70,7 +70,6 @@ export default function CustomerSettingsPage() {
   const [phone, setPhone] = useState(currentUser?.phone ?? "");
   const [address, setAddress] = useState(currentUser?.address ?? "");
   const [vaphNumber, setVaphNumber] = useState(currentUser?.vaph_number ?? "");
-  const [avatar, setAvatar] = useState(currentUser?.avatar ?? null);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(
     currentUser?.email_notifications_enabled ?? false,
   );
@@ -167,12 +166,7 @@ export default function CustomerSettingsPage() {
       )}
       <div className="mx-auto w-full max-w-4xl px-2 py-4 sm:px-4 sm:py-8">
         <div className="mb-6 surface-card-strong p-4 sm:p-6 flex flex-col items-center gap-4">
-          <CustomerProfileCard
-            name={name}
-            email={email}
-            phone={phone}
-            avatar={avatar}
-          />
+          <CustomerProfileCard name={name} email={email} phone={phone} />
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 text-center">
             Mijn gegevens
           </h1>
