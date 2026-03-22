@@ -14,13 +14,9 @@ import {
   downloadSignedCustomerContract,
 } from "../lib/customerContract";
 import { signCustomerContract } from "../lib/customerContract.api";
-import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
+import { getAvailableDrivers, getMyRides } from "../lib/customer.api";
+import type { AvailableDriver, CustomerRide } from "../lib/customer.api";
 import { generateOfferPdf } from "../lib/generateOfferPdf";
-  getAvailableDrivers,
-  getMyRides,
-  type AvailableDriver,
-  type CustomerRide,
-} from "../lib/customer.api";
 import { useNavigate } from "react-router-dom";
 
 type RideStatusFilter =
