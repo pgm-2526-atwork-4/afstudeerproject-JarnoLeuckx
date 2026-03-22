@@ -1,17 +1,34 @@
 // Simple modal component
-function Modal({ open, onClose, onConfirm }: { open: boolean; onClose: () => void; onConfirm: () => void }) {
+function Modal({
+  open,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-2xl text-red-600">⚠️</span>
-          <h3 className="text-lg font-bold text-red-700">Account verwijderen</h3>
+          <h3 className="text-lg font-bold text-red-700">
+            Account verwijderen
+          </h3>
         </div>
-        <p className="mb-4 text-slate-700">Weet je zeker dat je je account definitief wilt verwijderen? Deze actie kan niet ongedaan gemaakt worden.</p>
+        <p className="mb-4 text-slate-700">
+          Weet je zeker dat je je account definitief wilt verwijderen? Deze
+          actie kan niet ongedaan gemaakt worden.
+        </p>
         <div className="flex justify-end gap-2">
-          <button className="btn-outline" onClick={onClose}>Annuleren</button>
-          <button className="btn-danger" onClick={onConfirm}>Verwijderen</button>
+          <button className="btn-outline" onClick={onClose}>
+            Annuleren
+          </button>
+          <button className="btn-danger" onClick={onConfirm}>
+            Verwijderen
+          </button>
         </div>
       </div>
     </div>
@@ -149,8 +166,15 @@ export default function CustomerSettingsPage() {
       )}
       <div className="mx-auto w-full max-w-4xl px-2 py-4 sm:px-4 sm:py-8">
         <div className="mb-6 surface-card-strong p-4 sm:p-6 flex flex-col items-center gap-4">
-          <CustomerProfileCard name={name} email={email} phone={phone} avatar={avatar} />
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 text-center">Mijn gegevens</h1>
+          <CustomerProfileCard
+            name={name}
+            email={email}
+            phone={phone}
+            avatar={avatar}
+          />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 text-center">
+            Mijn gegevens
+          </h1>
           <p className="mt-1 text-sm text-slate-600 text-center">
             Werk je profielgegevens bij of verwijder je account indien gewenst.
           </p>
@@ -180,7 +204,9 @@ export default function CustomerSettingsPage() {
                     required
                     placeholder="Bijv. Jan Janssens"
                   />
-                  <span className="text-xs text-slate-500">Je volledige naam</span>
+                  <span className="text-xs text-slate-500">
+                    Je volledige naam
+                  </span>
                 </label>
                 <label className="grid gap-1.5">
                   <span className="form-label">
@@ -194,7 +220,9 @@ export default function CustomerSettingsPage() {
                     required
                     placeholder="jan@email.com"
                   />
-                  <span className="text-xs text-slate-500">Gebruik een geldig e-mailadres</span>
+                  <span className="text-xs text-slate-500">
+                    Gebruik een geldig e-mailadres
+                  </span>
                 </label>
                 <label className="grid gap-1.5">
                   <span className="form-label">Telefoon</span>
@@ -204,7 +232,9 @@ export default function CustomerSettingsPage() {
                     className="form-input"
                     placeholder="Bijv. 0470 12 34 56"
                   />
-                  <span className="text-xs text-slate-500">Optioneel, maar handig voor snelle opvolging</span>
+                  <span className="text-xs text-slate-500">
+                    Optioneel, maar handig voor snelle opvolging
+                  </span>
                 </label>
               </div>
             </div>
@@ -219,7 +249,9 @@ export default function CustomerSettingsPage() {
                   className="form-input"
                   placeholder="Straatnaam 1, 9000 Gent"
                 />
-                <span className="text-xs text-slate-500">Optioneel, voor vlotte communicatie</span>
+                <span className="text-xs text-slate-500">
+                  Optioneel, voor vlotte communicatie
+                </span>
               </label>
             </div>
             {/* VAPH-nummer en notificaties */}
@@ -234,7 +266,9 @@ export default function CustomerSettingsPage() {
                     className="form-input"
                     placeholder="Bijv. 123456789"
                   />
-                  <span className="text-xs text-slate-500">Enkel indien van toepassing</span>
+                  <span className="text-xs text-slate-500">
+                    Enkel indien van toepassing
+                  </span>
                 </label>
                 <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 md:col-span-1">
                   <input
@@ -273,7 +307,11 @@ export default function CustomerSettingsPage() {
           </form>
         </section>
 
-        <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={confirmDeleteAccount} />
+        <Modal
+          open={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDeleteAccount}
+        />
         <section className="mt-6 surface-card p-6">
           <h2 className="text-xl font-extrabold text-red-700">
             Account verwijderen

@@ -5,8 +5,13 @@ type Props = {
   avatar?: string | null;
 };
 
-export default function CustomerProfileCard({ name, email, phone, avatar }: Props) {
-  const avatarUrl = avatar || '/image/default-avatar.svg';
+export default function CustomerProfileCard({
+  name,
+  email,
+  phone,
+  avatar,
+}: Props) {
+  const avatarUrl = avatar || "/image/default-avatar.svg";
   return (
     <div className="flex flex-col md:flex-row items-center gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <img
