@@ -89,6 +89,7 @@ class RideStatusUpdatedNotification extends Notification
 
     private function customerAccountUrl(): string
     {
-        return rtrim((string) config('services.frontend.url', config('app.url')), '/').'/customer/account';
+        // Link direct naar de ritdetails-pagina voor deze rit
+        return rtrim((string) config('services.frontend.url', config('app.url')), '/') . '/customer/rides/' . $this->ride->id;
     }
 }

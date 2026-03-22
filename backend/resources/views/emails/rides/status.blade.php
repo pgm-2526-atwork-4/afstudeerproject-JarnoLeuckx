@@ -69,7 +69,7 @@
             <tr>
                 <td style="padding-bottom: 22px;">
                     <a href="{{ $accountUrl }}" style="display: inline-block; border-radius: 14px; background-color: #0043a8; color: #ffffff; text-decoration: none; font-size: 14px; line-height: 20px; font-weight: 700; padding: 14px 22px;">
-                        Bekijk uw ritten
+                        Bekijk uw rit
                     </a>
                 </td>
             </tr>
