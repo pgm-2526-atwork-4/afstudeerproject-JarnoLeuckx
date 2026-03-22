@@ -17,18 +17,6 @@ import {
   notifyArrival,
   type Ride,
 } from "../../lib/driver.api";
-async function handleArrival(id: number) {
-  setError(null);
-  setLoadingId(id);
-  try {
-    await notifyArrival(id);
-    onAccepted();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Kon aankomst niet melden.");
-  } finally {
-    setLoadingId(null);
-  }
-}
 
 type Props = {
   rides: Ride[];
@@ -36,10 +24,23 @@ type Props = {
   onAccepted: () => void;
 };
 
-export default function RideList({ rides, statusFilter, onAccepted }: Props) {
+
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openRideId, setOpenRideId] = useState<number | null>(null);
+
+  async function handleArrival(id: number) {
+    setError(null);
+    setLoadingId(id);
+    try {
+      await notifyArrival(id);
+      onAccepted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kon aankomst niet melden.");
+    } finally {
+      setLoadingId(null);
+    }
+  }
 
   async function handleAccept(id: number) {
     setError(null);
@@ -96,26 +97,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
     );
   }, [rides, statusFilter]);
 
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="mb-3 text-lg font-extrabold text-slate-900">
-        Toegewezen ritten
-      </h3>
-
-      {error && (
-        <div
-          className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
-
-      {sorted.length === 0 && (
-        <p className="text-sm text-slate-500">Geen ritten gevonden.</p>
-      )}
-
-      {sorted.map((ride) => (
+  // ...existing code...
         <div
           key={ride.id}
           className="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
