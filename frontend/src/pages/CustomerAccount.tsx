@@ -16,9 +16,8 @@ import {
 import { signCustomerContract } from "../lib/customerContract.api";
 import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
 import { generateOfferPdf } from "../lib/generateOfferPdf";
-import {
   getAvailableDrivers,
-  getMyCustomerRides,
+  getMyRides,
   type AvailableDriver,
   type CustomerRide,
 } from "../lib/customer.api";
