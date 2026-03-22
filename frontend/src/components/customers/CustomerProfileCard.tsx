@@ -2,14 +2,23 @@ type Props = {
   name: string;
   email: string;
   phone: string;
+  avatar?: string | null;
 };
 
-export default function CustomerProfileCard({ name, email, phone }: Props) {
+export default function CustomerProfileCard({ name, email, phone, avatar }: Props) {
+  const avatarUrl = avatar || '/image/default-avatar.svg';
   return (
-    <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-3">
-      <Info label="Naam" value={name} icon="👤" />
-      <Info label="Email" value={email} icon="✉️" />
-      <Info label="Telefoon" value={phone} icon="📞" />
+    <div className="flex flex-col md:flex-row items-center gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <img
+        src={avatarUrl}
+        alt="Profielfoto"
+        className="w-24 h-24 rounded-full border-2 border-slate-300 object-cover bg-slate-100"
+      />
+      <div className="grid gap-4 md:grid-cols-3 w-full">
+        <Info label="Naam" value={name} icon={"\ud83d\udc64"} />
+        <Info label="Email" value={email} icon={"\u2709\ufe0f"} />
+        <Info label="Telefoon" value={phone} icon={"\ud83d\udcde"} />
+      </div>
     </div>
   );
 }
