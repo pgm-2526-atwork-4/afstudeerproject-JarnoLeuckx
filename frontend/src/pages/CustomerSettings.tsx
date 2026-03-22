@@ -49,6 +49,7 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   );
 }
 import CustomerProfileCard from "../components/customers/CustomerProfileCard";
+import TwoFactorPage from "../components/TwoFactor/TwoFactorPage";
 import { useNavigate } from "react-router-dom";
 import {
   clearAuth,
@@ -178,6 +179,9 @@ export default function CustomerSettingsPage() {
           <p className="mt-1 text-sm text-slate-600 text-center">
             Werk je profielgegevens bij of verwijder je account indien gewenst.
           </p>
+          <div className="w-full max-w-md mt-4">
+            <TwoFactorPage />
+          </div>
         </div>
 
         <section className="surface-card p-6">
