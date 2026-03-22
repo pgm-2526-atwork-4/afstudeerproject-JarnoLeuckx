@@ -65,7 +65,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
 
@@ -152,7 +151,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
       return;
     }
 
-    // Vereist minstens 1 cijfer of speciaal teken
     if (!/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(registerPassword)) {
       setRegisterError(
         "Wachtwoord moet minstens 1 cijfer of speciaal teken bevatten.",
@@ -284,38 +282,39 @@ export default function AuthPage({ mode }: AuthPageProps) {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="form-layout">
-              <div className="grid gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
+            <form
+              onSubmit={handleLogin}
+              className="form-layout max-w-md mx-auto text-center"
+            >
+              <div className="space-y-4">
+                <div>
                   <label
                     htmlFor="login-email"
-                    className="form-label md:text-right md:pr-4"
+                    className="form-label text-left w-full block"
                   >
                     E-mail<span className="form-required">*</span>
                   </label>
-                  <div className="md:col-span-2">
-                    <input
-                      id="login-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      autoComplete="email"
-                      aria-invalid={Boolean(loginError)}
-                      aria-describedby={loginError ? "login-error" : undefined}
-                      className="form-input w-full"
-                    />
-                  </div>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    aria-invalid={Boolean(loginError)}
+                    aria-describedby={loginError ? "login-error" : undefined}
+                    className="form-input w-full"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
+                <div>
                   <label
                     htmlFor="login-password"
-                    className="form-label md:text-right md:pr-4"
+                    className="form-label text-left w-full block"
                   >
                     Wachtwoord<span className="form-required">*</span>
                   </label>
-                  <div className="md:col-span-2 relative">
+                  <div className="relative">
                     <input
                       id="login-password"
                       type={showLoginPassword ? "text" : "password"}
@@ -348,29 +347,26 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-2">
-                  <div></div>
-                  <label className="flex items-center gap-2 md:col-span-2">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="form-checkbox"
-                    />
-                    <span className="text-sm">Ingelogd blijven</span>
-                  </label>
+                <div className="flex items-center gap-2 justify-center">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="form-checkbox"
+                  />
+                  <span className="text-sm">Ingelogd blijven</span>
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="btn-primary mt-1"
+                className="btn-primary mt-4 w-full"
               >
                 {loginLoading ? "Bezig..." : "Inloggen"}
               </button>
 
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 mt-4">
                 <Link
                   to="/forgot-password"
                   className="font-semibold text-[#0043A8] underline underline-offset-2"
@@ -388,7 +384,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   Registreer hier
                 </Link>
               </p>
-              <div className="mt-6 text-center">
+              <div className="mt-6">
                 <a
                   href="https://jarnoleuckx.be/admin/login"
                   className="inline-block rounded bg-[#0043A8] px-4 py-2 text-xs font-semibold text-white shadow hover:bg-[#003080] transition"
@@ -398,7 +394,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   Admin login (Filament)
                 </a>
               </div>
-              <div className="mt-6 text-center text-xs text-slate-500"></div>
+              <div className="mt-6 text-xs text-slate-500"></div>
             </form>
           </section>
         ) : (
@@ -497,9 +493,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
                         }
                         className="form-input"
                       />
-                      <span className="form-help">
-                        Optioneel, maar handig voor snelle opvolging.
-                      </span>
                     </label>
 
                     <label className="grid gap-1.5 md:col-span-2">
@@ -665,13 +658,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
                           )}
                         </button>
                       </div>
-                      <span
-                        id="register-password-help"
-                        className="text-xs text-slate-500"
-                      >
-                        Minstens 8 tekens, waarvan minstens 1 cijfer of speciaal
-                        teken
-                      </span>
                       {registerPassword && (
                         <span
                           className="text-xs mt-1"
