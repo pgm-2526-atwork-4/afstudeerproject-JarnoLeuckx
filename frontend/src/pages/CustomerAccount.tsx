@@ -19,10 +19,10 @@ import { generateOfferPdf } from "../lib/generateOfferPdf";
 import {
   getAvailableDrivers,
   getMyCustomerRides,
-  createCustomerRide,
   type AvailableDriver,
   type CustomerRide,
 } from "../lib/customer.api";
+import { useNavigate } from "react-router-dom";
 
 type RideStatusFilter =
   | "all"
@@ -83,6 +83,7 @@ export default function CustomerAccountPage() {
   const displayName = currentUser?.name ?? "Gebruiker";
 
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const navigate = useNavigate();
   const [welcomeGreeting, setWelcomeGreeting] = useState(
     `Welkom ${displayName}`,
   );
@@ -1535,35 +1536,19 @@ export default function CustomerAccountPage() {
 
       {showBookingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg flex flex-col items-center justify-center">
             <h3 className="mb-4 text-lg font-bold">Rit boeken</h3>
-            <p className="mb-2 text-sm">
-              Je staat op het punt een rit te boeken voor:
+            <p className="mb-4">
+              Je wordt doorgestuurd naar het reserveringsformulier.
             </p>
-
-            <ul className="mb-4 text-sm">
-              <li>
-                Datum: <b>{calendarDate}</b>
-              </li>
-              <li>
-                Starttijd: <b>{calendarStartTime}</b>
-              </li>
-              <li>
-                Eindtijd: <b>{calendarEndTime}</b>
-              </li>
-            </ul>
-
             <button
-              className="btn-accent mb-2 w-full"
-              onClick={() => {
-                void handleBookRide();
-              }}
+              className="btn-primary w-full"
+              onClick={() => navigate("/reserveren")}
             >
-              Bevestig rit
+              Ga naar reserveren
             </button>
-
             <button
-              className="btn w-full"
+              className="btn w-full mt-4"
               onClick={() => setShowBookingForm(false)}
             >
               Annuleren

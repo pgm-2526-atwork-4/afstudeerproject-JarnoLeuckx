@@ -120,6 +120,13 @@ class RideResource extends Resource
                     Forms\Components\TextInput::make('dropoff_city')->label('Stad')->required(),
                 ])
                 ->columns(4),
+                Forms\Components\Section::make('Vertrekadres terugrit')
+                    ->schema([
+                        Forms\Components\TextInput::make('return_pickup_street')->label('Straat')->nullable(),
+                        Forms\Components\TextInput::make('return_pickup_postcode')->label('Postcode')->nullable(),
+                        Forms\Components\TextInput::make('return_pickup_city')->label('Stad')->nullable(),
+                    ])
+                    ->columns(3),
             Forms\Components\Section::make('Prijs & extra')
                 ->schema([
                     Forms\Components\TextInput::make('distance_km')->label('Afstand (km)')->numeric()->nullable(),

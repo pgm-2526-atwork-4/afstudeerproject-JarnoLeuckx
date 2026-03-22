@@ -34,6 +34,10 @@ export type CreateCustomerRidePayload = {
   return_datetime?: string;
   notes?: string;
   assistance_type?: "luchthaven" | "ziekenhuis";
+  // Extra fields for return trip departure address
+  return_pickup_street?: string;
+  return_pickup_postcode?: string;
+  return_pickup_city?: string;
 };
 
 export type CreateCustomerRideResponse = {

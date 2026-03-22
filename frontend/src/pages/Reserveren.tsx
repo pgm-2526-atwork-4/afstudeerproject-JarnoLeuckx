@@ -662,17 +662,7 @@ export default function ReserverenPage() {
               </div>
             )}
 
-            <div className="rounded-xl border border-[#d6e6ff] bg-[#edf4ff] px-4 py-3">
-              <p className="text-sm text-slate-900 font-semibold">
-                Geschatte prijs
-              </p>
-              <p className="text-2xl font-black text-slate-900">
-                €{price.toFixed(2)}
-              </p>
-              <p className="text-xs text-slate-600">
-                Hardcoded prijs (tijdelijk).
-              </p>
-            </div>
+            {/* Prijsindicatie verwijderd op verzoek */}
 
             <Button className="w-64" disabled={loading}>
               {loading ? "Bezig..." : "Rit aanvragen"}
