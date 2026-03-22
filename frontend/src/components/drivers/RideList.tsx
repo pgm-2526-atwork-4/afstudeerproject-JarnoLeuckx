@@ -17,7 +17,6 @@ import {
   notifyArrival,
   type Ride,
 } from "../../lib/driver.api";
-import type { Review } from "../../lib/review.types";
 async function handleArrival(id: number) {
   setError(null);
   setLoadingId(id);
