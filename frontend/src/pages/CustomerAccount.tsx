@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SignaturePadCanvas, {
-  SignaturePadRef,
+  type SignaturePadRef,
 } from "../shared/SignaturePadCanvas";
 import CustomerRideList from "../components/customers/CustomerRideList";
 import {
@@ -14,10 +14,14 @@ import {
   downloadSignedCustomerContract,
 } from "../lib/customerContract";
 import { signCustomerContract } from "../lib/customerContract.api";
-import { getAvailableDrivers, getMyRides } from "../lib/customer.api";
-import type { AvailableDriver, CustomerRide } from "../lib/customer.api";
+import {
+  getAvailableDrivers,
+  getMyRides,
+  type AvailableDriver,
+  type CustomerRide,
+} from "../lib/customer.api";
+import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
 import { generateOfferPdf } from "../lib/generateOfferPdf";
-import { useNavigate } from "react-router-dom";
 
 type RideStatusFilter =
   | "all"
@@ -76,9 +80,9 @@ function getTimeBasedGreeting(name: string) {
 export default function CustomerAccountPage() {
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Gebruiker";
+  const navigate = useNavigate();
 
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const navigate = useNavigate();
   const [welcomeGreeting, setWelcomeGreeting] = useState(
     `Welkom ${displayName}`,
   );
@@ -168,8 +172,12 @@ export default function CustomerAccountPage() {
   const [quoteLoading, setQuoteLoading] = useState(false);
 
   async function loadData() {
-    const result = await getMyCustomerRides();
-    setRides(result);
+    try {
+      const result = await getMyRides();
+      setRides(result);
+    } catch {
+      setRides([]);
+    }
 
     try {
       const quoteResult = await getMyQuotes();
@@ -224,29 +232,6 @@ export default function CustomerAccountPage() {
       setAvailabilityStatus("idle");
     } finally {
       setAvailabilityLoading(false);
-    }
-  }
-
-  async function handleBookRide() {
-    try {
-      await createCustomerRide({
-        service_type: "medical",
-        pickup_street: "",
-        pickup_postcode: "",
-        pickup_city: "",
-        dropoff_street: "",
-        dropoff_postcode: "",
-        dropoff_city: "",
-        pickup_datetime: `${calendarDate}T${calendarStartTime}`,
-        has_return_trip: false,
-      });
-
-      setShowBookingForm(false);
-      await loadData();
-    } catch (err) {
-      setAvailabilityMessage(
-        err instanceof Error ? err.message : "Rit boeken mislukt.",
-      );
     }
   }
 
@@ -1045,7 +1030,7 @@ export default function CustomerAccountPage() {
                       {quote.total_price && (
                         <p className="text-sm font-semibold text-[#0043A8]">
                           Totaalprijs (excl. BTW): €{" "}
-                          {parseFloat(quote.total_price)
+                          {parseFloat(String(quote.total_price))
                             .toFixed(2)
                             .replace(".", ",")}
                         </p>
@@ -1374,7 +1359,7 @@ export default function CustomerAccountPage() {
                 {selectedQuote.total_price && (
                   <li className="font-semibold text-[#0043A8]">
                     Totaalprijs (excl. BTW): €{" "}
-                    {parseFloat(selectedQuote.total_price)
+                    {parseFloat(String(selectedQuote.total_price))
                       .toFixed(2)
                       .replace(".", ",")}
                   </li>
@@ -1531,19 +1516,21 @@ export default function CustomerAccountPage() {
 
       {showBookingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg flex flex-col items-center justify-center">
+          <div className="flex w-full max-w-lg flex-col items-center justify-center rounded-lg bg-white p-6 shadow-lg">
             <h3 className="mb-4 text-lg font-bold">Rit boeken</h3>
             <p className="mb-4">
               Je wordt doorgestuurd naar het reserveringsformulier.
             </p>
             <button
+              type="button"
               className="btn-primary w-full"
               onClick={() => navigate("/reserveren")}
             >
               Ga naar reserveren
             </button>
             <button
-              className="btn w-full mt-4"
+              type="button"
+              className="btn mt-4 w-full"
               onClick={() => setShowBookingForm(false)}
             >
               Annuleren
