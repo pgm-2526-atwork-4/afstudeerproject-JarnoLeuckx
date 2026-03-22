@@ -33,19 +33,19 @@ class ContactRequest extends Model
         'quote_signature_method',
         'quote_signature_image',
         'hulpbehoeften',
-        'hulpbehoeften'         => 'array',
     ];
 
     protected $casts = [
-        'travel_date'          => 'date',
-        'return_trip'          => 'boolean',
-        'passengers'           => 'integer',
-        'price_per_km'         => 'decimal:2',
-        'estimated_km'         => 'decimal:2',
-        'empty_km'             => 'decimal:2',
-        'total_price'          => 'decimal:2',
-        'quote_sent_at'        => 'datetime',
-        'quote_signed_at'      => 'datetime',
+        'travel_date' => 'date',
+        'return_trip' => 'boolean',
+        'passengers' => 'integer',
+        'price_per_km' => 'decimal:2',
+        'estimated_km' => 'decimal:2',
+        'empty_km' => 'decimal:2',
+        'total_price' => 'decimal:2',
+        'quote_sent_at' => 'datetime',
+        'quote_signed_at' => 'datetime',
+        'hulpbehoeften' => 'array',
     ];
 
     public function user(): BelongsTo
