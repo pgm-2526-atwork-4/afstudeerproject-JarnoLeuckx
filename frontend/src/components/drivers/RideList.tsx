@@ -297,6 +297,7 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
               )}
             </div>
           )}
+
         </div>
       ))}
     </div>
