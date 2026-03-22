@@ -9,6 +9,7 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Notifications\RideStatusUpdatedNotification;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class RideObserver
 {
@@ -16,25 +17,29 @@ class RideObserver
     {
         $ride->loadMissing(['customer', 'driver']);
 
+        try {
+            if (! empty($ride->customer?->email)) {
+                Mail::to($ride->customer->email)->send(
+                    new RideConfirmationMail($ride, $this->customerAccountUrl())
+                );
+            }
 
-        if (! empty($ride->customer?->email)) {
-            Mail::to($ride->customer->email)->send(
-                new RideConfirmationMail($ride, $this->customerAccountUrl())
-            );
-        }
+            $adminEmails = User::query()
+                ->where('role', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values();
 
-        $adminEmails = User::query()
-            ->where('role', 'admin')
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->filter()
-            ->unique()
-            ->values();
-
-        if ($adminEmails->isNotEmpty()) {
-            Mail::to($adminEmails->all())->send(
-                new RideReservationMail($ride, RideResource::getUrl('edit', ['record' => $ride->id]))
-            );
+            if ($adminEmails->isNotEmpty()) {
+                Mail::to($adminEmails->all())->send(
+                    new RideReservationMail($ride, RideResource::getUrl('edit', ['record' => $ride->id]))
+                );
+            }
+        } catch (TransportExceptionInterface $e) {
+            \Log::error('Mail send failed: ' . $e->getMessage());
+            // Optionally: notify user/admin or set a flash message
         }
     }
 
