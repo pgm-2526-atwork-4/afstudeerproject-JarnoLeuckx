@@ -8,8 +8,8 @@ use App\Mail\RideReservationMail;
 use App\Models\Ride;
 use App\Models\User;
 use App\Notifications\RideStatusUpdatedNotification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class RideObserver
 {
@@ -18,7 +18,7 @@ class RideObserver
         $ride->loadMissing(['customer', 'driver']);
 
         try {
-            if (! empty($ride->customer?->email)) {
+            if ($this->canReceiveMail($ride->customer?->email)) {
                 Mail::to($ride->customer->email)->send(
                     new RideConfirmationMail($ride, $this->customerAccountUrl())
                 );
@@ -28,18 +28,23 @@ class RideObserver
                 ->where('role', 'admin')
                 ->whereNotNull('email')
                 ->pluck('email')
-                ->filter()
+                ->filter(fn ($email) => $this->canReceiveMail($email))
                 ->unique()
                 ->values();
 
             if ($adminEmails->isNotEmpty()) {
                 Mail::to($adminEmails->all())->send(
-                    new RideReservationMail($ride, RideResource::getUrl('edit', ['record' => $ride->id]))
+                    new RideReservationMail(
+                        $ride,
+                        RideResource::getUrl('edit', ['record' => $ride->id])
+                    )
                 );
             }
-        } catch (TransportExceptionInterface $e) {
-            \Log::error('Mail send failed: ' . $e->getMessage());
-            // Optionally: notify user/admin or set a flash message
+        } catch (\Throwable $e) {
+            Log::error('Mail send failed', [
+                'ride_id' => $ride->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -51,15 +56,30 @@ class RideObserver
 
         $ride->loadMissing(['customer', 'driver']);
 
-        if (! $ride->customer) {
+        if (! $ride->customer || ! $this->canReceiveMail($ride->customer->email)) {
             return;
         }
 
-        $ride->customer->notify(new RideStatusUpdatedNotification($ride));
+        try {
+            $ride->customer->notify(new RideStatusUpdatedNotification($ride));
+        } catch (\Throwable $e) {
+            Log::error('Ride status notification failed', [
+                'ride_id' => $ride->id,
+                'customer_id' => $ride->customer->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function customerAccountUrl(): string
     {
-        return rtrim((string) config('services.frontend.url', config('app.url')), '/').'/customer/account';
+        return rtrim((string) config('services.frontend.url', config('app.frontend_url', config('app.url'))), '/') . '/customer/account';
+    }
+
+    private function canReceiveMail(?string $email): bool
+    {
+        return filled($email)
+            && filter_var($email, FILTER_VALIDATE_EMAIL)
+            && ! str_ends_with(strtolower($email), '.test');
     }
 }
