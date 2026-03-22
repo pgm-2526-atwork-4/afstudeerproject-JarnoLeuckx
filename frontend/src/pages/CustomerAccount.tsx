@@ -21,6 +21,7 @@ import {
 } from "../lib/customer.api";
 import { getMyQuotes, signQuote, type CustomerQuote } from "../lib/quote.api";
 import { generateOfferPdf } from "../lib/generateOfferPdf";
+import CustomerRideList from "../components/customers/CustomerRideList";
 
 type RideStatusFilter =
   | "all"
@@ -76,6 +77,39 @@ function getTimeBasedGreeting(name: string) {
   return `Goedenavond ${name}`;
 }
 
+function extractQuotes(data: unknown): CustomerQuote[] {
+  if (Array.isArray(data)) {
+    return data as CustomerQuote[];
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    "quotes" in data &&
+    Array.isArray((data as { quotes?: unknown }).quotes)
+  ) {
+    return (data as { quotes: CustomerQuote[] }).quotes;
+  }
+
+  return [];
+}
+
+function extractSignedQuote(data: unknown): CustomerQuote | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  if ("quote" in data && (data as { quote?: unknown }).quote) {
+    return (data as { quote: CustomerQuote }).quote;
+  }
+
+  if ("id" in data) {
+    return data as CustomerQuote;
+  }
+
+  return null;
+}
+
 export default function CustomerAccountPage() {
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Gebruiker";
@@ -128,8 +162,8 @@ export default function CustomerAccountPage() {
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(
     Boolean(
       currentUser &&
-      currentUser.role === "customer" &&
-      currentUser.email_notifications_enabled == null,
+        currentUser.role === "customer" &&
+        currentUser.email_notifications_enabled == null,
     ),
   );
   const [notificationPromptLoading, setNotificationPromptLoading] =
@@ -180,7 +214,7 @@ export default function CustomerAccountPage() {
 
     try {
       const quoteResult = await getMyQuotes();
-      setQuotes(quoteResult.quotes);
+      setQuotes(extractQuotes(quoteResult));
     } catch {
       setQuotes([]);
     }
@@ -624,7 +658,13 @@ export default function CustomerAccountPage() {
         quoteAcceptedTerms,
       );
 
-      await generateOfferPdf(result.quote, {
+      const signedQuote = extractSignedQuote(result);
+
+      if (!signedQuote) {
+        throw new Error("Geen geldige offerte teruggekregen na ondertekenen.");
+      }
+
+      await generateOfferPdf(signedQuote, {
         method: quoteSignatureMethod,
         signerName,
         signerDate: quoteSignatureDate,
@@ -633,8 +673,9 @@ export default function CustomerAccountPage() {
       });
 
       setQuotes((prev) =>
-        prev.map((q) => (q.id === result.quote.id ? result.quote : q)),
+        prev.map((q) => (q.id === signedQuote.id ? signedQuote : q)),
       );
+      setSelectedQuote(signedQuote);
       setIsQuoteModalOpen(false);
     } catch (err) {
       const message =
@@ -977,13 +1018,13 @@ export default function CustomerAccountPage() {
 
             <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200">
               {quotes.map((quote) => {
-                const statusLabel: Record<string, string> = {
+                const statusLabels: Record<string, string> = {
                   offerte_verstuurd: "Offerte ontvangen",
                   ondertekend: "Ondertekend",
                   afgewerkt: "Afgewerkt",
                 };
 
-                const statusColor: Record<string, string> = {
+                const statusColors: Record<string, string> = {
                   offerte_verstuurd: "bg-blue-100 text-blue-800",
                   ondertekend: "bg-emerald-100 text-emerald-800",
                   afgewerkt: "bg-slate-100 text-slate-700",
@@ -1002,11 +1043,11 @@ export default function CustomerAccountPage() {
 
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            statusColor[quote.status] ??
+                            statusColors[quote.status] ??
                             "bg-slate-100 text-slate-700"
                           }`}
                         >
-                          {statusLabel[quote.status] ?? quote.status}
+                          {statusLabels[quote.status] ?? quote.status}
                         </span>
                       </div>
 

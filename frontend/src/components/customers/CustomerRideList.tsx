@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
-import { deleteRide, type Ride } from "../../lib/customer.api";
-import ReviewForm from "./ReviewForm";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { deleteRide, type CustomerRide } from "../../lib/customer.api";
+import ReviewForm from "./ReviewForm";
 
 type RideStatusFilter =
   | "all"
@@ -12,7 +12,7 @@ type RideStatusFilter =
   | "cancelled";
 
 type Props = {
-  rides: Ride[];
+  rides: CustomerRide[];
   statusFilter: RideStatusFilter;
 };
 
@@ -33,32 +33,35 @@ export default function CustomerRideList({ rides, statusFilter }: Props) {
       )}
 
       <div className="grid gap-3">
-        {filtered.map((r) => (
-          <RideCard key={r.id} ride={r} />
+        {filtered.map((ride) => (
+          <RideCard key={ride.id} ride={ride} />
         ))}
       </div>
     </div>
   );
 }
 
-function RideCard({ ride }: { ride: Ride }) {
+function RideCard({ ride }: { ride: CustomerRide }) {
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const rideNotes = ride.notes;
   const price =
     ride.total_price !== null && ride.total_price !== undefined
       ? Number(ride.total_price).toFixed(2)
       : null;
 
-  // Toon reviewformulier als rit is afgerond
   const showReview = ride.status === "completed";
 
   async function handleDelete() {
-    if (!window.confirm("Weet je zeker dat je deze rit wilt annuleren?"))
+    if (!window.confirm("Weet je zeker dat je deze rit wilt annuleren?")) {
       return;
+    }
+
     setDeleting(true);
     setError(null);
+
     try {
       await deleteRide(ride.id);
       window.location.reload();
@@ -78,6 +81,7 @@ function RideCard({ ride }: { ride: Ride }) {
             Rit ID: R-{String(ride.id).padStart(4, "0")}
           </div>
         </div>
+
         <StatusPill status={ride.status} />
       </div>
 
@@ -91,12 +95,13 @@ function RideCard({ ride }: { ride: Ride }) {
             {ride.pickup_city}
           </div>
         </div>
+
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
             Datum & Tijd
           </div>
           <div className="font-bold text-slate-900">
-            {new Date(ride.pickup_datetime).toLocaleString()}
+            {new Date(ride.pickup_datetime).toLocaleString("nl-BE")}
           </div>
         </div>
 
@@ -109,6 +114,7 @@ function RideCard({ ride }: { ride: Ride }) {
             {ride.dropoff_city}
           </div>
         </div>
+
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
             Chauffeur
@@ -139,13 +145,16 @@ function RideCard({ ride }: { ride: Ride }) {
 
       <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
         <button
+          type="button"
           className="btn-outline w-full px-3 py-2 sm:w-auto"
           onClick={() => navigate(`/customer/rides/${ride.id}/edit`)}
           disabled={deleting}
         >
           ✏️ Bewerken
         </button>
+
         <button
+          type="button"
           className="btn-danger w-full px-3 py-2 sm:w-auto"
           onClick={handleDelete}
           disabled={deleting}
@@ -156,7 +165,7 @@ function RideCard({ ride }: { ride: Ride }) {
 
       {showReview && (
         <div className="mt-6">
-          <h4 className="font-bold mb-2">Geef een review aan de chauffeur</h4>
+          <h4 className="mb-2 font-bold">Geef een review aan de chauffeur</h4>
           <ReviewForm rideId={ride.id} />
         </div>
       )}
@@ -166,6 +175,7 @@ function RideCard({ ride }: { ride: Ride }) {
 
 function StatusPill({ status }: { status: string }) {
   const style = pillStyle(status);
+
   return (
     <span style={style} className="rounded-full px-2.5 py-1 text-xs font-bold">
       {statusLabel(status)}
