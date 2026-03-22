@@ -1,3 +1,4 @@
+import React, { useMemo, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
@@ -9,15 +10,22 @@ import {
   Wrench,
   Waves,
 } from "lucide-react";
-import { useMemo, useState } from "react";
 import {
   acceptRide,
   completeRide,
   rejectRide,
   notifyArrival,
-  type Ride,
 } from "../../lib/driver.api";
+import type { Ride as BaseRide } from "../../lib/driver.api";
 
+type Review = {
+  stars: number;
+  comment?: string | null;
+};
+
+type Ride = BaseRide & {
+  review?: Review;
+};
 
 type Props = {
   rides: Ride[];
@@ -37,7 +45,9 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
       await notifyArrival(id);
       onAccepted();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kon aankomst niet melden.");
+      setError(
+        err instanceof Error ? err.message : "Kon aankomst niet melden.",
+      );
     } finally {
       setLoadingId(null);
     }
@@ -46,7 +56,6 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
   async function handleAccept(id: number) {
     setError(null);
     setLoadingId(id);
-
     try {
       await acceptRide(id);
       onAccepted();
@@ -60,7 +69,6 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
   async function handleReject(id: number) {
     setError(null);
     setLoadingId(id);
-
     try {
       await rejectRide(id);
       onAccepted();
@@ -74,7 +82,6 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
   async function handleComplete(id: number) {
     setError(null);
     setLoadingId(id);
-
     try {
       await completeRide(id);
       onAccepted();
@@ -90,7 +97,6 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
       statusFilter === "all"
         ? rides
         : rides.filter((ride) => ride.status === statusFilter);
-
     return [...filtered].sort(
       (a, b) =>
         new Date(a.pickup_datetime).getTime() -
@@ -98,7 +104,26 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
     );
   }, [rides, statusFilter]);
 
-  // ...existing code...
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="mb-3 text-lg font-extrabold text-slate-900">
+        Toegewezen ritten
+      </h3>
+
+      {error && (
+        <div
+          className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+
+      {sorted.length === 0 && (
+        <p className="text-sm text-slate-500">Geen ritten gevonden.</p>
+      )}
+
+      {sorted.map((ride) => (
         <div
           key={ride.id}
           className="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
@@ -297,7 +322,6 @@ export default function RideList({ rides, statusFilter, onAccepted }: Props) {
               )}
             </div>
           )}
-
         </div>
       ))}
     </div>
@@ -421,10 +445,19 @@ function formatRideWindow(pickupAt: string, returnAt?: string | null) {
   const sameDay = pickup.toDateString() === dropoff.toDateString();
 
   if (sameDay) {
-    return `${pickupLabel} - ${dropoff.toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}`;
+    return `${pickupLabel} - ${dropoff.toLocaleTimeString("nl-BE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
   }
 
-  return `${pickupLabel} - ${dropoff.toLocaleString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}`;
+  return `${pickupLabel} - ${dropoff.toLocaleString("nl-BE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -447,6 +480,7 @@ function getStatusColor(status: string): React.CSSProperties {
         border: "1px solid #D6E6FF",
       };
     case "accepted":
+    case "in_progress":
       return {
         background: "#dcfce7",
         color: "#166534",
@@ -481,6 +515,8 @@ function statusLabel(status: string) {
       return "In afwachting";
     case "accepted":
       return "Geaccepteerd";
+    case "in_progress":
+      return "Onderweg";
     case "completed":
       return "Afgerond";
     case "cancelled":
