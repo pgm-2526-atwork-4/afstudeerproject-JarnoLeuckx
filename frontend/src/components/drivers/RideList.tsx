@@ -18,13 +18,14 @@ import {
   type Ride,
 } from "../../lib/driver.api";
 
+
 type Props = {
   rides: Ride[];
   statusFilter: "all" | "assigned" | "accepted" | "completed";
   onAccepted: () => void;
 };
 
-
+export default function RideList({ rides, statusFilter, onAccepted }: Props) {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openRideId, setOpenRideId] = useState<number | null>(null);
