@@ -57,7 +57,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'approval_status',
         'google2fa_secret',
         'two_factor_enabled',
+        'avatar',
     ];
+    // Always return a default avatar if none is set
+    public function getAvatarAttribute($value)
+    {
+        return $value ?: 'image/default-avatar.svg';
+    }
 
    
     protected $hidden = [

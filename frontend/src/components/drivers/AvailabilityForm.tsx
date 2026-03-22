@@ -1,6 +1,6 @@
+import CalendarDateField from "../forms/CalendarDateField";
 import { useMemo, useState } from "react";
 import { createAvailability, type Availability } from "../../lib/driver.api";
-import CalendarDateField from "../forms/CalendarDateField";
 
 type Props = {
   availabilities: Availability[];
