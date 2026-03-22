@@ -15,7 +15,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->bigIncrements('id')->change(); // Pas eventueel aan naar je oude type
+            $table->bigIncrements('id')->change();
         });
     }
 };
